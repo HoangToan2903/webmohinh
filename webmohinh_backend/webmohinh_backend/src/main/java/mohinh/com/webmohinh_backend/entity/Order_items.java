@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity
-public class order_items {
+public class Order_items {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

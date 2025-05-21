@@ -26,4 +26,8 @@ public class Orders {
 
     LocalDateTime createdAt;
     String shipping_address;
+
+    @ManyToOne
+    @JoinColumn(name = "voucher_id")
+    private Voucher voucher;
 }

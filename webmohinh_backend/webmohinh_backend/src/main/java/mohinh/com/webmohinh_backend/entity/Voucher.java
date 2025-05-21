@@ -7,6 +7,8 @@ import jakarta.persistence.Id;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @Builder
@@ -14,11 +16,18 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity
-public class Categories {
+public class Voucher {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     String id;
-    String name;
+    String maVoucher;
     String description;
-    String image;
+    Double reduced_value;//giá trị giảm
+    Double conditions_apply;//điều kiện giảm
+    Integer quantity;
+    String status;
+    LocalDateTime created_at;
+    LocalDateTime start_date;
+    LocalDateTime end_date;
+    LocalDateTime update_at;
 }

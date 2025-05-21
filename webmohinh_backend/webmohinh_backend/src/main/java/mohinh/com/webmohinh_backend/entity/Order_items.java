@@ -28,4 +28,6 @@ public class Order_items {
     @ManyToOne
     @JoinColumn(name = "order_id")
     private Orders orders;
+
+
 }

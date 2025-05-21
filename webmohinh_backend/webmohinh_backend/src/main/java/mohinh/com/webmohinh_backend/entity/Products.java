@@ -20,11 +20,12 @@ public class Products {
     String id;
     String name;
     BigDecimal price;
+    BigDecimal price_promotion;
     Integer quantity;
     String description;
     String image;
     LocalDateTime createdAt;
-
+    LocalDateTime updatedAt;
     @ManyToOne
     @JoinColumn(name = "categories_id")
     private Categories categories;

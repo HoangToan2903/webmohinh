@@ -20,7 +20,7 @@ public class Voucher {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     String id;
-    String maVoucher;
+    String codeVoucher;
     String description;
     Double reduced_value;//giá trị giảm
     Double conditions_apply;//điều kiện giảm

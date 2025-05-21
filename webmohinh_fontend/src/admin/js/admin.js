@@ -12,6 +12,9 @@ import Person4Icon from '@mui/icons-material/Person4';
 import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 import ContentRenderer from './contentRenderer';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import LoyaltyIcon from '@mui/icons-material/Loyalty';
+import ReceiptIcon from '@mui/icons-material/Receipt';
+
 function Admin() {
     const [activeTab, setActiveTab] = useState('statistics');
     const [openMenus, setOpenMenus] = useState({});
@@ -57,8 +60,8 @@ function Admin() {
                             <li className={`has-sub-menu ${openMenus.products ? 'open' : ''}`}>
                                 <span onClick={() => toggleMenu('products')} className="profile-menu">
                                     <InventoryIcon />
-                                     Products 
-                                     <ArrowDropDownIcon />
+                                    Products
+                                    <ArrowDropDownIcon />
                                 </span>
                                 <ul className={`sub-menu ${openMenus.products ? 'show' : ''}`}>
                                     <li
@@ -100,6 +103,29 @@ function Admin() {
                                         onClick={() => setActiveTab('profile-staff')}
                                     >
                                         <span><PeopleAltIcon /> Staff</span>
+                                    </li>
+                                </ul>
+                            </li>
+
+
+                            <li className={`has-sub-menu ${openMenus.sale ? 'open' : ''}`}>
+                                <span onClick={() => toggleMenu('sale')} className="profile-menu">
+                                    < ReceiptIcon />
+                                    Sale
+                                    <ArrowDropDownIcon />
+                                </span>
+                                <ul className={`sub-menu ${openMenus.sale ? 'show' : ''}`}>
+                                    <li
+                                        className={activeTab === 'voucher' ? 'active' : ''}
+                                        onClick={() => setActiveTab('voucher')}
+                                    >
+                                        <span><LoyaltyIcon /> Voucher</span>
+                                    </li>
+                                    <li
+                                        className={activeTab === 'profile-staff' ? 'active' : ''}
+                                        onClick={() => setActiveTab('profile-staff')}
+                                    >
+                                        <span><LoyaltyIcon /> Staff</span>
                                     </li>
                                 </ul>
                             </li>

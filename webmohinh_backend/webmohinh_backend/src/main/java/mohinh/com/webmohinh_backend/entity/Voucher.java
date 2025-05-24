@@ -1,5 +1,6 @@
 package mohinh.com.webmohinh_backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -7,6 +8,7 @@ import jakarta.persistence.Id;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -27,7 +29,9 @@ public class Voucher {
     Integer quantity;
     String status;
     LocalDateTime created_at;
-    LocalDateTime start_date;
-    LocalDateTime end_date;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    LocalDate start_date;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    LocalDate end_date;
     LocalDateTime update_at;
 }

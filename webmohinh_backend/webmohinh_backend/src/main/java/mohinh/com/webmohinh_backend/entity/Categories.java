@@ -1,9 +1,6 @@
 package mohinh.com.webmohinh_backend.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -20,5 +17,7 @@ public class Categories {
     String id;
     String name;
     String description;
-    String image;
+    @Lob
+    @Basic(fetch = FetchType.LAZY)  // ảnh chỉ load khi cần thiết
+    private byte[] image;
 }

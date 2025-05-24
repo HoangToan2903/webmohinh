@@ -14,10 +14,16 @@ import ContentRenderer from './contentRenderer';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import LoyaltyIcon from '@mui/icons-material/Loyalty';
 import ReceiptIcon from '@mui/icons-material/Receipt';
+import { useNavigate, useParams } from 'react-router-dom';
 
 function Admin() {
     const [activeTab, setActiveTab] = useState('statistics');
     const [openMenus, setOpenMenus] = useState({});
+
+    const [isSubMenuOpen, setIsSubMenuOpen] = useState(false);
+    const toggleSubMenu = () => {
+        setIsSubMenuOpen(!isSubMenuOpen);
+    };
 
     const toggleMenu = (menuName) => {
         setOpenMenus((prev) => ({
@@ -25,7 +31,12 @@ function Admin() {
             [menuName]: !prev[menuName],
         }));
     };
+    const { tab } = useParams(); // Lấy tab từ URL
+    const navigate = useNavigate();
 
+    const handleTabChange = (newTab) => {
+        navigate(`/admin/${newTab}`);
+    };
     return (
         <div>
             <div className="dashboard">
@@ -43,47 +54,33 @@ function Admin() {
                     </div>
                     <nav>
                         <ul>
-                            <li
-                                className={activeTab === 'statistics' ? 'active' : ''}
-                                onClick={() => setActiveTab('statistics')}
-                            >
+                            <li className={tab === 'statistics' ? 'active' : ''} onClick={() => handleTabChange('statistics')}>
                                 <span><AreaChartIcon /> Statistics</span>
                             </li>
 
-                            <li
-                                className={activeTab === 'orders' ? 'active' : ''}
-                                onClick={() => setActiveTab('orders')}
-                            >
+                            <li className={tab === 'orders' ? 'active' : ''} onClick={() => handleTabChange('orders')}>
                                 <span><BalanceIcon /> Order</span>
                             </li>
 
-                            <li className={`has-sub-menu ${openMenus.products ? 'open' : ''}`}>
-                                <span onClick={() => toggleMenu('products')} className="profile-menu">
-                                    <InventoryIcon />
-                                    Products
-                                    <ArrowDropDownIcon />
+                            <li className={`has-sub-menu ${isSubMenuOpen ? 'open' : ''}`}>
+                                <span className="profile-menu" onClick={toggleSubMenu}>
+                                    <InventoryIcon /> Products <ArrowDropDownIcon />
                                 </span>
-                                <ul className={`sub-menu ${openMenus.products ? 'show' : ''}`}>
-                                    <li
-                                        className={activeTab === 'producer' ? 'active' : ''}
-                                        onClick={() => setActiveTab('producer')}
-                                    >
-                                        <span><PrecisionManufacturingIcon /> Producer</span>
-                                    </li>
-                                    <li
-                                        className={activeTab === 'categories' ? 'active' : ''}
-                                        onClick={() => setActiveTab('categories')}
-                                    >
-                                        <span><CategoryIcon /> Categories</span>
-                                    </li>
-                                    <li
-                                        className={activeTab === 'products-detail' ? 'active' : ''}
-                                        onClick={() => setActiveTab('products-detail')}
-                                    >
-                                        <span><DetailsIcon /> Products_detail</span>
-                                    </li>
-                                </ul>
+                                {isSubMenuOpen && (
+                                    <ul className="sub-menu show">
+                                        <li className={tab === 'producer' ? 'active' : ''} onClick={() => handleTabChange('producer')}>
+                                            <span><PrecisionManufacturingIcon /> Producer</span>
+                                        </li>
+                                        <li className={tab === 'categories' ? 'active' : ''} onClick={() => handleTabChange('categories')}>
+                                            <span><CategoryIcon /> Categories</span>
+                                        </li>
+                                        <li className={tab === 'products-detail' ? 'active' : ''} onClick={() => handleTabChange('products-detail')}>
+                                            <span><DetailsIcon /> Products_detail</span>
+                                        </li>
+                                    </ul>
+                                )}
                             </li>
+
 
                             <li className={`has-sub-menu ${openMenus.profile ? 'open' : ''}`}>
                                 <span onClick={() => toggleMenu('profile')} className="profile-menu">
@@ -115,10 +112,12 @@ function Admin() {
                                     <ArrowDropDownIcon />
                                 </span>
                                 <ul className={`sub-menu ${openMenus.sale ? 'show' : ''}`}>
-                                    <li
+                                    {/* <li
                                         className={activeTab === 'voucher' ? 'active' : ''}
                                         onClick={() => setActiveTab('voucher')}
-                                    >
+                                    > */}
+                                    <li className={tab === 'voucher' ? 'active' : ''} onClick={() => handleTabChange('voucher')}>
+
                                         <span><LoyaltyIcon /> Voucher</span>
                                     </li>
                                     <li
@@ -154,7 +153,7 @@ function Admin() {
                     </header>
 
                     <div className="content">
-                        <ContentRenderer activeTab={activeTab} />
+                        <ContentRenderer tab={tab} />
                     </div>
 
                     <footer>

@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import reportWebVitals from './reportWebVitals';
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
 import Admin from './admin/js/admin';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
@@ -9,9 +9,10 @@ root.render(
   <React.StrictMode>
     <Router>
       <Routes>
-        <Route path="/admin" element={<Admin />} />
-
-        </Routes>
+        <Route path="/admin/:tab" element={<Admin />} />
+        {/* Redirect mặc định nếu chưa có tab */}
+        <Route path="/admin" element={<Navigate to="/admin/statistics" />} />
+      </Routes>
     </Router>
   </React.StrictMode>
 );

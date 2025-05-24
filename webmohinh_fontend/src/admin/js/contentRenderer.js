@@ -4,9 +4,9 @@ import Producer from './producer'
 import Voucher from './voucher'
 
 
-const ContentRenderer = ({ activeTab }) => {
-    switch (activeTab) {
-        case 'statistics':
+const ContentRenderer = ({ tab  }) => {
+    switch (tab) {
+       case 'statistics':
             return <Statistics />;
         case 'categories':
             return <Categories />;
@@ -18,7 +18,6 @@ const ContentRenderer = ({ activeTab }) => {
         default:
             return <div>Select a section</div>;
     }
-
 };
 
 export default ContentRenderer;

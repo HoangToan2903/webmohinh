@@ -54,6 +54,7 @@ public class CategoriesController {
             @RequestParam("description") String description,
             @RequestParam(value = "image", required = false) MultipartFile imageFile
     ) throws IOException {
+
         Categories category = new Categories();
         category.setName(name);
         category.setDescription(description);

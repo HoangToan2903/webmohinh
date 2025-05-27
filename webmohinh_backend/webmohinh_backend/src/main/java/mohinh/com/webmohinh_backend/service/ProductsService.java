@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import mohinh.com.webmohinh_backend.entity.Categories;
 import mohinh.com.webmohinh_backend.entity.Producer;
 import mohinh.com.webmohinh_backend.entity.Products;
 import mohinh.com.webmohinh_backend.repository.ProductsRepository;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -31,8 +33,8 @@ public class ProductsService {
         return productsRepository.save(products);
     }
 
-    public List<Products> getAll(){
-        return productsRepository.findAll();
+    public Page<Products> getAll(Pageable pageable) {
+        return productsRepository.findAll(pageable);
     }
 
     public Products update(String id, Products products) {
@@ -45,6 +47,15 @@ public class ProductsService {
         usersproducts.setCategories(products.getCategories());
         usersproducts.setCreatedAt(products.getCreatedAt());
         usersproducts.setProducer(products.getProducer());
+        usersproducts.setCharacter_name(products.getCharacter_name());
+        usersproducts.setWidth(products.getWidth());
+        usersproducts.setWeight(products.getWeight());
+        usersproducts.setHeight(products.getHeight());
+        usersproducts.setProduct_code(products.getProduct_code());
+        usersproducts.setMaterial(products.getMaterial());
+        usersproducts.setTag(products.getTag());
+        usersproducts.setUpdatedAt(LocalDateTime.now());
+
         return productsRepository.save(usersproducts);
     }
 

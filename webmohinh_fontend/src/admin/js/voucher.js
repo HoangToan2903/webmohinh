@@ -54,6 +54,29 @@ function Voucher() {
                 window.alert("Vui lòng nhập codeVoucher!");
                 return;
             }
+            if (!newVoucher.quantity.trim()) {
+                window.alert("Vui lòng nhập quantity!");
+                return;
+            }
+            if (!newVoucher.reduced_value.trim()) {
+                window.alert("Vui lòng nhập reduced value!");
+                return;
+            } if (!newVoucher.conditions_apply.trim()) {
+                window.alert("Vui lòng nhập conditions apply!");
+                return;
+            }
+            if (!newVoucher.start_date.trim()) {
+                window.alert("Vui lòng nhập start date!");
+                return;
+            }
+            if (!newVoucher.end_date.trim()) {
+                window.alert("Vui lòng nhập end date!");
+                return;
+            }
+             if (!newVoucher.description.trim()) {
+                window.alert("Vui lòng nhập description!");
+                return;
+            }
             // Kiểm tra xem tên đã tồn tại trong danh sách chưa
             const isDuplicate = vouchers.some(voucher => voucher.codeVoucher === newVoucher.codeVoucher.trim());
             if (isDuplicate) {
@@ -68,7 +91,7 @@ function Voucher() {
             setNewVoucher({ codeVoucher: '', quantity: '', reduced_value: '', conditions_apply: '', start_date: '', end_date: '', description: '' });
             setSuccessAlertAdd(true);
             setTimeout(() => setSuccessAlertAdd(false), 3000);
-
+            handleClose?.();
         } catch (error) {
             console.error("Lỗi khi thêm loại:", error);
         }
@@ -550,7 +573,7 @@ function Voucher() {
                     </Box>
                     <br></br>
                     <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
-                         <TextField
+                        <TextField
                             id="filled-basic" label="Status " variant="filled"
                             name="status"
                             type="text"
@@ -579,7 +602,7 @@ function Voucher() {
                                 fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
                             }}
                         />
-                       
+
                     </Box>
 
 

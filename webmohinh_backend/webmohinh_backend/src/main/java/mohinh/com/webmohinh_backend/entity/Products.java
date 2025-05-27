@@ -6,6 +6,8 @@ import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -19,11 +21,23 @@ public class Products {
     @GeneratedValue(strategy = GenerationType.UUID)
     String id;
     String name;
+    String product_code;
+    String character_name;
     BigDecimal price;
     BigDecimal price_promotion;
     Integer quantity;
     String description;
-    String image;
+    Double width;
+    Double height;
+    Double weight;
+    String type;
+    String status;
+    String material;
+    String tag;
+
+    @Lob
+    @Basic(fetch = FetchType.LAZY)  // ảnh chỉ load khi cần thiết
+    private byte[] image;
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
     @ManyToOne
@@ -33,4 +47,8 @@ public class Products {
     @ManyToOne
     @JoinColumn(name = "producer_id")
     private Producer producer;
+
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductImage> images = new ArrayList<>();
 }

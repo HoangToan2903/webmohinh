@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import '../css/admin.css';
 import imageicon from '../image/icon.jpeg';
+import logo from '../image/logo.png';
 import AreaChartIcon from '@mui/icons-material/AreaChart';
 import BalanceIcon from '@mui/icons-material/Balance';
 import InventoryIcon from '@mui/icons-material/Inventory';
@@ -43,12 +44,12 @@ function Admin() {
                 <div className="sidebar">
                     <div className="logo">
                         <img
-                            src={imageicon}
+                            src={logo}
                             alt="Icon"
                             style={{
-                                width: '150px',
-                                height: '150px',
-                                borderRadius: '100px',
+                                width: '220px',
+                                height: '220px',
+                                
                             }}
                         />
                     </div>
@@ -74,7 +75,7 @@ function Admin() {
                                         <li className={tab === 'categories' ? 'active' : ''} onClick={() => handleTabChange('categories')}>
                                             <span><CategoryIcon /> Categories</span>
                                         </li>
-                                        <li className={tab === 'products-detail' ? 'active' : ''} onClick={() => handleTabChange('products-detail')}>
+                                        <li className={tab === 'products' ? 'active' : ''} onClick={() => handleTabChange('products')}>
                                             <span><DetailsIcon /> Products_detail</span>
                                         </li>
                                     </ul>

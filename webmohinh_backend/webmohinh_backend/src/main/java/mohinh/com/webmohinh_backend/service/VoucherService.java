@@ -37,11 +37,11 @@ public class VoucherService {
 
         // Tính toán status dựa vào ngày hiện tại
         if (today.isBefore(startDate)) {
-            voucher.setStatus("Inactive");
+            voucher.setStatus("Chưa hoạt động");
         } else if ((today.isEqual(startDate) || today.isAfter(startDate)) && (today.isBefore(endDate) || today.isEqual(endDate))) {
-            voucher.setStatus("Active");
+            voucher.setStatus("Đang hoạt động");
         } else if (today.isAfter(endDate)) {
-            voucher.setStatus("Deactivated");
+            voucher.setStatus("Ngừng hoạt động");
         }
         voucher.setCreated_at(LocalDateTime.now());
         return voucherRepository.save(voucher);
@@ -67,11 +67,11 @@ public class VoucherService {
             LocalDate endDate = updatedVoucher.getEnd_date();
 
             if (today.isBefore(startDate)) {
-                existing.setStatus("Inactive");
+                existing.setStatus("Chưa hoạt động");
             } else if (!today.isAfter(endDate)) {
-                existing.setStatus("Active");
+                existing.setStatus("Đang hoạt động");
             } else {
-                existing.setStatus("Deactivated");
+                existing.setStatus("Ngừng hoạt động");
             }
 
             // Cập nhật thời gian chỉnh sửa

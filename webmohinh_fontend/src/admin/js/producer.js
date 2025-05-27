@@ -61,6 +61,7 @@ function Producer() {
             setProducers([response.data, ...producers]);
             setNewProducer({ name: '', description: '' });
             setSuccessAlertAdd(true);
+            handleClose?.();
             setTimeout(() => setSuccessAlertAdd(false), 3000);
 
         } catch (error) {

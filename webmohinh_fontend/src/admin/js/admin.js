@@ -113,20 +113,15 @@ function Admin() {
                                     <ArrowDropDownIcon />
                                 </span>
                                 <ul className={`sub-menu ${openMenus.sale ? 'show' : ''}`}>
-                                    {/* <li
-                                        className={activeTab === 'voucher' ? 'active' : ''}
-                                        onClick={() => setActiveTab('voucher')}
-                                    > */}
-                                    <li className={tab === 'voucher' ? 'active' : ''} onClick={() => handleTabChange('voucher')}>
+                                  
+                                    <li className={tab === 'voucher' ? 'active' : ''}
+                                     onClick={() => handleTabChange('voucher')}>
 
                                         <span><LoyaltyIcon /> Voucher</span>
                                     </li>
-                                    <li
-                                        className={activeTab === 'profile-staff' ? 'active' : ''}
-                                        onClick={() => setActiveTab('profile-staff')}
-                                    >
-                                        <span><LoyaltyIcon /> Staff</span>
-                                    </li>
+                                     <li className={tab === 'sale' ? 'active' : ''} onClick={() => handleTabChange('sale')}>
+                                            <span><DetailsIcon /> Sale</span>
+                                        </li>
                                 </ul>
                             </li>
                         </ul>

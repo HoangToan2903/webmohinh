@@ -35,9 +35,7 @@ public class Products {
     String material;
     String tag;
 
-    @Lob
-    @Basic(fetch = FetchType.LAZY)  // ảnh chỉ load khi cần thiết
-    private byte[] image;
+
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
     @ManyToOne
@@ -48,7 +46,9 @@ public class Products {
     @JoinColumn(name = "producer_id")
     private Producer producer;
 
-
+    @Lob
+    @Basic(fetch = FetchType.LAZY)  // ảnh chỉ load khi cần thiết
+    private byte[] image;
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductImage> images = new ArrayList<>();
 }

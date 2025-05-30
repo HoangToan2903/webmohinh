@@ -53,9 +53,10 @@ function Products() {
     const [imagePreview, setImagePreview] = useState("");
     const [categoryValue, setCategoryValue] = useState(null);
     const [categoryInputValue, setCategoryInputValue] = useState('');
-
     const [producerValue, setProducerValue] = useState(null);
     const [producerInputValue, setProducerInputValue] = useState('');
+    const [tags, setTags] = React.useState([]);
+    // tag
     //GetAll
     const [page, setPage] = useState(0); // page = 0 is first page
     const [size, setSize] = useState(10);
@@ -287,33 +288,101 @@ function Products() {
     const handleCloseEdit = () => {
         setOpenEdit(false)
     }
-    const handleChangeEdit = (event) => {
-        setEditProducts({
-            ...editProducts,
-            [event.target.name]: event.target.value
-        });
+    // const handleChangeEdit = (event) => {
+    //     setEditProducts({
+    //         ...editProducts,
+    //         [event.target.name]: event.target.value
+    //     });
+    // };
+    const handleChangeEdit = (e) => {
+        const { name, value } = e.target;
+        setEditProducts(prev => ({
+            ...prev,
+            [name]: value
+        }));
     };
+
     const [selectedCategoris, setSelectedCategoris] = useState([]);
     const [selectedProducer, setSelectedProducer] = useState([])
-    const handleClickOpenEdit = (products) => {
-        setSelectedProducer(products.categories || []);
-        setSelectedCategoris(products.producer || []);
-        setEditProducts(products)
-        setOpenEdit(true)
+    const convertProductImagesToUploaderFormat = (imagesFromServer) => {
+        return imagesFromServer.map(image => ({
+            data_url: `data:image/jpeg;base64,${image.imageData}`, // base64 string
+        }));
     }
+    // const handleClickOpenEdit = (products) => {
+    //     setSelectedProducer(products.categories || []);
+    //     setSelectedCategoris(products.producer || []);
+
+    //     setDefaultImageIndex(0);
+    //     setOpenEdit(true);
+    // };
+    const handleClickOpenEdit = async (product) => {
+        setEditProducts(product);
+
+        // Fetch images from backend (assuming product.id is available)
+        const response = await fetch(`http://localhost:8080/website/products/${product.id}/images`);
+        const data = await response.json(); // [{ id, imageData }]
+        const imageList = convertProductImagesToUploaderFormat(data);
+
+        setImages(imageList); // For <ImageUploading />
+        setDefaultImageIndex(0); // hoặc index nào bạn cần
+        setSelectedProducer(product.categories || []);
+        setSelectedCategoris(product.producer || []);
+        setOpenEdit(true);
+    };
+
     const handleEditProducts = async () => {
         try {
-            const response = await axios.put(`http://localhost:8080/website/products/${editProducts.id}`, editProducts);
-            setProducts(prevProduct =>
-                prevProduct.map(product =>
-                    product.id === editProducts.id ? response.data : product
+            const formData = new FormData();
+            formData.append("name", editProducts.name);
+            formData.append("product_code", editProducts.product_code);
+            formData.append("character_name", editProducts.character_name);
+            formData.append("price", editProducts.price);
+            formData.append("quantity", editProducts.quantity);
+            formData.append("width", editProducts.width);
+            formData.append("height", editProducts.height);
+            formData.append("weight", editProducts.weight);
+            formData.append("type", editProducts.type);
+            formData.append("material", editProducts.material);
+            formData.append("tag", editProducts.tag);
+            formData.append('categories', editProducts.categories?.id || '');
+            formData.append("producer", editProducts.producer?.id || '');
+
+            formData.append("description", editProducts.description);
+
+            // Kiểm tra nếu là file mới thì thêm image
+            if (editProducts.image instanceof File) {
+                formData.append("image", editProducts.image);
+            }
+
+            const response = await axios.put(
+                `http://localhost:8080/website/products/${editProducts.id}`,
+                formData,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                }
+            );
+            if (editProducts.extraImages && editProducts.extraImages.length > 0) {
+                editProducts.extraImages.forEach((img) => {
+                    if (img instanceof File) {
+                        formData.append("images[]", img);
+                    }
+                });
+            }
+
+            setCategories(prevCategories =>
+                prevCategories.map(categorie =>
+                    categorie.id === editProducts.id ? response.data : categorie
                 )
             );
+            await fetchProducts();
             handleCloseEdit();
             setSuccessAlertUpdate(true);
             setTimeout(() => setSuccessAlertUpdate(false), 3000);
         } catch (error) {
-            console.error('Lỗi xảy ra khi cập nhật:', error);
+            console.error("Lỗi xảy ra khi cập nhật:", error);
         }
     };
     // search
@@ -367,16 +436,16 @@ function Products() {
                     </Alert>
                 </Slide>
             )}
-            {/* {successAlertUpdate && (
-                            <Slide direction="left" in={successAlertUpdate} mountOnEnter unmountOnExit>
-                                <Alert
-                                    sx={{ width: '50%', float: 'right', mt: 2 }}
-                                    severity="success"
-                                >
-                                    Update success
-                                </Alert>
-                            </Slide>
-                        )} */}
+            {successAlertUpdate && (
+                <Slide direction="left" in={successAlertUpdate} mountOnEnter unmountOnExit>
+                    <Alert
+                        sx={{ width: '50%', float: 'right', mt: 2 }}
+                        severity="success"
+                    >
+                        Update success
+                    </Alert>
+                </Slide>
+            )}
             <h1>Products</h1>
             <br></br>
             <Box display="flex" justifyContent="flex-end">
@@ -437,48 +506,62 @@ function Products() {
                     </Box>
 
                     <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
-                        <TextField
-                            id="filled-basic"
-                            label="Tag *"
-                            variant="filled"
-                            fullWidth
-                            value={tag}
-                            onChange={(e) => setTag(e.target.value)}
-                        />
+                        <Box sx={{ flex: 1 }}>
+                            <Autocomplete
+                                multiple
+                                freeSolo
+                                options={[]}
+                                value={tags}
+                                onChange={(event, newValue) => setTags(newValue)}
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        variant="filled"
+                                        label="Tag *"
+                                        placeholder="Nhập tag và nhấn Enter"
+                                        fullWidth
+                                    />
+                                )}
+                            />
+                        </Box>
 
-                        <TextField
-                            id="filled-basic"
-                            label="Price *"
-                            variant="filled"
-                            type='number'
-                            fullWidth
-                            value={price}
-                            onChange={(e) => setPrice(e.target.value)}
-                            InputProps={{
-                                endAdornment: <InputAdornment position="end">đ</InputAdornment>,
-                                inputProps: { min: 0 },
-                            }}
-                            onKeyDown={(e) => {
-                                if (["e", "E", "+", "-", "."].includes(e.key)) {
-                                    e.preventDefault();
-                                }
-                            }}
-                        />
-                        <TextField
-                            id="filled-number"
-                            label="Quantity *"
-                            variant="filled"
-                            type="number"
-                            fullWidth
-                            value={quantity}
-                            onChange={(e) => setQuantity(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (["e", "E", "+", "-", "."].includes(e.key)) {
-                                    e.preventDefault();
-                                }
-                            }}
-                        />
+                        <Box sx={{ flex: 1 }}>
+                            <TextField
+                                label="Price *"
+                                variant="filled"
+                                type="number"
+                                fullWidth
+                                value={price}
+                                onChange={(e) => setPrice(e.target.value)}
+                                InputProps={{
+                                    endAdornment: <InputAdornment position="end">đ</InputAdornment>,
+                                    inputProps: { min: 0 },
+                                }}
+                                onKeyDown={(e) => {
+                                    if (["e", "E", "+", "-", "."].includes(e.key)) {
+                                        e.preventDefault();
+                                    }
+                                }}
+                            />
+                        </Box>
+
+                        <Box sx={{ flex: 1 }}>
+                            <TextField
+                                label="Quantity *"
+                                variant="filled"
+                                type="number"
+                                fullWidth
+                                value={quantity}
+                                onChange={(e) => setQuantity(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (["e", "E", "+", "-", "."].includes(e.key)) {
+                                        e.preventDefault();
+                                    }
+                                }}
+                            />
+                        </Box>
                     </Box>
+
                     <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
                         <TextField
                             id="filled-basic"
@@ -695,14 +778,17 @@ function Products() {
                             label="Name products *"
                             variant="filled"
                             fullWidth
+                            name="name"
                             value={editProducts.name || ''}
                             onChange={handleChangeEdit}
                         />
+
                         <TextField
                             id="filled-basic"
                             label="Character name *"
                             variant="filled"
                             fullWidth
+                            name="character_name"
                             value={editProducts.character_name || ''}
                             onChange={handleChangeEdit}
                         />
@@ -711,52 +797,97 @@ function Products() {
                             label=" Products code *"
                             variant="filled"
                             fullWidth
+                            name="product_code"
                             value={editProducts.product_code || ''}
                             onChange={handleChangeEdit}
                         />
                     </Box>
                     <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
-                        <TextField
-                            id="filled-basic"
-                            label="Tag *"
-                            variant="filled"
-                            fullWidth
-                            value={editProducts.tag || ''}
-                            onChange={handleChangeEdit}
-                        />
+                        <Box sx={{ flex: 1 }}>
+                            <Autocomplete
+                                multiple
+                                freeSolo
+                                options={[]} // không cần gợi ý
+                                value={editProducts.tag || []}
+                                onChange={(event, newValue) => {
+                                    handleChangeEdit({
+                                        target: {
+                                            name: 'tag',
+                                            value: newValue
+                                        }
+                                    });
+                                }}
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        variant="filled"
+                                        label="Tag *"
+                                        placeholder="Nhập tag và nhấn Enter"
+                                        fullWidth
+                                        name="tag"
+                                    />
+                                )}
+                            />
+                        </Box>
 
-                        <TextField
-                            id="filled-basic"
-                            label="Price *"
-                            variant="filled"
-                            type='number'
-                            fullWidth
-                            value={editProducts.price || ''}
-                            onChange={handleChangeEdit}
-                            InputProps={{
-                                endAdornment: <InputAdornment position="end">đ</InputAdornment>,
-                                inputProps: { min: 0 },
-                            }}
-                            onKeyDown={(e) => {
-                                if (["e", "E", "+", "-", "."].includes(e.key)) {
-                                    e.preventDefault();
-                                }
-                            }}
-                        />
-                        <TextField
-                            id="filled-number"
-                            label="Quantity *"
-                            variant="filled"
-                            type="number"
-                            fullWidth
-                            value={editProducts.quantity || ''}
-                            onChange={handleChangeEdit}
-                            onKeyDown={(e) => {
-                                if (["e", "E", "+", "-", "."].includes(e.key)) {
-                                    e.preventDefault();
-                                }
-                            }}
-                        />
+
+                        {/* <Box sx={{ flex: 1 }}>
+                            <Autocomplete
+                                multiple
+                                freeSolo
+                                options={[]}
+                                value={tags}
+                                onChange={(event, newValue) => setTags(newValue)}
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        variant="filled"
+                                        label="Tag *"
+                                        placeholder="Nhập tag và nhấn Enter"
+                                        fullWidth
+                                    />
+                                )}
+                            />
+                        </Box> */}
+                        <Box sx={{ flex: 1 }}>
+                            <TextField
+                                id="filled-basic"
+                                label="Price *"
+                                variant="filled"
+                                type='number'
+                                fullWidth
+                                name="price"
+                                value={editProducts.price || ''}
+                                onChange={handleChangeEdit}
+                                InputProps={{
+                                    endAdornment: <InputAdornment position="end">đ</InputAdornment>,
+                                    inputProps: { min: 0 },
+                                }}
+                                onKeyDown={(e) => {
+                                    if (["e", "E", "+", "-", "."].includes(e.key)) {
+                                        e.preventDefault();
+                                    }
+                                }}
+                            /></Box>
+
+                        <Box sx={{ flex: 1 }}>
+                            <TextField
+                                id="filled-number"
+                                label="Quantity *"
+                                variant="filled"
+                                type="number"
+                                fullWidth
+                                name="quantity"
+                                value={editProducts.quantity ?? ''}
+                                onChange={handleChangeEdit}
+                                onKeyDown={(e) => {
+                                    if (["e", "E", "+", "-", "."].includes(e.key)) {
+                                        e.preventDefault();
+                                    }
+                                }}
+                            />
+                        </Box>
+
                     </Box>
                     <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
                         <TextField
@@ -765,6 +896,7 @@ function Products() {
                             variant="filled"
                             type="number"
                             fullWidth
+                            name="width"
                             value={editProducts.width || ''}
                             onChange={handleChangeEdit}
                             InputProps={{
@@ -783,6 +915,7 @@ function Products() {
                             variant="filled"
                             type="number"
                             fullWidth
+                            name="height"
                             value={editProducts.height || ''}
                             onChange={handleChangeEdit}
                             onKeyDown={(e) => {
@@ -801,6 +934,7 @@ function Products() {
                             variant="filled"
                             type='number'
                             fullWidth
+                            name="weight"
                             value={editProducts.weight || ''}
                             onChange={handleChangeEdit}
                             InputProps={{
@@ -822,6 +956,7 @@ function Products() {
                             label="Type *"
                             variant="filled"
                             fullWidth
+                            name="type"
                             value={editProducts.type || ''}
                             onChange={handleChangeEdit}
                         />
@@ -952,14 +1087,14 @@ function Products() {
                     <TableHead>
                         <TableRow style={{ backgroundColor: '#b8b8b8' }}>
                             <TableCell>STT</TableCell>
-                            <TableCell>Image</TableCell>
-                            <TableCell>Name Products</TableCell>
-                            <TableCell>Categories</TableCell>
-                            <TableCell>Producer</TableCell>
-                            <TableCell>Price</TableCell>
-                            <TableCell>Quantity</TableCell>
-                            <TableCell>Status</TableCell>
-                            <TableCell>Action</TableCell>
+                            <TableCell>Hình ảnh</TableCell>
+                            <TableCell>Tên sản phẩm</TableCell>
+                            <TableCell>Danh mục</TableCell>
+                            <TableCell>Nhà sản xuất</TableCell>
+                            <TableCell>Giá</TableCell>
+                            <TableCell>Tồn kho</TableCell>
+                            <TableCell>Trạng thái</TableCell>
+                            <TableCell>Actions</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -982,8 +1117,8 @@ function Products() {
                                 <TableCell>{product.name}</TableCell>
                                 <TableCell>{product.categories.name}</TableCell>
                                 <TableCell>{product.producer.name}</TableCell>
-                                <TableCell>{product.price} đồng</TableCell>
-                                <TableCell>{product.quantity} bộ</TableCell>
+                                <TableCell>{product.price} đ</TableCell>
+                                <TableCell>{product.quantity} </TableCell>
                                 <TableCell>{product.status}</TableCell>
 
                                 <TableCell>

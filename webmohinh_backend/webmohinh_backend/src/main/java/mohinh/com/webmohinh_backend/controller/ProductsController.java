@@ -10,6 +10,7 @@ import mohinh.com.webmohinh_backend.entity.Categories;
 import mohinh.com.webmohinh_backend.entity.Producer;
 import mohinh.com.webmohinh_backend.entity.ProductImage;
 import mohinh.com.webmohinh_backend.entity.Products;
+import mohinh.com.webmohinh_backend.repository.ProductsRepository;
 import mohinh.com.webmohinh_backend.service.ProducerService;
 import mohinh.com.webmohinh_backend.service.ProductsService;
 import org.springframework.data.domain.Page;
@@ -23,7 +24,10 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @Slf4j
@@ -32,6 +36,7 @@ import java.util.List;
 public class ProductsController {
 
     ProductsService productsService;
+    ProductsRepository productsRepository;
 
     private ProductsDTO toDTO(Products products) {
         ProductsDTO dto = new ProductsDTO();
@@ -169,7 +174,6 @@ public class ProductsController {
                            @RequestParam("height") Double height,
                            @RequestParam("weight") Double weight,
                            @RequestParam("type") String type,
-                           @RequestParam("status") String status, // có thể giữ để override nếu muốn
                            @RequestParam("material") String material,
                            @RequestParam("tag") String tag,
                            @RequestParam("categories") Categories categories,
@@ -191,16 +195,7 @@ public class ProductsController {
         product.setHeight(height);
         product.setWeight(weight);
         product.setType(type);
-        System.out.println("tôi là:" + quantity);
-        // Tự động thiết lập status dựa vào quantity
-        if (quantity <= 0) {
-            product.setStatus("Hết hàng");
-        } else if (quantity > 0) {
-            product.setStatus("Còn hàng");
-        } else {
-            product.setStatus(status); // giữ nguyên giá trị từ request nếu không rơi vào 2 điều kiện trên
-        }
-
+        System.out.println("tôi là:" + producer);
         product.setMaterial(material);
         product.setTag(tag);
         product.setCategories(categories);
@@ -226,6 +221,21 @@ public class ProductsController {
         }
 
 
-        return productsService.update(id, existingProducts);
+        return productsService.update(id, product);
     }
+
+
+    @GetMapping("/products/{id}/images")
+    @CrossOrigin
+    public List<Map<String, String>> getProductImages(@PathVariable String id) {
+        Products product = productsRepository.findById(id).orElseThrow();
+        return product.getImages().stream()
+                .map(img -> {
+                    Map<String, String> map = new HashMap<>();
+                    map.put("id", img.getId().toString());
+                    map.put("imageData", Base64.getEncoder().encodeToString(img.getImage()));
+                    return map;
+                }).collect(Collectors.toList());
+    }
+
 }

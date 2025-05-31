@@ -6,12 +6,8 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import mohinh.com.webmohinh_backend.dto.CategoryDTO;
 import mohinh.com.webmohinh_backend.dto.ProductsDTO;
-import mohinh.com.webmohinh_backend.entity.Categories;
-import mohinh.com.webmohinh_backend.entity.Producer;
-import mohinh.com.webmohinh_backend.entity.ProductImage;
-import mohinh.com.webmohinh_backend.entity.Products;
+import mohinh.com.webmohinh_backend.entity.*;
 import mohinh.com.webmohinh_backend.repository.ProductsRepository;
-import mohinh.com.webmohinh_backend.service.ProducerService;
 import mohinh.com.webmohinh_backend.service.ProductsService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,10 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -53,7 +46,7 @@ public class ProductsController {
         dto.setStatus(products.getStatus());
         dto.setQuantity(products.getQuantity());
         dto.setMaterial(products.getMaterial());
-        dto.setTag(products.getTag());
+        dto.setTags(products.getTags());
         dto.setCreatedAt(products.getCreatedAt());
         dto.setUpdatedAt(products.getUpdatedAt());
         dto.setCategories(products.getCategories());
@@ -96,7 +89,7 @@ public class ProductsController {
             @RequestParam("type") String type,
             @RequestParam("status") String status, // có thể giữ để override nếu muốn
             @RequestParam("material") String material,
-            @RequestParam("tag") String tag,
+            @RequestParam("tag") Set<String> tag,
             @RequestParam("categories") Categories categories,
             @RequestParam("producer") Producer producer,
             @RequestParam("description") String description,
@@ -113,7 +106,7 @@ public class ProductsController {
         product.setHeight(height);
         product.setWeight(weight);
         product.setType(type);
-        System.out.println("tôi là:" + quantity);
+
         // Tự động thiết lập status dựa vào quantity
         if (quantity <= 0) {
             product.setStatus("Hết hàng");
@@ -124,7 +117,9 @@ public class ProductsController {
         }
 
         product.setMaterial(material);
-        product.setTag(tag);
+        product.setTags(tag);
+        System.out.println("tôi là:");
+        System.out.println("tôi là:" + tag);
         product.setCategories(categories);
         product.setProducer(producer);
         product.setDescription(description);
@@ -175,7 +170,7 @@ public class ProductsController {
                            @RequestParam("weight") Double weight,
                            @RequestParam("type") String type,
                            @RequestParam("material") String material,
-                           @RequestParam("tag") String tag,
+                           @RequestParam("tag") Set<String> tag,
                            @RequestParam("categories") Categories categories,
                            @RequestParam("producer") Producer producer,
                            @RequestParam("description") String description,
@@ -197,7 +192,7 @@ public class ProductsController {
         product.setType(type);
         System.out.println("tôi là:" + producer);
         product.setMaterial(material);
-        product.setTag(tag);
+        product.setTags(tag);
         product.setCategories(categories);
         product.setProducer(producer);
         product.setDescription(description);
@@ -237,5 +232,15 @@ public class ProductsController {
                     return map;
                 }).collect(Collectors.toList());
     }
+
+    @PutMapping("/products/{id}/sale")
+    @CrossOrigin
+    public ResponseEntity<?> applySaleToProduct(@PathVariable String id, @RequestBody Sale sale) {
+        Products product = productsRepository.findById(id).orElseThrow();
+        product.setSale(sale);
+        productsService.updatePromotionForProduct(product);
+        return ResponseEntity.ok(product);
+    }
+
 
 }

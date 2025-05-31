@@ -73,7 +73,7 @@ function Voucher() {
                 window.alert("Vui lòng nhập end date!");
                 return;
             }
-             if (!newVoucher.description.trim()) {
+            if (!newVoucher.description.trim()) {
                 window.alert("Vui lòng nhập description!");
                 return;
             }
@@ -635,7 +635,20 @@ function Voucher() {
                                 <TableCell>{voucher.codeVoucher}</TableCell>
                                 <TableCell>{voucher.quantity}</TableCell>
                                 <TableCell>{voucher.description}</TableCell>
-                                <TableCell>{voucher.status}</TableCell>
+                                <TableCell
+                                    style={{
+                                        color:
+                                            voucher.status?.toLowerCase() === "chưa hoạt động"
+                                                ? "#FFD700" // vàng gold dễ nhìn
+                                                : voucher.status?.toLowerCase() === "đang hoạt động"
+                                                    ? " green"
+                                                    : "red",
+                                    }}
+                                >
+                                    {voucher.status}
+                                </TableCell>
+
+
                                 <TableCell>
                                     <Button color="primary" variant="outlined" size="small" onClick={() => handleClickOpenEdit(voucher)}>Edit</Button>
                                     <Button color="error" variant="outlined" size="small" style={{ marginLeft: 8 }} onClick={() => handleConfirmOpen(voucher.id)}>Delete</Button>

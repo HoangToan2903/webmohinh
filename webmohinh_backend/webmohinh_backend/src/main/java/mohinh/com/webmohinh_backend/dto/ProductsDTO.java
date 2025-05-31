@@ -9,6 +9,7 @@ import mohinh.com.webmohinh_backend.entity.Products;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -30,7 +31,7 @@ public class ProductsDTO {
     String type;
     String status;
     String material;
-    String tag;
+    Set<String> tags;
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
     Categories categories;
@@ -48,7 +49,7 @@ public class ProductsDTO {
         this.type = products.getType();
         this.status = products.getStatus();
         this.material = products.getMaterial();
-        this.tag = products.getTag();
+        this.tags = products.getTags();
         this.createdAt = products.getCreatedAt();
         this.updatedAt = products.getUpdatedAt();
         this.categories = products.getCategories();

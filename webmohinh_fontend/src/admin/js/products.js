@@ -33,7 +33,12 @@ const PAGE_SIZE = 10;
 
 function Products() {
     const [open, setOpen] = React.useState(false);
-    const handleOpen = () => setOpen(true);
+    const handleOpen = () => {
+        setImages([]);
+        setDefaultImageIndex(null);
+        setOpen(true);
+    };
+
     const [name, setName] = useState('');
     const [price, setPrice] = useState('');
     const [character_name, setCharacter_name] = useState('');
@@ -46,11 +51,11 @@ function Products() {
     const [product_code, setProduct_code] = useState('');
     const [status, setStatus] = useState('');
     const [material, setMaterial] = useState('');
-    const [tag, setTag] = useState('');
+    // const [tag, setTag] = useState('');
     const [producer, setProducer] = useState('');
     const [description, setDescription] = useState('');
-    const [selectedImage, setSelectedImage] = useState(null); // Lưu file chưa upload
-    const [imagePreview, setImagePreview] = useState("");
+    // const [selectedImage, setSelectedImage] = useState(null); // Lưu file chưa upload
+    // const [imagePreview, setImagePreview] = useState("");
     const [categoryValue, setCategoryValue] = useState(null);
     const [categoryInputValue, setCategoryInputValue] = useState('');
     const [producerValue, setProducerValue] = useState(null);
@@ -85,7 +90,7 @@ function Products() {
         setName('');
         setCharacter_name('');
         setProduct_code('');
-        setTag('');
+        setTags('');
         setPrice('');
         setQuantity('');
         setWidth('');
@@ -198,7 +203,7 @@ function Products() {
         formData.append('type', type);
         formData.append('status', newProducts.status);
         formData.append('material', material);
-        formData.append('tag', tag);
+        formData.append('tag', tags);
         formData.append('description', description);
         formData.append('categories', categoryValue?.id || '');
         formData.append('producer', producerValue?.id || '');
@@ -236,7 +241,7 @@ function Products() {
             setType('');
             setStatus('');
             setMaterial('');
-            setTag('');
+            setTags('');
             setCategoryValue(null);
             setProducerValue(null);
             setDescription('');
@@ -807,12 +812,12 @@ function Products() {
                             <Autocomplete
                                 multiple
                                 freeSolo
-                                options={[]} // không cần gợi ý
-                                value={editProducts.tag || []}
+                                options={[]} // không có gợi ý sẵn
+                                value={editProducts.tags || []} // tên chính xác là tags (phù hợp với entity)
                                 onChange={(event, newValue) => {
                                     handleChangeEdit({
                                         target: {
-                                            name: 'tag',
+                                            name: 'tags', // phải là 'tags' để map đúng với backend
                                             value: newValue
                                         }
                                     });
@@ -824,10 +829,11 @@ function Products() {
                                         label="Tag *"
                                         placeholder="Nhập tag và nhấn Enter"
                                         fullWidth
-                                        name="tag"
+                                        name="tags"
                                     />
                                 )}
                             />
+
                         </Box>
 
 
@@ -1118,8 +1124,16 @@ function Products() {
                                 <TableCell>{product.categories.name}</TableCell>
                                 <TableCell>{product.producer.name}</TableCell>
                                 <TableCell>{product.price} đ</TableCell>
-                                <TableCell>{product.quantity} </TableCell>
-                                <TableCell>{product.status}</TableCell>
+                                <TableCell >{product.quantity} </TableCell>
+                                <TableCell
+                                    style={{
+                                        color: product.status === "còn hàng" ? "red" : "green",
+
+                                    }}
+                                >
+                                    {product.status}
+                                </TableCell>
+
 
                                 <TableCell>
                                     <Button color="primary" variant="outlined" size="small"

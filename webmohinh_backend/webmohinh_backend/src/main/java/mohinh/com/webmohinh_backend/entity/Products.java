@@ -7,7 +7,9 @@ import lombok.experimental.FieldDefaults;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -33,8 +35,13 @@ public class Products {
     String type;
     String status;
     String material;
-    String tag;
-
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+            name = "product_tags",
+            joinColumns = @JoinColumn(name = "product_id")
+    )
+    @Column(name = "tag")
+    private Set<String> tags = new HashSet<>();
 
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
@@ -51,4 +58,8 @@ public class Products {
     private byte[] image;
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductImage> images = new ArrayList<>();
+
+    @ManyToOne
+    @JoinColumn(name = "sale_id")
+    private Sale sale;
 }

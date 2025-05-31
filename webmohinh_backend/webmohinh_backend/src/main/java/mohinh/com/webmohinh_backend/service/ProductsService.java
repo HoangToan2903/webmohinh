@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import mohinh.com.webmohinh_backend.entity.Categories;
 import mohinh.com.webmohinh_backend.entity.Producer;
 import mohinh.com.webmohinh_backend.entity.Products;
+import mohinh.com.webmohinh_backend.entity.Sale;
 import mohinh.com.webmohinh_backend.repository.ProductsRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -14,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -53,7 +55,7 @@ public class ProductsService {
         usersproducts.setHeight(products.getHeight());
         usersproducts.setProduct_code(products.getProduct_code());
         usersproducts.setMaterial(products.getMaterial());
-        usersproducts.setTag(products.getTag());
+        usersproducts.setTags(products.getTags());
         usersproducts.setUpdatedAt(LocalDateTime.now());
 
         return productsRepository.save(usersproducts);
@@ -71,5 +73,24 @@ public class ProductsService {
     public Page<Products> searchProductsByPrefix(String namePrefix, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
         return productsRepository.findByNameStartingWithIgnoreCase(namePrefix, pageable);
+    }
+
+    public void updatePromotionForProduct(Products product) {
+        Sale sale = product.getSale();
+        if (sale != null && "Đang hoạt động".equalsIgnoreCase(sale.getStatus())) {
+            BigDecimal discount = product.getPrice().multiply(BigDecimal.valueOf(sale.getDiscountPercent())).divide(BigDecimal.valueOf(100));
+            product.setPrice_promotion(product.getPrice().subtract(discount));
+        } else {
+            product.setSale(null);
+            product.setPrice_promotion(null);
+        }
+        productsRepository.save(product);
+    }
+
+    public void updateProductsOnSaleStatusChange(Sale sale) {
+        List<Products> products = productsRepository.findBySale(sale);
+        for (Products product : products) {
+            updatePromotionForProduct(product);
+        }
     }
 }

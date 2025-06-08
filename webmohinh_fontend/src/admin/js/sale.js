@@ -14,6 +14,7 @@ import TableRow from '@mui/material/TableRow';
 import InputAdornment from '@mui/material/InputAdornment';
 import axios from 'axios';
 import { Alert, Slide } from '@mui/material';
+import { useParams, useNavigate } from 'react-router-dom';
 
 const style = {
     position: 'absolute',
@@ -35,6 +36,7 @@ function Sale() {
 
     };
     const [sales, setSale] = useState([]);
+    const navigate = useNavigate();
     // add
     const [successAlertAdd, setSuccessAlertAdd] = useState(false);
 
@@ -152,6 +154,7 @@ function Sale() {
             handleCloseEdit();
             setSuccessAlertUpdate(true);
             setTimeout(() => setSuccessAlertUpdate(false), 3000);
+            await fetchProducers();
         } catch (error) {
             console.error('Lỗi xảy ra khi cập nhật:', error);
         }
@@ -200,32 +203,57 @@ function Sale() {
     }
 
     // search
-    // const [searchText, setSearchText] = useState('');
-    // // Gọi API khi searchText hoặc page thay đổi
-    // useEffect(() => {
-    //     const delayDebounce = setTimeout(() => {
-    //         fetchSaleSearch();
-    //     }, 300); // debounce 300ms
+    const [searchText, setSearchText] = useState('');
+    // Gọi API khi searchText hoặc page thay đổi
+    useEffect(() => {
+        const delayDebounce = setTimeout(() => {
+            fetchSalesSearch();
+        }, 300); // debounce 300ms
 
-    //     return () => clearTimeout(delayDebounce);
-    // }, [searchText, page]);
+        return () => clearTimeout(delayDebounce);
+    }, [searchText, page]);
 
-    // const fetchSaleSearch = async () => {
-    //     try {
-    //         const response = await axios.get('http://localhost:8080/website/sale/search', {
-    //             params: {
-    //                 name: searchText,
-    //                 page,
-    //                 size: PAGE_SIZE
-    //             }
-    //         });
+    const fetchSalesSearch = async () => {
+        try {
+            const response = await axios.get('http://localhost:8080/website/sale/search', {
+                params: {
+                    name: searchText,
+                    page,
+                    size: PAGE_SIZE
+                }
+            });
 
-    //         setSale(response.data.content);
-    //         setTotalPages(response.data.totalPages);
-    //     } catch (error) {
-    //         console.error('Lỗi khi lấy dữ liệu:', error);
-    //     }
-    // };
+            setSale(response.data.content);
+            setTotalPages(response.data.totalPages);
+        } catch (error) {
+            console.error('Lỗi khi lấy dữ liệu:', error);
+        }
+    };
+
+    // Hàm cập nhật trạng thái sale
+    const updateStatus = async (id, newStatus) => {
+        try {
+            await axios.put(`http://localhost:8080/website/sale/${id}/status`, {
+                status: newStatus
+            });
+            setSale(prevSales =>
+                prevSales.map(sale =>
+                    sale.id === id ? { ...sale, status: newStatus } : sale
+                )
+            );
+        } catch (error) {
+            console.error('Error updating status', error);
+        }
+    }
+    //
+    const { tab } = useParams(); // Lấy tab từ URL
+    // const navigate = useNavigate();
+    const handleTabChange = (newTab, saleId) => {
+        console.log('Navigating to:', newTab, 'with saleId:', saleId);
+        navigate(`/admin/${newTab}`, {
+            state: { saleId: saleId }
+        });
+    };
     return (
         <div>
             {/* alert */}
@@ -235,7 +263,7 @@ function Sale() {
                         sx={{ width: '50%', float: 'right', mt: 2 }}
                         severity="success"
                     >
-                        Delete success
+                        Cancel success
                     </Alert>
                 </Slide>
             )}
@@ -267,7 +295,7 @@ function Sale() {
                 </Button>
             </Box>
             {/* Search */}
-            {/* <div className="search-bar" style={{ marginBottom: 16 }}>
+            <div className="search-bar" style={{ marginBottom: 16 }}>
                 <i className="fas fa-search" style={{ marginRight: 8 }}></i>
                 <input
                     type="text"
@@ -279,7 +307,7 @@ function Sale() {
                     }}
                     style={{ padding: 8, width: 250 }}
                 />
-            </div> */}
+            </div>
             {/* add */}
             <Modal
                 open={open}
@@ -395,18 +423,21 @@ function Sale() {
                 fullWidth
                 maxWidth="sm"
             >
-                <DialogTitle>Update Type</DialogTitle>
+                <DialogTitle>Update Sale</DialogTitle>
                 <DialogContent>
 
                     <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
                         <TextField
-                            id="filled-basic" label="Name categories " variant="filled"
-                            name="codeVoucher"
+                            id="filled-basic"
+                            label="Name codeVoucher"
+                            variant="filled"
+                            name="name"
                             type="text"
                             fullWidth
                             value={editSale.name || ''}
                             onChange={handleChangeEdit}
                         />
+
                         <TextField
                             id="filled-number"
                             label="Discount Percent *"
@@ -542,6 +573,7 @@ function Sale() {
                             <TableCell>Discount Percent</TableCell>
                             <TableCell>Description</TableCell>
                             <TableCell>Status</TableCell>
+                            <TableCell>Condition</TableCell>
                             <TableCell>Action</TableCell>
                         </TableRow>
                     </TableHead>
@@ -552,52 +584,73 @@ function Sale() {
                                 <TableCell>{sale.name}</TableCell>
                                 <TableCell>{sale.discountPercent} %</TableCell>
                                 <TableCell>{sale.description}</TableCell>
+
+                                <TableCell
+                                    className={`font-bold ${new Date() < new Date(sale.startDate)
+                                        ? "text-yellow-500"
+                                        : new Date() <= new Date(sale.endDate)
+                                            ? "text-green-600"
+                                            : "text-red-500"
+                                        }`}
+                                >
+                                    {new Date() < new Date(sale.startDate)
+                                        ? "Chưa hoạt động"
+                                        : new Date() <= new Date(sale.endDate)
+                                            ? "Đang hoạt động"
+                                            : "Ngừng hoạt động"}
+                                </TableCell>
                                 <TableCell
                                     style={{
-                                        color:
-                                            sale.status?.toLowerCase() === "chưa hoạt động"
-                                                ? "#FFD700" // vàng gold dễ nhìn
-                                                : sale.status?.toLowerCase() === "đang hoạt động"
-                                                    ? "green"
-                                                    : "red",
+                                        color: sale.status ? "green" : "red",
+                                        fontWeight: "bold",
                                     }}
                                 >
-                                    {sale.status}
+                                    {sale.status ? "Đang sử dụng" : "Tạm dừng"}
                                 </TableCell>
-
-
-
                                 <TableCell>
-                                    {
-                                        sale.status === 'Chưa hoạt động' && (
-                                            <>
-                                                <Button color="primary" variant="outlined" size="small" style={{ marginLeft: 8 }} onClick={() => handleClickOpenEdit(sale)}>Edit</Button>
-                                                <Button color="error" variant="outlined" size="small" style={{ marginLeft: 8 }} onClick={() => handleConfirmOpen(sale.id)}>Delete</Button>
-                                            </>
-                                        )
-                                    }
-                                    {
-                                        sale.status === 'Đang hoạt động' && (
-                                            <>
-                                                <Button color="primary" variant="outlined" size="small" style={{ marginLeft: 8 }}>Chi tiết</Button>
-                                                <Button color="primary" variant="outlined" size="small" style={{ marginLeft: 8 }}>Turn off</Button>
-                                                <Button color="primary" variant="outlined" size="small" style={{ marginLeft: 8 }} onClick={() => handleClickOpenEdit(sale)}>Edit</Button>
-                                                <Button color="error" variant="outlined" size="small" style={{ marginLeft: 8 }} onClick={() => handleConfirmOpen(sale.id)}>Delete</Button>
-                                            </>
-                                        )
-                                    }
-                                    {
-                                        sale.status === 'Ngừng hoạt động ' && (
-                                            <>
-                                                <Button color="primary" variant="outlined" size="small" style={{ marginLeft: 8 }}>Chi tiết</Button>
-                                                <Button color="primary" variant="outlined" size="small" style={{ marginLeft: 8 }}>Turn on</Button>
-                                                <Button color="primary" variant="outlined" size="small" style={{ marginLeft: 8 }} onClick={() => handleClickOpenEdit(sale)}>Edit</Button>
-                                                <Button color="error" variant="outlined" size="small" style={{ marginLeft: 8 }} onClick={() => handleConfirmOpen(sale.id)}>Delete</Button>
-                                            </>
-                                        )
-                                    }
-                                    {/* <Button color="primary" variant="outlined" size="small" style={{ marginLeft: 8 }}>Turn off</Button>
-                                    <Button color="primary" variant="outlined" size="small" style={{ marginLeft: 8 }}>Turn on</Button> */}
+                                    {sale.status == 1 && (
+                                        <>
+                                            <Button
+                                                color="primary"
+                                                variant="outlined"
+                                                size="small"
+                                                style={{ marginLeft: 8 }}
+                                                className={tab === 'add_sale_Products' ? 'active' : ''}
+                                                onClick={() => handleTabChange('add_sale_Products', sale.id)}
+                                            >
+                                                Detail
+                                            </Button>
+                                            {/* <Button color="primary" variant="outlined" size="small" style={{ marginLeft: 8 }}>Turn on</Button> */}
+                                            <Button
+                                                color="primary"
+                                                variant="outlined"
+                                                size="small"
+                                                style={{ marginLeft: 8 }}
+                                                onClick={() => updateStatus(sale.id, false)}
+                                            >
+                                                Turn off
+                                            </Button>
+                                            <Button color="primary" variant="outlined" size="small" style={{ marginLeft: 8 }} onClick={() => handleClickOpenEdit(sale)}>Edit</Button>
+                                            <Button color="error" variant="outlined" size="small" style={{ marginLeft: 8 }} onClick={() => handleConfirmOpen(sale.id)}>Delete</Button>
+                                        </>
+                                    )}
+                                    {sale.status == 0 && (
+                                        <>
+                                            {/* <Button color="primary" variant="outlined" size="small" style={{ marginLeft: 8 }}>Chi tiết</Button> */}
+                                            <Button
+                                                color="primary"
+                                                variant="outlined"
+                                                size="small"
+                                                style={{ marginLeft: 8 }}
+                                                onClick={() => updateStatus(sale.id, true)}
+                                            >
+                                                Turn on
+                                            </Button>
+                                            {/* <Button color="primary" variant="outlined" size="small" style={{ marginLeft: 8 }}>Turn off</Button> */}
+                                            <Button color="primary" variant="outlined" size="small" style={{ marginLeft: 8 }} onClick={() => handleClickOpenEdit(sale)}>Edit</Button>
+                                            <Button color="error" variant="outlined" size="small" style={{ marginLeft: 8 }} onClick={() => handleConfirmOpen(sale.id)}>Delete</Button>
+                                        </>
+                                    )}
 
                                 </TableCell>
                             </TableRow>

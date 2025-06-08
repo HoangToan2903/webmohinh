@@ -120,8 +120,8 @@ function Categories() {
             await axios.delete(`http://localhost:8080/website/categories/${id}`);
             await fetchCategories(); // 👈 Gọi lại API để load dữ liệu mới nhất
             handleConfirmClose();
-            setSuccessAlertDelete(true);
-            setTimeout(() => setSuccessAlertDelete(false), 3000);
+              setSuccessAlertAdd(true);
+            setTimeout(() => setSuccessAlertAdd(false), 3000);
         } catch (error) {
             alert('There was an error deleting the producer');
         }

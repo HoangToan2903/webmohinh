@@ -5,6 +5,7 @@ import lombok.experimental.FieldDefaults;
 import mohinh.com.webmohinh_backend.entity.Categories;
 import mohinh.com.webmohinh_backend.entity.Producer;
 import mohinh.com.webmohinh_backend.entity.Products;
+import mohinh.com.webmohinh_backend.entity.Sale;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -35,6 +36,7 @@ public class ProductsDTO {
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
     Categories categories;
+    Sale sale;
     Producer producer;
     String imageBase64;
 
@@ -53,6 +55,7 @@ public class ProductsDTO {
         this.createdAt = products.getCreatedAt();
         this.updatedAt = products.getUpdatedAt();
         this.categories = products.getCategories();
+        this.sale = products.getSale();
         this.producer = products.getProducer();
         this.weight = products.getWeight();
         this.name = products.getName();

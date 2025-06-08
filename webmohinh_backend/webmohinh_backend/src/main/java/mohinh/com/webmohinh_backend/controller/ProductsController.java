@@ -50,6 +50,7 @@ public class ProductsController {
         dto.setCreatedAt(products.getCreatedAt());
         dto.setUpdatedAt(products.getUpdatedAt());
         dto.setCategories(products.getCategories());
+        dto.setSale(products.getSale());
         dto.setProducer(products.getProducer());
         dto.setDescription(products.getDescription());
         if (products.getImage() != null) {
@@ -233,14 +234,21 @@ public class ProductsController {
                 }).collect(Collectors.toList());
     }
 
-    @PutMapping("/products/{id}/sale")
+//    @PutMapping("/products/{id}/sale")
+//    @CrossOrigin
+//    public ResponseEntity<?> applySaleToProduct(@PathVariable String id, @RequestBody Sale sale) {
+//        Products product = productsRepository.findById(id).orElseThrow();
+//        product.setSale(sale);
+//        productsService.updatePromotionForProduct(product);
+//        return ResponseEntity.ok(product);
+//    }
+
+    @PutMapping("/addSale")
     @CrossOrigin
-    public ResponseEntity<?> applySaleToProduct(@PathVariable String id, @RequestBody Sale sale) {
-        Products product = productsRepository.findById(id).orElseThrow();
-        product.setSale(sale);
-        productsService.updatePromotionForProduct(product);
-        return ResponseEntity.ok(product);
+    public ResponseEntity<Products> assignSaleToProduct(
+            @RequestParam String productId,
+            @RequestParam(name = "idSale", required = false) String idSale) {
+        Products updatedProduct = productsService.addOrUpdateSaleToProduct(productId, idSale);
+        return ResponseEntity.ok(updatedProduct);
     }
-
-
 }

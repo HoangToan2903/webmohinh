@@ -9,6 +9,7 @@ import mohinh.com.webmohinh_backend.entity.Producer;
 import mohinh.com.webmohinh_backend.entity.Products;
 import mohinh.com.webmohinh_backend.entity.Sale;
 import mohinh.com.webmohinh_backend.repository.ProductsRepository;
+import mohinh.com.webmohinh_backend.repository.SaleRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -25,6 +26,7 @@ import java.util.List;
 @Slf4j
 public class ProductsService {
     ProductsRepository productsRepository;
+    SaleRepository saleRepository;
 
 
     public Products save(Products products) {
@@ -75,22 +77,22 @@ public class ProductsService {
         return productsRepository.findByNameStartingWithIgnoreCase(namePrefix, pageable);
     }
 
-    public void updatePromotionForProduct(Products product) {
-        Sale sale = product.getSale();
-        if (sale != null && "Đang hoạt động".equalsIgnoreCase(sale.getStatus())) {
-            BigDecimal discount = product.getPrice().multiply(BigDecimal.valueOf(sale.getDiscountPercent())).divide(BigDecimal.valueOf(100));
-            product.setPrice_promotion(product.getPrice().subtract(discount));
-        } else {
+
+    public Products addOrUpdateSaleToProduct(String productId, String saleId) {
+        Products product = productsRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found with ID: " + productId));
+
+        if (saleId == null) {
+            // Nếu saleId là null, gỡ sale
             product.setSale(null);
-            product.setPrice_promotion(null);
+        } else {
+            Sale sale = saleRepository.findById(saleId)
+                    .orElseThrow(() -> new RuntimeException("Sale not found with ID: " + saleId));
+            product.setSale(sale); // Gán sale mới
         }
-        productsRepository.save(product);
+
+        return productsRepository.save(product); // Lưu thay đổi
     }
 
-    public void updateProductsOnSaleStatusChange(Sale sale) {
-        List<Products> products = productsRepository.findBySale(sale);
-        for (Products product : products) {
-            updatePromotionForProduct(product);
-        }
-    }
+
 }

@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -28,19 +29,7 @@ public class SaleService {
             System.out.println("Name đã tồn tại, không thể thêm mới."); // Ghi log thay vì ném lỗi
             return null; // Hoặc có thể trả về một giá trị mặc định
         }
-        // Xác định ngày hiện tại
-        LocalDate today = LocalDate.now();
-        LocalDate startDate = sale.getStartDate();
-        LocalDate endDate = sale.getEndDate();
-
-        // Tính toán status dựa vào ngày hiện tại
-        if (today.isBefore(startDate)) {
-            sale.setStatus("Chưa hoạt động");
-        } else if ((today.isEqual(startDate) || today.isAfter(startDate)) && (today.isBefore(endDate) || today.isEqual(endDate))) {
-            sale.setStatus("Đang hoạt động");
-        } else if (today.isAfter(endDate)) {
-            sale.setStatus("Ngừng hoạt động");
-        }
+        sale.setStatus(true);
         sale.setCreatedAt(LocalDateTime.now());
         return saleRepository.save(sale);
     }
@@ -56,19 +45,6 @@ public class SaleService {
             existing.setStartDate(sale.getStartDate());
             existing.setEndDate(sale.getEndDate());
             existing.setDiscountPercent(sale.getDiscountPercent());
-
-            // Cập nhật lại status dựa vào ngày hiện tại
-            LocalDate today = LocalDate.now();
-            LocalDate startDate = sale.getStartDate();
-            LocalDate endDate = sale.getEndDate();
-
-            if (today.isBefore(startDate)) {
-                existing.setStatus("Chưa hoạt động");
-            } else if (!today.isAfter(endDate)) {
-                existing.setStatus("Đang hoạt động");
-            } else {
-                existing.setStatus("Ngừng hoạt động");
-            }
 
             // Cập nhật thời gian chỉnh sửa
             existing.setUpdatedAt(LocalDateTime.now());
@@ -86,9 +62,20 @@ public class SaleService {
         return saleRepository.findById(id).orElseThrow(() -> new RuntimeException(" not found"));
     }
 
-    public Page<Sale> searchVocherByPrefix(String namePrefix, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("codeVoucher").ascending());
+    public Page<Sale> searchSaleByPrefix(String namePrefix, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
         return saleRepository.findByNameStartingWithIgnoreCase(namePrefix, pageable);
     }
 
+    public Sale updateStatus(String id, Boolean status) {
+        Optional<Sale> optionalSale = saleRepository.findById(id);
+        if (optionalSale.isEmpty()) {
+            throw new RuntimeException("Sale not found with id: " + id);
+        }
+
+        Sale sale = optionalSale.get();
+        sale.setStatus(status);
+        sale.setUpdatedAt(java.time.LocalDateTime.now());
+        return saleRepository.save(sale);
+    }
 }

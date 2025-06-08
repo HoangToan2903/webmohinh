@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import mohinh.com.webmohinh_backend.dto.UpdateStatusRequest;
 import mohinh.com.webmohinh_backend.entity.Sale;
 import mohinh.com.webmohinh_backend.entity.Voucher;
 import mohinh.com.webmohinh_backend.service.SaleService;
@@ -49,6 +50,12 @@ public class SaleController {
             @RequestParam(defaultValue = "") String name,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        return saleService.searchVocherByPrefix(name, page, size);
+        return saleService.searchSaleByPrefix(name, page, size);
+    }
+
+    @PutMapping("/sale/{id}/status")
+    @CrossOrigin
+    public Sale updateStatus(@PathVariable String id, @RequestBody UpdateStatusRequest request) {
+        return saleService.updateStatus(id, request.getStatus());
     }
 }

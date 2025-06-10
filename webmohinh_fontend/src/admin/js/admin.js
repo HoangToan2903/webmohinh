@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import '../css/admin.css';
+// import '../css/admin.css';
 import logo from '../image/logo.png';
 import AreaChartIcon from '@mui/icons-material/AreaChart';
 import BalanceIcon from '@mui/icons-material/Balance';
@@ -15,8 +15,12 @@ import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import LoyaltyIcon from '@mui/icons-material/Loyalty';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import { useNavigate, useParams } from 'react-router-dom';
+import React, { useEffect } from 'react';
 
 function Admin() {
+    useEffect(() => {
+        import('../css/admin.css');
+    }, []);
     const [activeTab, setActiveTab] = useState('statistics');
     const [openMenus, setOpenMenus] = useState({});
 
@@ -48,7 +52,7 @@ function Admin() {
                             style={{
                                 width: '220px',
                                 height: '220px',
-                                
+
                             }}
                         />
                     </div>
@@ -112,15 +116,15 @@ function Admin() {
                                     <ArrowDropDownIcon />
                                 </span>
                                 <ul className={`sub-menu ${openMenus.sale ? 'show' : ''}`}>
-                                  
+
                                     <li className={tab === 'voucher' ? 'active' : ''}
-                                     onClick={() => handleTabChange('voucher')}>
+                                        onClick={() => handleTabChange('voucher')}>
 
                                         <span><LoyaltyIcon /> Voucher</span>
                                     </li>
-                                     <li className={tab === 'sale' ? 'active' : ''} onClick={() => handleTabChange('sale')}>
-                                            <span><DetailsIcon /> Sale</span>
-                                        </li>
+                                    <li className={tab === 'sale' ? 'active' : ''} onClick={() => handleTabChange('sale')}>
+                                        <span><DetailsIcon /> Sale</span>
+                                    </li>
                                 </ul>
                             </li>
                         </ul>

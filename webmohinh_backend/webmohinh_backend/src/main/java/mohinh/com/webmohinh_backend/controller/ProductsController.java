@@ -10,6 +10,7 @@ import mohinh.com.webmohinh_backend.entity.*;
 import mohinh.com.webmohinh_backend.repository.ProductsRepository;
 import mohinh.com.webmohinh_backend.service.ProductsService;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -53,8 +54,11 @@ public class ProductsController {
         dto.setSale(products.getSale());
         dto.setProducer(products.getProducer());
         dto.setDescription(products.getDescription());
-        if (products.getImage() != null) {
-            dto.setImageBase64(Base64.getEncoder().encodeToString(products.getImage()));
+        if (products.getImages() != null) {
+            List<String> base64Images = products.getImages().stream()
+                    .map(img -> Base64.getEncoder().encodeToString(img.getImage())) // chú ý getImageData()
+                    .collect(Collectors.toList());
+            dto.setImageBase64List(base64Images);
         }
         return dto;
     }
@@ -67,6 +71,14 @@ public class ProductsController {
         Page<ProductsDTO> dtoPage = productsPage.map(this::toDTO);
 
         return ResponseEntity.ok(dtoPage);
+    }
+
+    @GetMapping("/products/{id}")
+    @CrossOrigin
+    public ResponseEntity<ProductsDTO> getProduct(@PathVariable String id) {
+        Products product = productsService.findById(id);
+        ProductsDTO dto = new ProductsDTO(product); // trong đó có danh sách ảnh Base64
+        return ResponseEntity.ok(dto);
     }
 
     @DeleteMapping("/products/{id}")
@@ -119,8 +131,6 @@ public class ProductsController {
 
         product.setMaterial(material);
         product.setTags(tag);
-        System.out.println("tôi là:");
-        System.out.println("tôi là:" + tag);
         product.setCategories(categories);
         product.setProducer(producer);
         product.setDescription(description);
@@ -251,4 +261,15 @@ public class ProductsController {
         Products updatedProduct = productsService.addOrUpdateSaleToProduct(productId, idSale);
         return ResponseEntity.ok(updatedProduct);
     }
+    @GetMapping("/category/{categoryId}")
+    @CrossOrigin
+    public ResponseEntity<Page<ProductsDTO>> getProductsByCategory(
+            @PathVariable String categoryId,
+            Pageable pageable
+    ) {
+        Page<Products> productPage = productsService.getProductsByCategoryId(categoryId, pageable);
+        Page<ProductsDTO> dtoPage = productPage.map(this::toDTO);
+        return ResponseEntity.ok(dtoPage);
+    }
+
 }

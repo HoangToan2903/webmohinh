@@ -80,8 +80,12 @@ function Statistics() {
     const [successAlertAdd, setSuccessAlertAdd] = useState(false);
 
     const handleAddSaleToSelected = async () => {
-        try {
+        if (selected.length === 0) {
+            alert('Vui lòng chọn ít nhất một sản phẩm để áp dụng sale!');
+            return;
+        }
 
+        try {
             const requests = selected.map(productId =>
                 axios.put('http://localhost:8080/website/addSale', null, {
                     params: {
@@ -98,13 +102,18 @@ function Statistics() {
             setSelected([]);
             await fetchProducts();
         } catch (error) {
-            alert('Error adding sale!');
+            alert('Đã xảy ra lỗi khi áp dụng khuyến mãi!');
             console.error(error);
         }
     };
+
     const [successAlertDelete, setSuccessAlertDelete] = useState(false);
 
     const handleCancelSaleToSelected = async () => {
+        if (selected.length === 0) {
+            alert('Vui lòng chọn ít nhất một sản phẩm để áp dụng sale!');
+            return;
+        }
         try {
             const requests = selected.map(productId =>
                 axios.put('http://localhost:8080/website/addSale', null, {
@@ -116,8 +125,8 @@ function Statistics() {
             );
 
             await Promise.all(requests);
-            setSuccessAlertAdd(true);
-            setTimeout(() => setSuccessAlertAdd(false), 3000);
+            setSuccessAlertDelete(true);
+            setTimeout(() => setSuccessAlertDelete(false), 3000);
             setSaleId('');
             setSelected([]);
             await fetchProducts();
@@ -239,23 +248,34 @@ function Statistics() {
                                         />
                                     </TableCell>
                                     <TableCell>
-                                        {product.imageBase64 ? (
+                                        {Array.isArray(product.imageBase64List) && product.imageBase64List.length > 0 ? (
                                             <img
-                                                style={{ height: '60px', width: '50px', objectFit: "cover" }}
-                                                src={`data:image/jpeg;base64,${product.imageBase64}`}
-                                                alt="Icon"
+                                                style={{ height: '80px', width: '60px', objectFit: 'cover' }}
+                                                src={`data:image/jpeg;base64,${product.imageBase64List[0]}`}
+                                                alt="Product"
                                             />
                                         ) : (
-                                            <div style={{ height: '50px', backgroundColor: '#eee', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                            <div
+                                                style={{
+                                                    height: '80px',
+                                                    width: '60px',
+                                                    backgroundColor: '#eee',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    fontSize: '12px',
+                                                    color: '#999',
+                                                }}
+                                            >
                                                 No image
                                             </div>
                                         )}
                                     </TableCell>
                                     <TableCell>{product.name}</TableCell>
                                     <TableCell>{product.categories?.name || "N/A"}</TableCell>
-                                    <TableCell>{product.price} đ</TableCell>
+                                    <TableCell>{Number(product.price).toLocaleString('vi-VN')} đ</TableCell>
                                     <TableCell style={{ color: "green" }}>{product.sale?.discountPercent || "0"}%</TableCell>
-                                    <TableCell style={{ color: "red" }}>{product.price - (product.price * (product.sale?.discountPercent / 100))} đ</TableCell>
+                                    <TableCell style={{ color: "red" }}>{Number(product.price - (product.price * (product.sale?.discountPercent / 100))).toLocaleString('vi-VN')} đ</TableCell>
                                 </TableRow>
                             );
                         })}

@@ -4,7 +4,12 @@ import reportWebVitals from './reportWebVitals';
 import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
 import Admin from './admin/js/admin';
 import Home from './client/js/shop'
-// import '../src/admin/css/admin.css';
+import Login from './client/js/login'
+import SigUp from './client/js/sigup'
+import Detail from './client/js/detail'
+import ProductsCategories from './client/js/productsCategories'
+import CartItems from './client/js/cartItems'
+
 
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
@@ -13,8 +18,13 @@ root.render(
     <Router>
       <Routes>
         <Route path="/admin/:tab" element={<Admin />} />
-        <Route path="/admin" element={<Navigate to="/admin/statistics"/>} />
+        <Route path="/admin" element={<Navigate to="/admin/statistics" />} />
         <Route path="/home" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/sigup" element={<SigUp />} />
+        <Route path="/shopNemo/:slug" element={< Detail />} />
+        <Route path="/collections/:nameCategories" element={<ProductsCategories />} />
+        <Route path="/cart" element={<CartItems />} />
       </Routes>
     </Router>
   </React.StrictMode>

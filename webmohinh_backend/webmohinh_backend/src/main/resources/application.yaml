@@ -15,3 +15,5 @@ spring:
 upload:
   image:
     dir: uploads/
+jwt:
+  signerKey: "ywh+Jbt9f82I2/T9b+e7b2zzYQ0j8oWekdab6rqdh/ZCouY5rgrM0/B4dm89WP91"

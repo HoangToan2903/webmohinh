@@ -10,4 +10,5 @@ public interface CategoriesRepository extends JpaRepository<Categories, String> 
     boolean existsByName(String name);
     // Tìm kiếm theo tên có phân trang (trả về Page)
     Page<Categories> findByNameStartingWithIgnoreCase(String namePrefix, Pageable pageable);
+
 }

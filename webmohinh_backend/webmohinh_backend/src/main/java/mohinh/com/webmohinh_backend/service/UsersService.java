@@ -8,8 +8,11 @@ import mohinh.com.webmohinh_backend.entity.Categories;
 import mohinh.com.webmohinh_backend.entity.Users;
 import mohinh.com.webmohinh_backend.repository.CategoriesRepository;
 import mohinh.com.webmohinh_backend.repository.UsersRepository;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -21,6 +24,9 @@ public class UsersService {
 
 
     public Users save(Users users) {
+        users.setCreatedAt(LocalDateTime.now());
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
+        users.setPassword(passwordEncoder.encode(users.getPassword()));
         return usersRepository.save(users);
     }
 
@@ -33,9 +39,6 @@ public class UsersService {
         usersUpdate.setUsername(users.getUsername());
         usersUpdate.setPassword(users.getPassword());
         usersUpdate.setEmail(users.getEmail());
-        usersUpdate.setFullName(users.getFullName());
-        usersUpdate.setAddress(users.getAddress());
-        usersUpdate.setPhoneNumber(users.getPhoneNumber());
         usersUpdate.setCreatedAt(users.getCreatedAt());
         return usersRepository.save(usersUpdate);
     }

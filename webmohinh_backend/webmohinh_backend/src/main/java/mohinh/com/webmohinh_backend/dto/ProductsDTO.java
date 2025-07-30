@@ -2,15 +2,15 @@ package mohinh.com.webmohinh_backend.dto;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import mohinh.com.webmohinh_backend.entity.Categories;
-import mohinh.com.webmohinh_backend.entity.Producer;
-import mohinh.com.webmohinh_backend.entity.Products;
-import mohinh.com.webmohinh_backend.entity.Sale;
+import mohinh.com.webmohinh_backend.entity.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -38,7 +38,7 @@ public class ProductsDTO {
     Categories categories;
     Sale sale;
     Producer producer;
-    String imageBase64;
+     List<String> imageBase64List = new ArrayList<>();
 
     public ProductsDTO(Products products) {
         this.id = products.getId();
@@ -60,8 +60,11 @@ public class ProductsDTO {
         this.weight = products.getWeight();
         this.name = products.getName();
         this.description = products.getDescription();
-        if (products.getImage() != null) {
-            this.imageBase64 = Base64.getEncoder().encodeToString(products.getImage());
+        if (products.getImages() != null) {
+            for (ProductImage img : products.getImages()) {
+                imageBase64List.add(Base64.getEncoder().encodeToString(img.getImage())); // CHÚ Ý: getImageData()
+            }
         }
+//        this.imageBase64List = imageBase64List;
     }
 }

@@ -333,8 +333,8 @@ function Products() {
 
         setImages(imageList); // For <ImageUploading />
         setDefaultImageIndex(0); // hoặc index nào bạn cần
-        setSelectedProducer(product.categories || []);
-        setSelectedCategoris(product.producer || []);
+        setSelectedProducer(product.producer || []);
+        setSelectedCategoris(product.categories || []);
         setOpenEdit(true);
     };
 
@@ -610,20 +610,21 @@ function Products() {
                             id="filled-basic"
                             label="Weight *"
                             variant="filled"
-                            type='number'
+                            type="number"
                             fullWidth
                             value={weight}
                             InputProps={{
-                                endAdornment: <InputAdornment position="end">gam</InputAdornment>,
+                                endAdornment: <InputAdornment position="end">kg</InputAdornment>,
                                 inputProps: { min: 0 },
                             }}
                             onChange={(e) => setWeight(e.target.value)}
                             onKeyDown={(e) => {
-                                if (["e", "E", "+", "-", "."].includes(e.key)) {
+                                if (["e", "E", "+", "-"].includes(e.key)) {
                                     e.preventDefault();
                                 }
                             }}
                         />
+
                     </Box>
                     <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
 
@@ -946,7 +947,7 @@ function Products() {
                             value={editProducts.weight || ''}
                             onChange={handleChangeEdit}
                             InputProps={{
-                                endAdornment: <InputAdornment position="end">gam</InputAdornment>,
+                                endAdornment: <InputAdornment position="end">kg</InputAdornment>,
                                 inputProps: { min: 0 },
                             }}
 
@@ -1098,7 +1099,7 @@ function Products() {
                             <TableCell>Hình ảnh</TableCell>
                             <TableCell>Tên sản phẩm</TableCell>
                             <TableCell>Danh mục</TableCell>
-                            <TableCell>Nhà sản xuất</TableCell>
+                            {/* <TableCell>Nhà sản xuất</TableCell> */}
                             <TableCell>Giá</TableCell>
                             <TableCell>Tồn kho</TableCell>
                             <TableCell>Trạng thái</TableCell>
@@ -1110,26 +1111,38 @@ function Products() {
                             <TableRow key={product.id}>
                                 <TableCell>{page * PAGE_SIZE + index + 1}</TableCell>
                                 <TableCell>
-                                    {product.imageBase64 ? (
+                                    {Array.isArray(product.imageBase64List) && product.imageBase64List.length > 0 ? (
                                         <img
-                                            style={{ height: '80px', width: '60px', objectFit: "cover" }}
-                                            src={`data:image/jpeg;base64,${product.imageBase64}`}
-                                            alt="Icon"
+                                            style={{ height: '80px', width: '60px', objectFit: 'cover' }}
+                                            src={`data:image/jpeg;base64,${product.imageBase64List[0]}`}
+                                            alt="Product"
                                         />
                                     ) : (
-                                        <div style={{ height: '50px', backgroundColor: '#eee', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <div
+                                            style={{
+                                                height: '80px',
+                                                width: '60px',
+                                                backgroundColor: '#eee',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                fontSize: '12px',
+                                                color: '#999',
+                                            }}
+                                        >
                                             No image
                                         </div>
                                     )}
+
                                 </TableCell>
                                 <TableCell>{product.name}</TableCell>
                                 <TableCell>{product.categories.name}</TableCell>
-                                <TableCell>{product.producer.name}</TableCell>
-                                <TableCell>{product.price} đ</TableCell>
+                                {/* <TableCell>{product.producer.name}</TableCell> */}
+                                <TableCell>{Number(product.price).toLocaleString('vi-VN')} đ</TableCell>
                                 <TableCell >{product.quantity} </TableCell>
                                 <TableCell
                                     style={{
-                                        color: product.status === "còn hàng" ? "red" : "green",
+                                        color: product.status === "Còn hàng" ? "green" : "red",
 
                                     }}
                                 >

@@ -25,8 +25,5 @@ public class Users {
     String username;
     String password;
     String email;
-    String fullName;
-    String address;
-    String phoneNumber;
     LocalDateTime createdAt;
 }

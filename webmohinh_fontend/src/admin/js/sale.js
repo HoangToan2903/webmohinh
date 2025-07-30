@@ -608,6 +608,8 @@ function Sale() {
                                     {sale.status ? "Đang sử dụng" : "Tạm dừng"}
                                 </TableCell>
                                 <TableCell>
+                                    <Button color="primary" variant="outlined" size="small" style={{ marginLeft: 8 }} onClick={() => handleClickOpenEdit(sale)}>Edit</Button>
+                                    <Button color="error" variant="outlined" size="small" style={{ marginLeft: 8 }} onClick={() => handleConfirmOpen(sale.id)}>Delete</Button>
                                     {sale.status == 1 && (
                                         <>
                                             <Button
@@ -630,8 +632,7 @@ function Sale() {
                                             >
                                                 Turn off
                                             </Button>
-                                            <Button color="primary" variant="outlined" size="small" style={{ marginLeft: 8 }} onClick={() => handleClickOpenEdit(sale)}>Edit</Button>
-                                            <Button color="error" variant="outlined" size="small" style={{ marginLeft: 8 }} onClick={() => handleConfirmOpen(sale.id)}>Delete</Button>
+
                                         </>
                                     )}
                                     {sale.status == 0 && (
@@ -647,8 +648,7 @@ function Sale() {
                                                 Turn on
                                             </Button>
                                             {/* <Button color="primary" variant="outlined" size="small" style={{ marginLeft: 8 }}>Turn off</Button> */}
-                                            <Button color="primary" variant="outlined" size="small" style={{ marginLeft: 8 }} onClick={() => handleClickOpenEdit(sale)}>Edit</Button>
-                                            <Button color="error" variant="outlined" size="small" style={{ marginLeft: 8 }} onClick={() => handleConfirmOpen(sale.id)}>Delete</Button>
+
                                         </>
                                     )}
 

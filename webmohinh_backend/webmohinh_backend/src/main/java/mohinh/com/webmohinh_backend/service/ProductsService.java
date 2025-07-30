@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import mohinh.com.webmohinh_backend.dto.ProductsDTO;
 import mohinh.com.webmohinh_backend.entity.Categories;
 import mohinh.com.webmohinh_backend.entity.Producer;
 import mohinh.com.webmohinh_backend.entity.Products;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -93,6 +95,8 @@ public class ProductsService {
 
         return productsRepository.save(product); // Lưu thay đổi
     }
-
+    public Page<Products> getProductsByCategoryId(String categoryId, Pageable pageable) {
+        return productsRepository.findAllByCategoryId(categoryId, pageable);
+    }
 
 }

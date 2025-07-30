@@ -1,10 +1,12 @@
 import Navbar from './navbar'
 import Banner from './banner'
 import Home from './home'
+import Footer from './footer'
+
 import React, { useEffect, useState } from 'react';
 
 function Shop() {
- useEffect(() => {
+    useEffect(() => {
         import('../css/home.css');
 
     }, []);
@@ -13,7 +15,7 @@ function Shop() {
             <Navbar />
             <Banner />
             <Home />
-
+            <Footer />
         </div>
     )
 }

@@ -13,6 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import slugify from "./utils/slugify";
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import { useLocation } from "react-router-dom";
+import { addToCart, resizeImageToBase64, base64ToFile } from './addCart';
 
 function Detail() {
     useEffect(() => {
@@ -75,13 +76,7 @@ function Detail() {
         setQuantity(quantity + 1);
     };
 
-    const handleChange = (e) => {
-        let value = parseInt(e.target.value);
-        if (isNaN(value) || value < 1) {
-            value = 1;
-        }
-        setQuantity(value);
-    };
+   
 
     const [loading, setLoading] = useState(false);
     const size = 10; // giữ nguyên mỗi lần gọi lấy 10 sản phẩm
@@ -216,9 +211,10 @@ function Detail() {
                     <div className="vertical-line"></div>
                     <div class="grid-item">
                         <div className="content">
-                            <h1 >{product.name}</h1>
+                            <h1>{product.name}</h1>
                             <div className="horizontal-line"></div>
-                            <br></br>
+                            <br />
+
                             <b style={{ fontSize: '24px' }}>
                                 {!product.sale?.id ? (
                                     <p>{Number(product.price).toLocaleString('vi-VN')} đ</p>
@@ -230,16 +226,17 @@ function Detail() {
                                         <strong>
                                             {Number(product.price - (product.price * (product.sale?.discountPercent / 100))).toLocaleString('vi-VN')} đ
                                         </strong>
-                                    </p>)
-                                }
+                                    </p>
+                                )}
                             </b>
-                            <br></br>
-                            <p>✅Tên nhân vật: {product.character_name} </p><br></br>
-                            <p>✅Chiều rộng: {product.width} cm</p><br></br>
-                            <p>✅Chiều cao: {product.height} cm</p><br></br>
-                            <p>✅Trọng lượng: {product.weight} kg</p><br></br>
 
-                            <br></br>
+                            <br />
+                            <p>✅Tên nhân vật: {product.character_name}</p><br />
+                            <p>✅Chiều rộng: {product.width} cm</p><br />
+                            <p>✅Chiều cao: {product.height} cm</p><br />
+                            <p>✅Trọng lượng: {product.weight} kg</p><br />
+
+                            <br />
                             <div style={styles.container}>
                                 <div style={styles.quantityBox}>
                                     <button onClick={handleDecrease} style={styles.button}>−</button>
@@ -247,22 +244,62 @@ function Detail() {
                                     <button onClick={handleIncrease} style={styles.button}>＋</button>
                                 </div>
                             </div>
-                            <br></br>
+                            <br />
+
                             {product.status !== "Hết hàng" && (
-                                <a href="#" className="view">
+                                <a
+                                    href="#"
+                                    className="view"
+                                    onClick={async (e) => {
+                                        e.preventDefault();
+
+                                        try {
+                                            const base64Image =
+                                                Array.isArray(product.imageBase64List) && typeof product.imageBase64List[0] === "string"
+                                                    ? `data:image/jpeg;base64,${product.imageBase64List[0]}`
+                                                    : null;
+
+                                            if (!base64Image) {
+                                                alert("Không có ảnh để thêm vào giỏ.");
+                                                return;
+                                            }
+
+                                            const file = base64ToFile(base64Image);
+                                            const resizedImage = await resizeImageToBase64(file);
+
+                                            const finalPrice = product.sale?.id
+                                                ? product.price - (product.price * (product.sale.discountPercent / 100))
+                                                : product.price;
+
+                                            addToCart({
+                                                id: product.id,
+                                                name: product.name,
+                                                price: finalPrice,
+                                                image: resizedImage,
+                                                quantity: quantity,
+                                            });
+
+                                            alert("Đã thêm vào giỏ hàng!");
+                                        } catch (error) {
+                                            console.error("Lỗi khi xử lý ảnh:", error);
+                                            alert("Không thể thêm sản phẩm vào giỏ hàng.");
+                                        }
+                                    }}
+                                >
                                     Thêm vào giỏ hàng <span className="fa-solid fa-angle-right"></span>
                                 </a>
                             )}
-                            {/* <a href="#" className="view">Thêm vào giỏ hàng<span className="fa-solid fa-angle-right"></span></a> */}
-                            <hr></hr>
-                            Mã code: {product.product_code} <br></br>
-                            Danh mục: <a>{product.categories.name}</a> <br></br>
+
+                            <hr />
+                            Mã code: {product.product_code} <br />
+                            Danh mục: <a>{product.categories.name}</a> <br />
                             Tag: {product.tags.map((tag, index) => (
                                 <span key={index}>
                                     <a href="#">{tag}</a>{index < product.tags.length - 1 ? ', ' : ''}
                                 </span>
                             ))}
                         </div>
+
                     </div>
                 </div>
                 <hr></hr>

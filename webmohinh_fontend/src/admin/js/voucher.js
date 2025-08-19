@@ -623,7 +623,7 @@ function Voucher() {
                             <TableCell>STT</TableCell>
                             <TableCell>Code Voucher</TableCell>
                             <TableCell>Quantity</TableCell>
-                            <TableCell>Description</TableCell>
+                            <TableCell>Reduced value</TableCell>
                             <TableCell>Status</TableCell>
                             <TableCell>Action</TableCell>
                         </TableRow>
@@ -634,7 +634,7 @@ function Voucher() {
                                 <TableCell>{page * PAGE_SIZE + index + 1}</TableCell>
                                 <TableCell>{voucher.codeVoucher}</TableCell>
                                 <TableCell>{voucher.quantity}</TableCell>
-                                <TableCell>{voucher.description}</TableCell>
+                                <TableCell>{voucher.reduced_value}%</TableCell>
                                 <TableCell
                                     style={{
                                         color:

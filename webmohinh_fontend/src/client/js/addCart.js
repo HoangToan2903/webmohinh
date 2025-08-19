@@ -73,7 +73,6 @@ export const addToCart = (product, quantity = 1) => {
 
     saveCart(cart);
     window.dispatchEvent(new Event("cartUpdated"));
-
 };
 
 

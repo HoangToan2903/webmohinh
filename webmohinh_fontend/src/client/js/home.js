@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import slugify from "./utils/slugify";
+import { addToCart, resizeImageToBase64, base64ToFile } from './addCart';
 
 function Home() {
 
@@ -100,101 +101,118 @@ function Home() {
             <h1>Mô hình ONE PIECE</h1>
             <div className="flex-center">
                 <div className="portfolio gallery gallery-container">
-                    {/* {product.status === "Còn hàng" && (
-                        <span style={{ color: 'green', fontWeight: 'bold' }}>✅ Còn hàng</span>
-                    )}
-                   */}
-                    {Array.isArray(productsOnePiece) &&
-                        productsOnePiece.map((product, index) => (
-                            <div className="item" key={index}>
-                                <div className="thumb" style={{ position: 'relative' }}>
-                                    <a className="category">One Piece</a>
+                    {loading ? (
+                        <p>Đang tải sản phẩm...</p>
+                    ) : (
+                        productsOnePiece.map((product, index) => {
+                            const base64Image =
+                                Array.isArray(product.imageBase64List) && typeof product.imageBase64List[0] === "string"
+                                    ? `data:image/jpeg;base64,${product.imageBase64List[0]}`
+                                    : null;
 
-                                    {Array.isArray(product.imageBase64List) && product.imageBase64List.length > 0 ? (
-                                        <img
-                                            style={{ objectFit: 'cover' }}
-                                            src={`data:image/jpeg;base64,${product.imageBase64List[0]}`}
-                                            alt="Product"
-                                        />
-                                    ) : (
-                                        <div
-                                            style={{
-                                                height: '80px',
-                                                width: '60px',
-                                                backgroundColor: '#eee',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                fontSize: '12px',
-                                                color: '#999',
-                                            }}
-                                        >
-                                            No image
-                                        </div>
-                                    )}
+                            return (
+                                <div className="item" key={index}>
+                                    <div className="thumb" style={{ position: "relative" }}>
+                                        <a className="category">One Piece</a>
 
-                                    {/* Overlay chữ "Hết hàng" */}
-                                    {product.status === "Hết hàng" && (
-                                        <div
-                                            style={{
-                                                position: 'absolute',
+                                        {base64Image ? (
+                                            <img
+                                                style={{ objectFit: "cover" }}
+                                                src={base64Image}
+                                                alt="Product"
+                                            />
+                                        ) : (
+                                            <div style={{ height: "80px", width: "60px", backgroundColor: "#eee", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", color: "#999" }}>
+                                                No image
+                                            </div>
+                                        )}
+
+                                        {product.status === "Hết hàng" && (
+                                            <div style={{
+                                                position: "absolute",
                                                 top: 0,
                                                 left: 0,
-                                                width: '100%',
-                                                height: '100%',
-                                                backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                                                color: 'white',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                fontWeight: 'bold',
-                                                fontSize: '18px',
+                                                width: "100%",
+                                                height: "100%",
+                                                backgroundColor: "rgba(0, 0, 0, 0.5)",
+                                                color: "white",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                fontWeight: "bold",
+                                                fontSize: "18px",
                                                 zIndex: 2,
-                                            }}
-                                        >
-                                            ❌ Hết hàng
-                                        </div>
-                                    )}
-                                </div>
+                                            }}>
+                                                ❌ Hết hàng
+                                            </div>
+                                        )}
+                                    </div>
 
-                                <div className="text">
-                                    <h3>
-                                        <a
-                                            onClick={() => {
-                                                localStorage.setItem('productsId', product.id);
-                                                localStorage.setItem('productImages', JSON.stringify(product.images || []));
+                                    <div className="text">
+                                        <h3>
+                                            <a onClick={() => {
+                                                localStorage.setItem("productsId", product.id);
+                                                localStorage.setItem("productImages", JSON.stringify(product.images || []));
                                                 navigate(`/shopNemo/${slugify(product.name)}`);
-                                            }}
-                                        >
-                                            {product.name}
-                                        </a>
-                                    </h3>
+                                            }}>
+                                                {product.name}
+                                            </a>
+                                        </h3>
 
-                                    {/* Luôn hiển thị giá */}
-                                    {!product.sale?.id ? (
-                                        <p>{Number(product.price).toLocaleString('vi-VN')} đ</p>
-                                    ) : (
-                                        <p>
-                                            <del style={{ color: 'gray', marginRight: '8px' }}>
-                                                {Number(product.price).toLocaleString('vi-VN')} đ
-                                            </del>
-                                            <strong>
-                                                {Number(
-                                                    product.price - (product.price * (product.sale?.discountPercent / 100))
-                                                ).toLocaleString('vi-VN')} đ
-                                            </strong>
-                                        </p>
-                                    )}
+                                        {!product.sale?.id ? (
+                                            <p>{Number(product.price).toLocaleString("vi-VN")} đ</p>
+                                        ) : (
+                                            <p>
+                                                <del style={{ color: "gray", marginRight: "8px" }}>
+                                                    {Number(product.price).toLocaleString("vi-VN")} đ
+                                                </del>
+                                                <strong>
+                                                    {Number(product.price - (product.price * (product.sale?.discountPercent / 100))).toLocaleString("vi-VN")} đ
+                                                </strong>
+                                            </p>
+                                        )}
 
-                                    {/* Ẩn nút giỏ hàng nếu hết hàng */}
-                                    {product.status !== "Hết hàng" && (
-                                        <a href="#" className="view">
-                                            Thêm vào giỏ hàng <span className="fa-solid fa-angle-right"></span>
-                                        </a>
-                                    )}
+                                        {product.status !== "Hết hàng" && (
+                                            <a
+                                                href="#"
+                                                className="view"
+                                                onClick={async (e) => {
+                                                    e.preventDefault();
+                                                    try {
+                                                        if (!base64Image) {
+                                                            alert("Không có ảnh để thêm vào giỏ.");
+                                                            return;
+                                                        }
+
+                                                        const file = base64ToFile(base64Image);
+                                                        const resizedImage = await resizeImageToBase64(file);
+
+                                                        const finalPrice = product.sale?.id
+                                                            ? product.price - (product.price * (product.sale.discountPercent / 100))
+                                                            : product.price;
+
+                                                        addToCart({
+                                                            id: product.id,
+                                                            name: product.name,
+                                                            price: finalPrice,
+                                                            image: resizedImage,
+                                                        });
+
+                                                        alert("Đã thêm vào giỏ hàng!");
+                                                    } catch (error) {
+                                                        console.error("Lỗi khi xử lý ảnh:", error);
+                                                        alert("Không thể thêm sản phẩm vào giỏ hàng.");
+                                                    }
+                                                }}
+                                            >
+                                                Thêm vào giỏ hàng <span className="fa-solid fa-angle-right"></span>
+                                            </a>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })
+                    )}
 
                 </div>
             </div>
@@ -316,97 +334,118 @@ function Home() {
             <h1>Mô hình DRAGONBALL </h1>
             <div className="flex-center">
                 <div className="portfolio gallery gallery-container">
-                    {Array.isArray(productsDragonball) &&
-                        productsDragonball.map((product, index) => (
-                            <div className="item" key={index}>
-                                <div className="thumb" style={{ position: 'relative' }}>
-                                    <a className="category">One Piece</a>
+                    {loading ? (
+                        <p>Đang tải sản phẩm...</p>
+                    ) : (
+                        productsDragonball.map((product, index) => {
+                            const base64Image =
+                                Array.isArray(product.imageBase64List) && typeof product.imageBase64List[0] === "string"
+                                    ? `data:image/jpeg;base64,${product.imageBase64List[0]}`
+                                    : null;
 
-                                    {Array.isArray(product.imageBase64List) && product.imageBase64List.length > 0 ? (
-                                        <img
-                                            style={{ objectFit: 'cover' }}
-                                            src={`data:image/jpeg;base64,${product.imageBase64List[0]}`}
-                                            alt="Product"
-                                        />
-                                    ) : (
-                                        <div
-                                            style={{
-                                                height: '80px',
-                                                width: '60px',
-                                                backgroundColor: '#eee',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                fontSize: '12px',
-                                                color: '#999',
-                                            }}
-                                        >
-                                            No image
-                                        </div>
-                                    )}
+                            return (
+                                <div className="item" key={index}>
+                                    <div className="thumb" style={{ position: "relative" }}>
+                                        <a className="category">One Piece</a>
 
-                                    {/* Overlay chữ "Hết hàng" */}
-                                    {product.status === "Hết hàng" && (
-                                        <div
-                                            style={{
-                                                position: 'absolute',
+                                        {base64Image ? (
+                                            <img
+                                                style={{ objectFit: "cover" }}
+                                                src={base64Image}
+                                                alt="Product"
+                                            />
+                                        ) : (
+                                            <div style={{ height: "80px", width: "60px", backgroundColor: "#eee", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", color: "#999" }}>
+                                                No image
+                                            </div>
+                                        )}
+
+                                        {product.status === "Hết hàng" && (
+                                            <div style={{
+                                                position: "absolute",
                                                 top: 0,
                                                 left: 0,
-                                                width: '100%',
-                                                height: '100%',
-                                                backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                                                color: 'white',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                fontWeight: 'bold',
-                                                fontSize: '18px',
+                                                width: "100%",
+                                                height: "100%",
+                                                backgroundColor: "rgba(0, 0, 0, 0.5)",
+                                                color: "white",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                fontWeight: "bold",
+                                                fontSize: "18px",
                                                 zIndex: 2,
-                                            }}
-                                        >
-                                            ❌ Hết hàng
-                                        </div>
-                                    )}
-                                </div>
+                                            }}>
+                                                ❌ Hết hàng
+                                            </div>
+                                        )}
+                                    </div>
 
-                                <div className="text">
-                                    <h3>
-                                        <a
-                                            onClick={() => {
-                                                localStorage.setItem('productsId', product.id);
-                                                localStorage.setItem('productImages', JSON.stringify(product.images || []));
+                                    <div className="text">
+                                        <h3>
+                                            <a onClick={() => {
+                                                localStorage.setItem("productsId", product.id);
+                                                localStorage.setItem("productImages", JSON.stringify(product.images || []));
                                                 navigate(`/shopNemo/${slugify(product.name)}`);
-                                            }}
-                                        >
-                                            {product.name}
-                                        </a>
-                                    </h3>
+                                            }}>
+                                                {product.name}
+                                            </a>
+                                        </h3>
 
-                                    {/* Luôn hiển thị giá */}
-                                    {!product.sale?.id ? (
-                                        <p>{Number(product.price).toLocaleString('vi-VN')} đ</p>
-                                    ) : (
-                                        <p>
-                                            <del style={{ color: 'gray', marginRight: '8px' }}>
-                                                {Number(product.price).toLocaleString('vi-VN')} đ
-                                            </del>
-                                            <strong>
-                                                {Number(
-                                                    product.price - (product.price * (product.sale?.discountPercent / 100))
-                                                ).toLocaleString('vi-VN')} đ
-                                            </strong>
-                                        </p>
-                                    )}
+                                        {!product.sale?.id ? (
+                                            <p>{Number(product.price).toLocaleString("vi-VN")} đ</p>
+                                        ) : (
+                                            <p>
+                                                <del style={{ color: "gray", marginRight: "8px" }}>
+                                                    {Number(product.price).toLocaleString("vi-VN")} đ
+                                                </del>
+                                                <strong>
+                                                    {Number(product.price - (product.price * (product.sale?.discountPercent / 100))).toLocaleString("vi-VN")} đ
+                                                </strong>
+                                            </p>
+                                        )}
 
-                                    {/* Ẩn nút giỏ hàng nếu hết hàng */}
-                                    {product.status !== "Hết hàng" && (
-                                        <a href="#" className="view">
-                                            Thêm vào giỏ hàng <span className="fa-solid fa-angle-right"></span>
-                                        </a>
-                                    )}
+                                        {product.status !== "Hết hàng" && (
+                                            <a
+                                                href="#"
+                                                className="view"
+                                                onClick={async (e) => {
+                                                    e.preventDefault();
+                                                    try {
+                                                        if (!base64Image) {
+                                                            alert("Không có ảnh để thêm vào giỏ.");
+                                                            return;
+                                                        }
+
+                                                        const file = base64ToFile(base64Image);
+                                                        const resizedImage = await resizeImageToBase64(file);
+
+                                                        const finalPrice = product.sale?.id
+                                                            ? product.price - (product.price * (product.sale.discountPercent / 100))
+                                                            : product.price;
+
+                                                        addToCart({
+                                                            id: product.id,
+                                                            name: product.name,
+                                                            price: finalPrice,
+                                                            image: resizedImage,
+                                                        });
+
+                                                        alert("Đã thêm vào giỏ hàng!");
+                                                    } catch (error) {
+                                                        console.error("Lỗi khi xử lý ảnh:", error);
+                                                        alert("Không thể thêm sản phẩm vào giỏ hàng.");
+                                                    }
+                                                }}
+                                            >
+                                                Thêm vào giỏ hàng <span className="fa-solid fa-angle-right"></span>
+                                            </a>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })
+                    )}
 
                 </div>
 

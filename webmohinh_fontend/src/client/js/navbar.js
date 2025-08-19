@@ -72,7 +72,7 @@ function Navbar() {
 
                     <ul className="nav-links">
                         <li>
-                            <a
+                            <a style={{cursor:"pointer"}}
 
                                 className={activeIndex === 0 ? 'active' : ''}
                                 onClick={(e) => {

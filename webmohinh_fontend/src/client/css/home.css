@@ -22,7 +22,8 @@ body {
   margin-top: 70px;
   background-color: #dfdfdf;
   border: 2px solid #d1d1d1;
-  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px; /* viền màu xám đậm, độ dày 2px */
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+  /* viền màu xám đậm, độ dày 2px */
 }
 
 .header img {
@@ -80,6 +81,7 @@ body {
     transform: translateY(-100%);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;
@@ -93,7 +95,7 @@ body {
   justify-content: center;
   background-color: white;
   border-bottom: 1px solid #eee;
-  
+
 }
 
 .navbar {
@@ -211,12 +213,14 @@ body {
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
+
 .slide {
   display: none;
 }
 
-input[type="radio"]:checked + .slide {
-  display: flex; /* hoặc block tùy bạn */
+input[type="radio"]:checked+.slide {
+  display: flex;
+  /* hoặc block tùy bạn */
 }
 
 .slider-image {
@@ -386,6 +390,7 @@ input[type="radio"]:checked + .slide {
   border-radius: 20px;
   transition: 0.6s;
   text-decoration: none;
+  cursor: pointer;
 }
 
 .view:hover {
@@ -952,12 +957,14 @@ footer .bottom-details .bottom_text {
   max-width: 1200px;
   border: 2px solid #cbc9c9;
 }
+
 .container_detailCategrories {
   padding: 0;
   margin: 0 auto;
   max-width: 100%;
   border: 2px solid #cbc9c9;
 }
+
 .uploader-wrapper {
   align-self: flex-start;
   text-align: center;
@@ -1054,6 +1061,7 @@ footer .bottom-details .bottom_text {
 .container_detail h1 {
   color: #e74c3c;
 }
+
 /* 
 form {
   width: 300px;
@@ -1184,7 +1192,8 @@ input[type=number]::-webkit-outer-spin-button {
   align-items: start;
 
 }
-.container_productsCategories{
+
+.container_productsCategories {
   display: grid;
   grid-template-columns: 1fr 1px 1fr;
   /* hai cột nội dung + 1 cột đường kẻ */
@@ -1192,14 +1201,18 @@ input[type=number]::-webkit-outer-spin-button {
   align-items: start;
 
 }
+
 .grid-item {
   padding: 10px;
-  
+
 }
+
 .product-section {
   display: grid;
-  grid-template-columns: 2fr 10fr; /* 4 + 8 = 12 phần */
-  gap: 16px; /* khoảng cách giữa 2 cột nếu muốn */
+  grid-template-columns: 2fr 10fr;
+  /* 4 + 8 = 12 phần */
+  gap: 16px;
+  /* khoảng cách giữa 2 cột nếu muốn */
   padding: 20px;
 }
 
@@ -1212,6 +1225,7 @@ input[type=number]::-webkit-outer-spin-button {
   background-color: #e0e0e0;
   padding: 16px;
 }
+
 .bottom-navbar {
   position: fixed;
   bottom: 0;
@@ -1260,6 +1274,7 @@ input[type=number]::-webkit-outer-spin-button {
 .category-item:hover {
   color: #ff4b36;
 }
+
 .price-filter {
   width: 100%;
   max-width: 320px;
@@ -1289,6 +1304,7 @@ input[type=number]::-webkit-outer-spin-button {
   background-color: #FF6E5B;
   border-radius: 2px;
 }
+
 /* lọc */
 .wrapper {
   display: flex;
@@ -1301,7 +1317,7 @@ input[type=number]::-webkit-outer-spin-button {
   width: 220px;
   border: 0;
   padding: 0;
-  margin: 0; 
+  margin: 0;
 }
 
 .price-title {
@@ -1324,14 +1340,14 @@ input[type=number]::-webkit-outer-spin-button {
 }
 
 .price-field input[type=range] {
-    position: absolute;
+  position: absolute;
 }
 
 /* Reset style for input range */
 
 .price-field input[type=range] {
   width: 188px;
-  height: 2px; 
+  height: 2px;
   border: 0;
   outline: 0;
   box-sizing: border-box;
@@ -1341,7 +1357,7 @@ input[type=number]::-webkit-outer-spin-button {
 }
 
 .price-field input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none;
+  -webkit-appearance: none;
 }
 
 .price-field input[type=range]:active,
@@ -1351,7 +1367,7 @@ input[type=number]::-webkit-outer-spin-button {
 
 .price-field input[type=range]::-ms-track {
   width: 188px;
-  height: 2px; 
+  height: 2px;
   border: 0;
   outline: 0;
   box-sizing: border-box;
@@ -1365,25 +1381,25 @@ input[type=number]::-webkit-outer-spin-button {
 
 /* Style toddler input range */
 
-.price-field input[type=range]::-webkit-slider-thumb { 
+.price-field input[type=range]::-webkit-slider-thumb {
   /* WebKit/Blink */
-    position: relative;
-    -webkit-appearance: none;
-    margin: 0;
-    border: 0;
-    outline: 0;
-    border-radius: 50%;
-    height: 10px;
-    width: 10px;
-    margin-top: -4px;
-    background-color: #686868;
-    cursor: pointer;
-    cursor: pointer;
-    pointer-events: all;
-    z-index: 100;
+  position: relative;
+  -webkit-appearance: none;
+  margin: 0;
+  border: 0;
+  outline: 0;
+  border-radius: 50%;
+  height: 10px;
+  width: 10px;
+  margin-top: -4px;
+  background-color: #686868;
+  cursor: pointer;
+  cursor: pointer;
+  pointer-events: all;
+  z-index: 100;
 }
 
-.price-field input[type=range]::-moz-range-thumb { 
+.price-field input[type=range]::-moz-range-thumb {
   /* Firefox */
   position: relative;
   appearance: none;
@@ -1401,7 +1417,7 @@ input[type=number]::-webkit-outer-spin-button {
   z-index: 100;
 }
 
-.price-field input[type=range]::-ms-thumb  { 
+.price-field input[type=range]::-ms-thumb {
   /* IE */
   position: relative;
   appearance: none;
@@ -1421,7 +1437,7 @@ input[type=number]::-webkit-outer-spin-button {
 
 /* Style track input range */
 
-.price-field input[type=range]::-webkit-slider-runnable-track { 
+.price-field input[type=range]::-webkit-slider-runnable-track {
   /* WebKit/Blink */
   width: 188px;
   height: 2px;
@@ -1430,7 +1446,7 @@ input[type=number]::-webkit-outer-spin-button {
   border-radius: 5px;
 }
 
-.price-field input[type=range]::-moz-range-track { 
+.price-field input[type=range]::-moz-range-track {
   /* Firefox */
   width: 188px;
   height: 2px;
@@ -1439,7 +1455,7 @@ input[type=number]::-webkit-outer-spin-button {
   border-radius: 5px;
 }
 
-.price-field input[type=range]::-ms-track { 
+.price-field input[type=range]::-ms-track {
   /* IE */
   width: 188px;
   height: 2px;
@@ -1460,7 +1476,7 @@ input[type=number]::-webkit-outer-spin-button {
   margin-bottom: 10px;
 }
 
-.price-wrap-1, 
+.price-wrap-1,
 .price-wrap-2 {
   display: flex;
 }
@@ -1474,14 +1490,14 @@ input[type=number]::-webkit-outer-spin-button {
   margin: 0 10px;
 }
 
-.price-wrap #one, 
+.price-wrap #one,
 .price-wrap #two {
   width: 30px;
   text-align: right;
   margin: 0;
   padding: 0;
   margin-right: 2px;
-  background:  0;
+  background: 0;
   border: 0;
   outline: 0;
   color: #686868;
@@ -1495,7 +1511,7 @@ input[type=number]::-webkit-outer-spin-button {
 }
 
 /* Style for active state input */
-    
+
 .price-field input[type=range]:hover::-webkit-slider-thumb {
   box-shadow: 0 0 0 0.5px #686868;
   transition-duration: 0.3s;
@@ -1505,6 +1521,7 @@ input[type=number]::-webkit-outer-spin-button {
   box-shadow: 0 0 0 0.5px #686868;
   transition-duration: 0.3s;
 }
+
 .btn-filter {
   background-color: #555;
   color: white;
@@ -1515,7 +1532,227 @@ input[type=number]::-webkit-outer-spin-button {
   cursor: pointer;
   font-size: 18px;
 }
-.btn-filter:hover{
+
+.btn-filter:hover {
   background-color: #e74c3c;
   color: white;
+}
+
+.tab-wrapper {
+
+  padding: 0;
+  margin: 0 auto;
+  max-width: 1300px;
+  /* border: 2px solid #cbc9c9; */
+}
+
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+
+}
+
+.tab {
+  flex: 1;
+  padding: 12px;
+  background: #eaeaea;
+  color: #272727;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.3s ease;
+  font-size: 20px;
+}
+
+.tab.active {
+  background: #e74c3c;
+  color: #272727;
+}
+
+.tab-content {
+  background: #eaeaea;
+  padding: 20px;
+  border-radius: 6px;
+}
+
+.grid-tab {
+  display: grid;
+  grid-template-columns: 7fr 1px 5fr;
+  /* chia 7:5 */
+  gap: 20px;
+  align-items: start;
+}
+
+.grid-item-tab {
+  padding: 10px;
+}
+
+.cart-summary {
+  border: 1px solid #ddd;
+  padding: 20px;
+
+  background: white;
+  font-family: Arial, sans-serif;
+}
+
+.cart-heading {
+  font-size: 18px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.cart-row {
+  display: flex;
+  justify-content: space-between;
+  margin: 10px 0;
+  font-size: 14px;
+}
+
+.cart-divider {
+  border: none;
+  border-top: 1px solid #eee;
+  margin: 10px 0;
+}
+
+.total-row {
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.checkout-button {
+  width: 100%;
+  background-color: #e53935;
+  color: white;
+  border: none;
+  padding: 12px;
+  font-size: 14px;
+  border-radius: 2px;
+  cursor: pointer;
+  margin: 20px 0;
+}
+
+.checkout-button:hover {
+  background-color: #f3918f;
+
+}
+
+.discount-section {
+  margin-top: 10px;
+}
+
+.discount-label {
+  font-weight: bold;
+  font-size: 14px;
+  color: #e53935;
+}
+
+.discount-input {
+  width: 100%;
+  padding: 8px;
+  margin-top: 8px;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+}
+
+.apply-button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 8px;
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  cursor: pointer;
+}
+
+.shipping-note {
+  font-size: 12px;
+  color: #777;
+}
+
+.shipping-fee {
+  color: red;
+  font-size: 12px;
+}
+
+
+/*  */
+/* Phần thông tin hướng dẫn */
+.notes {
+  color: #e53935;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.notes p {
+  margin: 4px 0;
+}
+
+/* Chi tiết đơn hàng */
+/* h2 {
+  color: #ff5722;
+  margin: 20px 0 10px;
+} */
+
+.tab-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.tab-content table td {
+  padding: 8px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+table tr:last-child td {
+  border-bottom: none;
+}
+
+.right {
+  text-align: right;
+}
+
+.total {
+  font-weight: bold;
+  color: #e53935;
+  font-size: 18px;
+}
+
+/* Địa chỉ */
+.address {
+  display: flex;
+  gap: 40px;
+  margin: 20px 0;
+}
+
+.address h3 {
+  color: #e53935;
+  margin-bottom: 8px;
+}
+
+/* Thông báo xác nhận */
+.confirm-box {
+  border: 1px solid #a5d6a7;
+  background: #e8f5e9;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.confirm-box p {
+  font-weight: bold;
+  color: #2e7d32;
+  margin: 0 0 8px;
+}
+
+.confirm-box ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+}
+
+.confirm-box li {
+  margin: 4px 0;
 }

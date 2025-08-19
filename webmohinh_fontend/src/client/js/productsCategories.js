@@ -6,6 +6,7 @@ import slugify from "./utils/slugify";
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@mui/material';
 import { addToCart, resizeImageToBase64, base64ToFile } from './addCart';
+import Footer from './footer'
 
 
 function ProductsCategories() {
@@ -266,7 +267,7 @@ function ProductsCategories() {
                     </div>
                 </div>
             </div>
-
+<Footer/>
         </div>
     )
 }

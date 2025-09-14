@@ -7,6 +7,7 @@ import mohinh.com.webmohinh_backend.config.OrderStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -20,14 +21,23 @@ public class Orders {
     @GeneratedValue(strategy = GenerationType.UUID)
     String id;
     BigDecimal total_price;
-
-    @Enumerated(EnumType.STRING)
-    private OrderStatus status;
-
+    Integer status;
     LocalDateTime createdAt;
     String shipping_address;
+    String email;
+    Integer phone;
+    String notes;
+    String name;
+    String codeOrder;
+    String payment_method;
+    String ship_money;
+
 
     @ManyToOne
     @JoinColumn(name = "voucher_id")
     private Voucher voucher;
+
+    // Quan hệ với Order_items
+    @OneToMany(mappedBy = "orders", cascade = CascadeType.ALL)
+    private List<Order_items> orderItems;
 }

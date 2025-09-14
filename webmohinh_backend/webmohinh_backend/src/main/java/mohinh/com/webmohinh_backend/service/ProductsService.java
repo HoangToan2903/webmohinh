@@ -31,6 +31,7 @@ public class ProductsService {
     SaleRepository saleRepository;
 
 
+
     public Products save(Products products) {
         if (productsRepository.existsByName(products.getName())) {
             System.out.println("Name đã tồn tại, không thể thêm mới."); // Ghi log thay vì ném lỗi
@@ -95,6 +96,7 @@ public class ProductsService {
 
         return productsRepository.save(product); // Lưu thay đổi
     }
+
     public Page<Products> getProductsByCategoryId(String categoryId, Pageable pageable) {
         return productsRepository.findAllByCategoryId(categoryId, pageable);
     }

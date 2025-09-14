@@ -28,5 +28,5 @@ public class Sale {
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
     Double discountPercent;
-    Boolean status;
+    Integer status;
 }

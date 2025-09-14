@@ -1098,9 +1098,10 @@ function Products() {
                             <TableCell>STT</TableCell>
                             <TableCell>Hình ảnh</TableCell>
                             <TableCell>Tên sản phẩm</TableCell>
-                            <TableCell>Danh mục</TableCell>
+                            {/* <TableCell>Danh mục</TableCell> */}
                             {/* <TableCell>Nhà sản xuất</TableCell> */}
                             <TableCell>Giá</TableCell>
+                            <TableCell>Giá giảm</TableCell>
                             <TableCell>Tồn kho</TableCell>
                             <TableCell>Trạng thái</TableCell>
                             <TableCell>Actions</TableCell>
@@ -1136,9 +1137,16 @@ function Products() {
 
                                 </TableCell>
                                 <TableCell>{product.name}</TableCell>
-                                <TableCell>{product.categories.name}</TableCell>
+                                {/* <TableCell>{product.categories.name}</TableCell> */}
                                 {/* <TableCell>{product.producer.name}</TableCell> */}
                                 <TableCell>{Number(product.price).toLocaleString('vi-VN')} đ</TableCell>
+                                <TableCell style={{ color: "red" }}>
+                                    {Number(
+                                        product.sale?.status === 1
+                                            ? product.price - (product.price * (product.sale.discountPercent / 100))
+                                            : product.price
+                                    ).toLocaleString('vi-VN')} đ
+                                </TableCell>
                                 <TableCell >{product.quantity} </TableCell>
                                 <TableCell
                                     style={{

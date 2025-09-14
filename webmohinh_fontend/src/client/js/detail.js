@@ -76,7 +76,7 @@ function Detail() {
         setQuantity(quantity + 1);
     };
 
-   
+
 
     const [loading, setLoading] = useState(false);
     const size = 10; // giữ nguyên mỗi lần gọi lấy 10 sản phẩm
@@ -216,18 +216,21 @@ function Detail() {
                             <br />
 
                             <b style={{ fontSize: '24px' }}>
-                                {!product.sale?.id ? (
-                                    <p>{Number(product.price).toLocaleString('vi-VN')} đ</p>
+                                {!product.sale?.id || product.sale?.status === 0 ? (
+                                    <p>{Number(product.price).toLocaleString("vi-VN")} đ</p>
                                 ) : (
                                     <p>
-                                        <del style={{ color: 'gray', marginRight: '8px' }}>
-                                            {Number(product.price).toLocaleString('vi-VN')} đ
+                                        <del style={{ color: "gray", marginRight: "8px" }}>
+                                            {Number(product.price).toLocaleString("vi-VN")} đ
                                         </del>
                                         <strong>
-                                            {Number(product.price - (product.price * (product.sale?.discountPercent / 100))).toLocaleString('vi-VN')} đ
+                                            {Number(
+                                                product.price - (product.price * (product.sale.discountPercent / 100))
+                                            ).toLocaleString("vi-VN")} đ
                                         </strong>
                                     </p>
                                 )}
+
                             </b>
 
                             <br />
@@ -267,9 +270,10 @@ function Detail() {
                                             const file = base64ToFile(base64Image);
                                             const resizedImage = await resizeImageToBase64(file);
 
-                                            const finalPrice = product.sale?.id
-                                                ? product.price - (product.price * (product.sale.discountPercent / 100))
-                                                : product.price;
+                                            const finalPrice =
+                                                product.sale?.id && product.sale?.status === 1
+                                                    ? product.price - (product.price * (product.sale.discountPercent / 100))
+                                                    : product.price;
 
                                             addToCart({
                                                 id: product.id,
@@ -409,18 +413,21 @@ function Detail() {
                                                 {product.name}
                                             </a>
 
-                                            <p>  {!product.sale?.id ? (
-                                                <p>{Number(product.price).toLocaleString('vi-VN')} đ</p>
+                                            {!product.sale?.id || product.sale?.status === 0 ? (
+                                                <p>{Number(product.price).toLocaleString("vi-VN")} đ</p>
                                             ) : (
                                                 <p>
-                                                    <del style={{ color: 'gray', marginRight: '8px' }}>
-                                                        {Number(product.price).toLocaleString('vi-VN')} đ
+                                                    <del style={{ color: "gray", marginRight: "8px" }}>
+                                                        {Number(product.price).toLocaleString("vi-VN")} đ
                                                     </del>
                                                     <strong>
-                                                        {Number(product.price - (product.price * (product.sale?.discountPercent / 100))).toLocaleString('vi-VN')} đ
+                                                        {Number(
+                                                            product.price - (product.price * (product.sale.discountPercent / 100))
+                                                        ).toLocaleString("vi-VN")} đ
                                                     </strong>
-                                                </p>)
-                                            }</p>
+                                                </p>
+                                            )}
+
                                         </div>
                                     </div>
                                     {index < productsOnePiece.length - 1 && (
@@ -468,18 +475,23 @@ function Detail() {
 
                     <div style={{ marginLeft: '20px' }}>
                         <b style={{ color: '#e74c3c' }}>{product.name}</b>
-                        <p>  {!product.sale?.id ? (
-                            <p>{Number(product.price).toLocaleString('vi-VN')} đ</p>
-                        ) : (
-                            <p>
-                                <del style={{ color: 'gray', marginRight: '8px' }}>
-                                    {Number(product.price).toLocaleString('vi-VN')} đ
-                                </del>
-                                <strong>
-                                    {Number(product.price - (product.price * (product.sale?.discountPercent / 100))).toLocaleString('vi-VN')} đ
-                                </strong>
-                            </p>)
-                        }</p>
+                        <p>
+                            {!product.sale?.id || product.sale?.status === 0 ? (
+                                <p>{Number(product.price).toLocaleString("vi-VN")} đ</p>
+                            ) : (
+                                <p>
+                                    <del style={{ color: "gray", marginRight: "8px" }}>
+                                        {Number(product.price).toLocaleString("vi-VN")} đ
+                                    </del>
+                                    <strong>
+                                        {Number(
+                                            product.price - (product.price * (product.sale.discountPercent / 100))
+                                        ).toLocaleString("vi-VN")} đ
+                                    </strong>
+                                </p>
+                            )}
+
+                        </p>
                     </div>
 
                     <div style={{ marginLeft: '20px' }}>
@@ -494,7 +506,43 @@ function Detail() {
 
                     <div style={{ marginLeft: '20px' }}>
                         {product.status !== "Hết hàng" && (
-                            <a href="#" className="view">
+                            <a href="#" className="view"
+                                onClick={async (e) => {
+                                    e.preventDefault();
+
+                                    try {
+                                        const base64Image =
+                                            Array.isArray(product.imageBase64List) && typeof product.imageBase64List[0] === "string"
+                                                ? `data:image/jpeg;base64,${product.imageBase64List[0]}`
+                                                : null;
+
+                                        if (!base64Image) {
+                                            alert("Không có ảnh để thêm vào giỏ.");
+                                            return;
+                                        }
+
+                                        const file = base64ToFile(base64Image);
+                                        const resizedImage = await resizeImageToBase64(file);
+
+                                        const finalPrice =
+                                            product.sale?.id && product.sale?.status === 1
+                                                ? product.price - (product.price * (product.sale.discountPercent / 100))
+                                                : product.price;
+
+                                        addToCart({
+                                            id: product.id,
+                                            name: product.name,
+                                            price: finalPrice,
+                                            image: resizedImage,
+                                            quantity: quantity,
+                                        });
+
+                                        alert("Đã thêm vào giỏ hàng!");
+                                    } catch (error) {
+                                        console.error("Lỗi khi xử lý ảnh:", error);
+                                        alert("Không thể thêm sản phẩm vào giỏ hàng.");
+                                    }
+                                }}>
                                 Thêm vào giỏ hàng <span className="fa-solid fa-angle-right"></span>
                             </a>
                         )}

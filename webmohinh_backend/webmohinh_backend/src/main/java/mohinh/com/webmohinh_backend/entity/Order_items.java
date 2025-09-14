@@ -29,5 +29,4 @@ public class Order_items {
     @JoinColumn(name = "order_id")
     private Orders orders;
 
-
 }

@@ -46,18 +46,32 @@ export const base64ToFile = (base64String, filename = "image.jpg") => {
 };
 // ✅ Lấy giỏ hàng
 
+// ✅ Lấy giỏ hàng (kiểm tra hết hạn)
 export const getCart = () => {
-    try {
-        const cart = localStorage.getItem('cart');
-        return cart ? JSON.parse(cart) : [];
-    } catch {
-        return [];
+  try {
+    const data = localStorage.getItem('cart');
+    if (!data) return [];
+
+    const parsed = JSON.parse(data);
+
+    // Nếu quá hạn thì xóa
+    if (parsed.expiresAt && Date.now() > parsed.expiresAt) {
+      localStorage.removeItem('cart');
+      return [];
     }
+
+    return parsed.cart || [];
+  } catch {
+    return [];
+  }
 };
 
 export const saveCart = (cart) => {
-    localStorage.setItem('cart', JSON.stringify(cart));
+  const expiresAt = Date.now() + 2 * 24 * 60 * 60 * 1000; // 2 ngày (ms)
+  const data = { cart, expiresAt };
+  localStorage.setItem('cart', JSON.stringify(data));
 };
+
 
 // ✅ Thêm sản phẩm vào giỏ (cộng dồn chứ không ghi đè)
 export const addToCart = (product, quantity = 1) => {

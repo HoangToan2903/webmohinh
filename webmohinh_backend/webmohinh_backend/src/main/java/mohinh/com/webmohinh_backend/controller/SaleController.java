@@ -1,5 +1,6 @@
 package mohinh.com.webmohinh_backend.controller;
 
+import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -7,10 +8,13 @@ import lombok.extern.slf4j.Slf4j;
 import mohinh.com.webmohinh_backend.dto.UpdateStatusRequest;
 import mohinh.com.webmohinh_backend.entity.Sale;
 import mohinh.com.webmohinh_backend.entity.Voucher;
+import mohinh.com.webmohinh_backend.repository.SaleRepository;
 import mohinh.com.webmohinh_backend.service.SaleService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
 
 @RestController
 @Slf4j
@@ -18,11 +22,12 @@ import org.springframework.web.bind.annotation.*;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class SaleController {
     SaleService saleService;
+    SaleRepository saleRepository;
 
     @PostMapping("/sale")
     @CrossOrigin
     public Sale save(@RequestBody Sale sale) {
-        return saleService.save(sale);
+        return saleService.saveSale(sale);
     }
 
     @GetMapping("/saleAll")
@@ -58,4 +63,6 @@ public class SaleController {
     public Sale updateStatus(@PathVariable String id, @RequestBody UpdateStatusRequest request) {
         return saleService.updateStatus(id, request.getStatus());
     }
+
+
 }

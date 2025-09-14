@@ -1695,13 +1695,13 @@ input[type=number]::-webkit-outer-spin-button {
   margin: 20px 0 10px;
 } */
 
-.tab-content table {
+.table_product {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 20px;
 }
 
-.tab-content table td {
+.table_product td {
   padding: 8px;
   border-bottom: 2px solid #e0e0e0;
 }
@@ -1734,8 +1734,8 @@ table tr:last-child td {
 
 /* Thông báo xác nhận */
 .confirm-box {
-  border: 1px solid #a5d6a7;
-  background: #e8f5e9;
+  border: 1px solid #dacc09;
+  background: #ece59e;
   padding: 15px;
   border-radius: 8px;
 }

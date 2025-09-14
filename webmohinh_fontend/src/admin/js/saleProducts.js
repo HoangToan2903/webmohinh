@@ -169,23 +169,41 @@ function Statistics() {
             {successAlertDelete && (
                 <Slide direction="left" in={successAlertDelete} mountOnEnter unmountOnExit>
                     <Alert
-                        sx={{ width: '50%', float: 'right', mt: 2 }}
+                        sx={{
+                            width: '300px', // hoặc tùy chỉnh
+                            position: 'fixed',
+                            top: 16, // cách mép trên 16px
+                            right: 16, // cách mép phải 16px
+                            zIndex: 9999, // đảm bảo hiển thị trên các thành phần khác
+                        }}
                         severity="success"
                     >
-                        Delete success
+                        Xóa thành công !!!
                     </Alert>
                 </Slide>
             )}
             {successAlertAdd && (
-                <Slide direction="left" in={successAlertAdd} mountOnEnter unmountOnExit>
+                <Slide
+                    direction="left"
+                    in={successAlertAdd}
+                    mountOnEnter
+                    unmountOnExit
+                >
                     <Alert
-                        sx={{ width: '50%', float: 'right', mt: 2 }}
+                        sx={{
+                            width: '300px', // hoặc tùy chỉnh
+                            position: 'fixed',
+                            top: 16, // cách mép trên 16px
+                            right: 16, // cách mép phải 16px
+                            zIndex: 9999, // đảm bảo hiển thị trên các thành phần khác
+                        }}
                         severity="success"
                     >
-                        Add success
+                        Thêm thành công !!!
                     </Alert>
                 </Slide>
             )}
+
             <h1>Products Sale</h1>
             <br></br>
             <Button
@@ -274,9 +292,15 @@ function Statistics() {
                                     <TableCell>{product.name}</TableCell>
                                     <TableCell>{product.categories?.name || "N/A"}</TableCell>
                                     <TableCell>{Number(product.price).toLocaleString('vi-VN')} đ</TableCell>
-                                    <TableCell style={{ color: "green" }}>{product.sale?.discountPercent || "0"}%</TableCell>
-                                    <TableCell style={{ color: "red" }}>{Number(product.price - (product.price * (product.sale?.discountPercent / 100))).toLocaleString('vi-VN')} đ</TableCell>
-                                </TableRow>
+                                    <TableCell style={{ color: "green" }}>
+                                        {product.sale?.status === 1 ? product.sale.discountPercent : "0"}%
+                                    </TableCell>                                    <TableCell style={{ color: "red" }}>
+                                        {Number(
+                                            product.sale?.status === 1
+                                                ? product.price - (product.price * (product.sale.discountPercent / 100))
+                                                : product.price
+                                        ).toLocaleString('vi-VN')} đ
+                                    </TableCell>                                </TableRow>
                             );
                         })}
                     </TableBody>

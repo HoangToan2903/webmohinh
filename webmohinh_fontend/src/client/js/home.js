@@ -159,7 +159,7 @@ function Home() {
                                             </a>
                                         </h3>
 
-                                        {!product.sale?.id ? (
+                                        {!product.sale?.id || product.sale?.status === 0 ? (
                                             <p>{Number(product.price).toLocaleString("vi-VN")} đ</p>
                                         ) : (
                                             <p>
@@ -167,7 +167,9 @@ function Home() {
                                                     {Number(product.price).toLocaleString("vi-VN")} đ
                                                 </del>
                                                 <strong>
-                                                    {Number(product.price - (product.price * (product.sale?.discountPercent / 100))).toLocaleString("vi-VN")} đ
+                                                    {Number(
+                                                        product.price - (product.price * (product.sale.discountPercent / 100))
+                                                    ).toLocaleString("vi-VN")} đ
                                                 </strong>
                                             </p>
                                         )}
@@ -187,9 +189,11 @@ function Home() {
                                                         const file = base64ToFile(base64Image);
                                                         const resizedImage = await resizeImageToBase64(file);
 
-                                                        const finalPrice = product.sale?.id
-                                                            ? product.price - (product.price * (product.sale.discountPercent / 100))
-                                                            : product.price;
+                                                        const finalPrice =
+                                                            product.sale?.id && product.sale?.status === 1
+                                                                ? product.price - (product.price * (product.sale.discountPercent / 100))
+                                                                : product.price;
+
 
                                                         addToCart({
                                                             id: product.id,
@@ -392,7 +396,7 @@ function Home() {
                                             </a>
                                         </h3>
 
-                                        {!product.sale?.id ? (
+                                        {!product.sale?.id || product.sale?.status === 0 ? (
                                             <p>{Number(product.price).toLocaleString("vi-VN")} đ</p>
                                         ) : (
                                             <p>
@@ -400,10 +404,13 @@ function Home() {
                                                     {Number(product.price).toLocaleString("vi-VN")} đ
                                                 </del>
                                                 <strong>
-                                                    {Number(product.price - (product.price * (product.sale?.discountPercent / 100))).toLocaleString("vi-VN")} đ
+                                                    {Number(
+                                                        product.price - (product.price * (product.sale.discountPercent / 100))
+                                                    ).toLocaleString("vi-VN")} đ
                                                 </strong>
                                             </p>
                                         )}
+
 
                                         {product.status !== "Hết hàng" && (
                                             <a
@@ -419,11 +426,10 @@ function Home() {
 
                                                         const file = base64ToFile(base64Image);
                                                         const resizedImage = await resizeImageToBase64(file);
-
-                                                        const finalPrice = product.sale?.id
-                                                            ? product.price - (product.price * (product.sale.discountPercent / 100))
-                                                            : product.price;
-
+                                                        const finalPrice =
+                                                            product.sale?.id && product.sale?.status === 1
+                                                                ? product.price - (product.price * (product.sale.discountPercent / 100))
+                                                                : product.price;
                                                         addToCart({
                                                             id: product.id,
                                                             name: product.name,

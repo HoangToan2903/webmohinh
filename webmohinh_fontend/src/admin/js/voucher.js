@@ -243,30 +243,53 @@ function Voucher() {
             {successAlertDelete && (
                 <Slide direction="left" in={successAlertDelete} mountOnEnter unmountOnExit>
                     <Alert
-                        sx={{ width: '50%', float: 'right', mt: 2 }}
+                        sx={{
+                            width: '300px', // hoặc tùy chỉnh
+                            position: 'fixed',
+                            top: 16, // cách mép trên 16px
+                            right: 16, // cách mép phải 16px
+                            zIndex: 9999, // đảm bảo hiển thị trên các thành phần khác
+                        }}
                         severity="success"
                     >
-                        Delete success
+                        Xóa thành công !!!
                     </Alert>
                 </Slide>
             )}
             {successAlertAdd && (
-                <Slide direction="left" in={successAlertAdd} mountOnEnter unmountOnExit>
+                <Slide
+                    direction="left"
+                    in={successAlertAdd}
+                    mountOnEnter
+                    unmountOnExit
+                >
                     <Alert
-                        sx={{ width: '50%', float: 'right', mt: 2 }}
+                        sx={{
+                            width: '300px', // hoặc tùy chỉnh
+                            position: 'fixed',
+                            top: 16, // cách mép trên 16px
+                            right: 16, // cách mép phải 16px
+                            zIndex: 9999, // đảm bảo hiển thị trên các thành phần khác
+                        }}
                         severity="success"
                     >
-                        Add success
+                        Thêm thành công !!!
                     </Alert>
                 </Slide>
             )}
             {successAlertUpdate && (
                 <Slide direction="left" in={successAlertUpdate} mountOnEnter unmountOnExit>
                     <Alert
-                        sx={{ width: '50%', float: 'right', mt: 2 }}
+                        sx={{
+                            width: '300px', // hoặc tùy chỉnh
+                            position: 'fixed',
+                            top: 16, // cách mép trên 16px
+                            right: 16, // cách mép phải 16px
+                            zIndex: 9999, // đảm bảo hiển thị trên các thành phần khác
+                        }}
                         severity="success"
                     >
-                        Update success
+                        Sửa thành công !!!
                     </Alert>
                 </Slide>
             )}

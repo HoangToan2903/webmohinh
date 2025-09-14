@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { Radio, RadioGroup, FormControlLabel, FormControl, FormLabel, Box, Typography, TextField, Stack } from "@mui/material";
 import TextareaAutosize from '@mui/material/TextareaAutosize';
 import axios from "axios";
+import { Alert, Slide } from '@mui/material';
 
 
 const PAGE_SIZE = 10;
@@ -86,7 +87,7 @@ function CartItems() {
         (total, item) => total + item.price * item.quantity,
         0
     );
-    const [method, setMethod] = useState("bank"); // <-- không có <string> nếu là JS
+    const [method, setMethod] = useState("Thanh toán khi nhận hàng"); // <-- không có <string> nếu là JS
 
     const handleChange = (e) => {
         setMethod(e.target.value);
@@ -132,16 +133,173 @@ function CartItems() {
         }
     };
 
+    const [successAlertAdd, setSuccessAlertAdd] = useState(false);
+    const [activeIndex, setActiveIndex] = useState(0);
+    const [name, setName] = useState("");
+    const [email, setEmail] = useState("");
+    const [emailError, setEmailError] = useState("");
+    const [phone, setPhone] = useState("");
+    const [phoneError, setPhoneError] = useState('');
+    const [address, setAddress] = useState("");
+    const [notes, setNotes] = useState("");
+    // const [method, setMethod] = useState("cod");
+    const [loading, setLoading] = useState(false);
+    const [message, setMessage] = useState("");
+    const [orderDetails, setOrderDetails] = useState(null);
+
+    const handleClick = (index) => {
+        setActiveIndex(index);
+    };
+    const validateEmail = (value) => {
+        const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return regex.test(value);
+    };
+
+    const handleEmailChange = (e) => {
+        const value = e.target.value;
+        setEmail(value);
+
+        if (!value.trim()) {
+            setEmailError("Vui lòng nhập email!");
+        } else if (!validateEmail(value)) {
+            setEmailError("Email không đúng định dạng. Ví dụ: example@gmail.com");
+        } else {
+            setEmailError("");
+        }
+    };
+
+    const handlePhoneChange = (event) => {
+        const value = event.target.value;
+
+        // Chỉ giữ lại các ký tự số 0-9
+        const numericValue = value.replace(/\D/g, '');
+
+        setPhone(numericValue);
+
+        // Validate số điện thoại Việt Nam (10 số, bắt đầu từ 0)
+        const phoneRegex = /^0\d{9}$/;
+
+        if (!numericValue) {
+            setPhoneError('Vui lòng nhập số điện thoại');
+        } else if (!phoneRegex.test(numericValue)) {
+            setPhoneError('Số điện thoại không hợp lệ. Phải đủ 10 số và bắt đầu bằng 0');
+        } else {
+            setPhoneError('');
+        }
+    };
+    const validateForm = () => {
+        return (
+            name.trim() !== "" &&
+            email.trim() !== "" &&
+            phone.trim() !== "" &&
+            address.trim() !== ""
+        );
+    };
+    const finalTotal = (() => {
+        const baseTotal = (Number(subtotal) || 0) + (Number(shipping) || 0);
+        const discountPercent =
+            vouchers.length > 0 && vouchers[0].status === "Đang hoạt động"
+                ? vouchers[0].reduced_value
+                : 0;
+        return baseTotal - (baseTotal * discountPercent) / 100;
+    })();
+    const handlePlaceOrder = async () => {
+        if (!validateForm()) {
+            setMessage("Vui lòng điền đầy đủ thông tin bắt buộc!");
+            return;
+        }
+
+        const orderRequest = {
+            name,
+            email,
+            shippingAddress: address,
+            phone,
+            notes,
+            paymentMethod: method,
+            shipMoney: shipping,
+            totalPrice: finalTotal,
+            voucherId: vouchers.length > 0 ? vouchers[0].id : null,
+            items: cartItems.map(item => ({
+                productId: item.id,
+                quantity: item.quantity,
+                price: item.price
+            }))
+        };
+
+        try {
+            setLoading(true);
+            const response = await axios.post("http://localhost:8080/website/orders", orderRequest);
+
+            // Lưu dữ liệu đơn hàng vào state
+            setOrderDetails({
+                codeOrder: response.data.codeOrder,
+                date: new Date().toLocaleDateString("vi-VN", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                }),
+                shipping: shipping,
+                paymentMethod: method,
+                items: cartItems,
+                subtotal: cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0),
+                totalPrice: cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0) + shipping,
+                customer: {
+                    name,
+                    email,
+                    phone,
+                    address,
+                    notes
+                }
+            });
+
+            setMessage("Đặt hàng thành công! Mã đơn hàng: " + response.data.codeOrder);
+
+            // Reset form
+            setName("");
+            setEmail("");
+            setPhone("");
+            setAddress("");
+            setNotes("");
+            setSuccessAlertAdd(true);
+            setTimeout(() => setSuccessAlertAdd(false), 3000);
+        } catch (error) {
+            console.error(error);
+            setMessage("Đặt hàng thất bại. Vui lòng thử lại!");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div>
             <Navbar />
             <br></br>
 
-
+            {successAlertAdd && (
+                <Slide
+                    direction="left"
+                    in={successAlertAdd}
+                    mountOnEnter
+                    unmountOnExit
+                >
+                    <Alert
+                        sx={{
+                            width: '500px', // hoặc tùy chỉnh
+                            position: 'fixed',
+                            top: 16, // cách mép trên 16px
+                            right: 16, // cách mép phải 16px
+                            zIndex: 9999, // đảm bảo hiển thị trên các thành phần khác
+                        }}
+                        severity="success"
+                    >
+                        Đặt hàng thành công !!!
+                    </Alert>
+                </Slide>
+            )}
             <div className="tab-wrapper ">
                 <div className="tabs">
                     <button className="tab active" data-tab="home">Giỏ hàng</button>
-                    <button className="tab " data-tab="profile">Chi tiết thanh toán</button>
+                    <button className="tab " disabled >Chi tiết thanh toán</button>
                     <button className="tab" disabled>Đơn hàng hoàn tất</button>
                 </div>
 
@@ -153,7 +311,15 @@ function CartItems() {
                     <div className="grid-tab" id="product-section">
                         <div className="grid-item-tab">
                             {cartItems.length === 0 ? (
-                                <p>Chưa có sản phẩm nào trong giỏ hàng.</p>
+                                <p>Chưa có sản phẩm nào trong giỏ hàng.</p>,
+                                <button className="checkout-button"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        handleClick(0);
+                                        navigate('/home');
+                                    }} >Quay trở lại cửa hàng</button>
+
+
                             ) : (
                                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                                     <thead>
@@ -232,69 +398,103 @@ function CartItems() {
                             {/* <a style={{float:"right"}}  className="view">Cập nhập giỏ hàng</a> */}
                         </div>
                         <div className="vertical-line"></div>
-                        <div className="grid-item">
-                            <div className="cart-summary">
-                                <h3 className="cart-heading">CỘNG GIỎ HÀNG</h3>
+                        {cartItems.length === 0 ? (
+                            <p></p>
+                        ) : (
+                            <div className="grid-item">
+                                <div className="cart-summary">
+                                    <h3 className="cart-heading">CỘNG GIỎ HÀNG</h3>
 
-                                <div className="cart-row">
-                                    <span>Tạm tính</span>
-                                    <strong>{subtotal.toLocaleString('vi-VN')} ₫</strong>
-                                </div>
-
-                                <div className="cart-row">
-                                    <div>
-                                        <div>Giao Hàng Trong 2-3 Ngày:</div>
-                                        <div className="shipping-note">
-                                            Tùy chọn giao hàng sẽ được cập nhật trong quá trình thanh toán.
-                                            <br />
-                                            <span className="shipping-fee">Tính phí giao hàng</span>
-                                        </div>
+                                    <div className="cart-row">
+                                        <span>Tạm tính</span>
+                                        <strong>{subtotal.toLocaleString('vi-VN')} ₫</strong>
                                     </div>
-                                    <span>35,000 ₫</span>
+
+                                    <div className="cart-row">
+                                        <div>
+                                            <div>Giao Hàng Trong 2-3 Ngày:</div>
+                                            <div className="shipping-note">
+                                                Tùy chọn giao hàng sẽ được cập nhật trong quá trình thanh toán.
+                                                <br />
+                                                <span className="shipping-fee">Tính phí giao hàng</span>
+                                            </div>
+                                        </div>
+                                        <span>35,000 ₫</span>
+                                    </div>
+
+                                    <hr className="cart-divider" />
+
+                                    <div className="cart-row total-row">
+                                        <span>Tổng</span>
+                                        <strong>{(subtotal + shipping).toLocaleString('vi-VN')} ₫</strong>
+
+                                    </div>
+                                    <button className="tab checkout-button " data-tab="profile">TIẾN HÀNH THANH TOÁN</button>
+
                                 </div>
-
-                                <hr className="cart-divider" />
-
-                                <div className="cart-row total-row">
-                                    <span>Tổng</span>
-                                    <strong>{(subtotal + shipping).toLocaleString('vi-VN')} ₫</strong>
-
-                                </div>
-
-                                <button class="tab checkout-button active" data-tab="profile">TIẾN HÀNH THANH TOÁN</button>
-
                             </div>
-                        </div>
+                        )}
                     </div>
-
                 </div>
+
                 <div className="tab-content" id="profile" style={{ display: 'none' }}>
                     <div className="grid-tab" id="product-section">
                         <div className="grid-item-tab">
                             <h1 style={{ color: "#e74c3c" }}> Thông tin thanh toán </h1>
+                            <b style={{ color: "#e74c3c" }}>* Vui lòng nhập đầy đủ thông tin thanh toán</b>
                             <br></br>
-                            <Stack spacing={2}> {/* spacing={2} ~ 16px mặc định */}
-                                <TextField fullWidth label="Họ và tên *" variant="filled" />
-                                <TextField fullWidth label="Địa chỉ email(bắt buộc) *" variant="filled" />
-                                <TextField fullWidth label="Số điện thoại *" variant="filled" />
-                                <TextField fullWidth label="Địa chỉ *" variant="filled" />
-                                <TextField fullWidth label="Tỉnh / Thành phố *" variant="filled" />
+                            <br></br>
+                            <Stack spacing={2}>
+                                <TextField
+                                    fullWidth
+                                    label="Họ và tên *"
+                                    variant="filled"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                />
+                                <TextField
+                                    fullWidth
+                                    label="Email *"
+                                    variant="filled"
+                                    type="email"
+                                    value={email}
+                                    onChange={handleEmailChange}
+                                    error={!!emailError}
+                                    helperText={emailError}
+                                    placeholder="Nhập email của bạn"
+                                />
+                                <TextField
+                                    fullWidth
+                                    label="Số điện thoại *"
+                                    variant="filled"
+                                    type="tel"
+                                    value={phone}
+                                    onChange={handlePhoneChange}
+                                    error={!!phoneError}
+                                    helperText={phoneError} // Hiển thị lỗi bên dưới
+                                    placeholder="Nhập số điện thoại của bạn"
+                                    inputProps={{
+                                        inputMode: 'numeric', // Gợi ý bàn phím số trên mobile
+                                        pattern: '[0-9]*',   // HTML validation cơ bản
+                                    }}
+                                />
+                                <TextField
+                                    fullWidth
+                                    label="Địa chỉ *"
+                                    variant="filled"
+                                    value={address}
+                                    onChange={(e) => setAddress(e.target.value)}
+                                />
                                 <TextareaAutosize
-                                    name="description"
-                                    aria-label="empty textarea"
-                                    placeholder="Ghi chú đơn hàng (tuỳ chọn) ..."
+                                    placeholder="Ghi chú đơn hàng..."
                                     minRows={3}
-
-
+                                    value={notes}
+                                    onChange={(e) => setNotes(e.target.value)}
                                     style={{
                                         width: "100%",
                                         padding: "10px",
-                                        fontSize: "16px",
-                                        borderRadius: "5px",
                                         border: "1px solid #ccc",
-                                        outline: "none",
-                                        resize: "vertical",
-                                        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+                                        borderRadius: "5px"
                                     }}
                                 />
                             </Stack>
@@ -316,9 +516,9 @@ function CartItems() {
                                     />
 
                                     {
-                                    /* <button className="apply-button" onClick={fetchVouchersSearch}>
-                                        Áp dụng
-                                    </button> */
+                                        /* <button className="apply-button" onClick={fetchVouchersSearch}>
+                                            Áp dụng
+                                        </button> */
                                     }
                                 </div>
                                 <hr className="cart-divider" />
@@ -349,7 +549,7 @@ function CartItems() {
 
                                         </div>
                                     </div>
-                                    <span> {(subtotal + shipping).toLocaleString('vi-VN')} ₫</span>
+                                    <span> {(subtotal).toLocaleString('vi-VN')} ₫</span>
                                 </div>
 
                                 <hr className="cart-divider" />
@@ -408,7 +608,7 @@ function CartItems() {
                                     <strong>
                                         {(() => {
                                             const baseTotal =
-                                                (Number(subtotal) || 0) + (Number(shipping) || 0) + 35000;
+                                                (Number(subtotal) || 0) + (Number(shipping) || 0);
 
                                             // Nếu voucher đầu tiên đang hoạt động thì mới giảm, ngược lại giữ nguyên
                                             const discountPercent =
@@ -438,13 +638,13 @@ function CartItems() {
                                             Chọn phương thức thanh toán
                                         </FormLabel>
                                         <RadioGroup value={method} onChange={handleChange}>
-                                            <FormControlLabel value="bank" control={<Radio />} label="Chuyển khoản ngân hàng" />
-                                            <FormControlLabel value="cod" control={<Radio />} label=" Trả tiền mặt khi nhận hàng" />
+                                            <FormControlLabel value="Thanh toán trước" control={<Radio />} label="Chuyển khoản ngân hàng" />
+                                            <FormControlLabel value="Thanh toán khi nhận hàng" control={<Radio />} label=" Thanh toán khi nhận hàng" />
                                         </RadioGroup>
                                     </FormControl>
 
                                     <Box className="mt-4 p-3 border rounded-md shadow-sm bg-white">
-                                        {method === "bank" && (
+                                        {method === "Thanh toán trước" && (
                                             <>
                                                 <h4>Thông tin chuyển khoản</h4>
                                                 <Typography component="p">- Tên tài khoản: Hoàng Đức Toản</Typography>
@@ -456,7 +656,7 @@ function CartItems() {
                                             </>
                                         )}
 
-                                        {method === "cod" && (
+                                        {method === "Thanh toán khi nhận hàng" && (
                                             <>
                                                 <Typography component="p">- Ship COD thông qua GHTK khi giao hàng được kiểm tra hàng</Typography>
                                                 <Typography component="p">- Thời gian giao hàng từ 2-3 ngày mọi vùng</Typography>
@@ -466,79 +666,117 @@ function CartItems() {
                                         )}
                                     </Box>
                                 </Box>
+                                <br></br>
+                                <b style={{ color: "#e74c3c" }}>* Vui lòng nhập đầy đủ thông tin trước khi thanh toán</b>
+                                <button className="checkout-button tab" data-tab="settings" onClick={handlePlaceOrder}
+                                    disabled={!validateForm() || loading} // disabled nếu chưa đủ dữ liệu hoặc đang gửi
+                                    style={{
+                                        backgroundColor: !validateForm() ? "#ccc" : "#e74c3c",
+                                        cursor: !validateForm() ? "not-allowed" : "pointer",
+                                    }}>   {loading ? "Đang xử lý..." : "ĐẶT HÀNG"}
+                                </button>
 
 
-                                <button className="checkout-button tab" data-tab="settings">ĐẶT HÀNG</button>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div className="tab-content" id="settings" style={{ display: 'none' }}>
-                    <div class="notes">
-                        <p>• Các bạn yên tâm khi mua hàng tại NemoShop</p>
-                        <p>• Khuyến khích trước khi mua hãy nhắn tin Zalo/Messenger để shop tư vấn chi tiết nhất</p>
-                        <p>• Sản phẩm lỗi, hư hỏng có thể đổi trả</p>
-                        <p>• Được kiểm tra hàng trước khi nhận</p>
-                        <p>• Thời gian giao hàng sẽ từ 2-3 ngày đồng giá ship là 35k</p>
+                <div className="tab-content" id="settings" style={{ display: orderDetails ? 'block' : 'none' }}>
+                    {orderDetails && (
+                        <>
+                            <div className="notes">
+                                <p>• Các bạn yên tâm khi mua hàng tại NemoShop</p>
+                                <p>• Khuyến khích trước khi mua hãy nhắn tin Zalo/Messenger để shop tư vấn chi tiết nhất</p>
+                                <p>• Sản phẩm lỗi, hư hỏng có thể đổi trả</p>
+                                <p>• Được kiểm tra hàng trước khi nhận</p>
+                                <p>• Thời gian giao hàng sẽ từ 2-3 ngày đồng giá ship là 35k</p>
+                            </div>
 
-                    </div>
-                    <p><b>Trả tiền mặt khi giao hàng</b></p>
-                    <br></br>
-                    <b style={{ fontSize: "24px", color: "#e53935" }}>Chi tiết đơn hàng</b>
+                            <b style={{ fontSize: "24px", color: "#e53935" }}>Chi tiết đơn hàng</b>
 
-                    <table>
-                        <tr>
-                            <td><b>Sản phẩm</b></td>
-                            <td class="right"><b>Tổng</b></td>
-                        </tr>
-                        <tr>
-                            <td>Mô Hình Nico Robin ngồi ghế - Cao 17cm nặng 500gr - Có hộp</td>
-                            <td class="right">330,000 ₫</td>
-                        </tr>
-                        <tr>
-                            <td><b>Tổng số phụ:</b></td>
-                            <td class="right">330,000 ₫</td>
-                        </tr>
-                        <tr>
-                            <td><b>Giao nhận hàng:</b></td>
-                            <td class="right">35,000 ₫</td>
-                        </tr>
-                        <tr>
-                            <td><b>Phương thức thanh toán:</b></td>
-                            <td class="right">Trả tiền mặt khi nhận hàng</td>
-                        </tr>
-                        <tr>
-                            <td><b>Tổng cộng:</b></td>
-                            <td class="right total">365,000 ₫</td>
-                        </tr>
-                    </table>
+                            <table className="table_product">
+                                <thead>
+                                    <tr>
+                                        <td><b>Sản phẩm</b></td>
+                                        <td className="right"><b>Tổng</b></td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {orderDetails.items.map((item, index) => (
+                                        <tr key={index} >
+                                            <td style={{ color: "#e53935" }}>{item.name} x {item.quantity}</td>
+                                            <td className="right">
+                                                {(item.price * item.quantity).toLocaleString('vi-VN')} ₫
+                                            </td>
+                                        </tr>
+                                    ))}
 
-                    <div class="address">
-                        <div>
-                            <h3>Địa chỉ thanh toán</h3>
-                            <p>dfdsf</p>
-                            <p>rewrwer</p>
-                            <p>rewrwe</p>
-                            <p>3423423423</p>
-                        </div>
-                        <div>
-                            <h3>Địa chỉ giao hàng</h3>
-                            <p>dfdsf</p>
-                            <p>rewrwer</p>
-                            <p>rewrwe</p>
-                        </div>
-                    </div>
+                                    {/* Tổng phụ - chỉ tiền sản phẩm */}
+                                    <tr>
+                                        <td><b>Tổng số phụ:</b></td>
+                                        <td className="right">
+                                            {orderDetails.subtotal.toLocaleString('vi-VN')} ₫
+                                        </td>
+                                    </tr>
 
-                    <div class="confirm-box">
-                        <p>Cảm ơn bạn. Đơn hàng của bạn đã được nhận.</p>
-                        <ul>
-                            <li><b>Mã đơn hàng:</b> 11172</li>
-                            <li><b>Ngày:</b> Tháng Tám 18, 2025</li>
-                            <li><b>Tổng cộng:</b> 365,000 ₫</li>
-                            <li><b>Phương thức thanh toán:</b> Trả tiền mặt khi nhận hàng</li>
-                        </ul>
-                    </div>
+                                    {/* Phí ship */}
+                                    <tr>
+                                        <td><b>Giao nhận hàng:</b></td>
+                                        <td className="right">
+                                            {orderDetails.shipping.toLocaleString('vi-VN')} ₫
+                                        </td>
+                                    </tr>
+
+                                    {/* Phương thức thanh toán */}
+                                    <tr>
+                                        <td><b>Phương thức thanh toán:</b></td>
+                                        <td className="right">{orderDetails.paymentMethod}</td>
+                                    </tr>
+                                </tbody>
+
+                                {/* Tổng cộng = subtotal + shipping */}
+                                <tfoot>
+                                    <tr>
+                                        <td><b>Tổng cộng:</b></td>
+                                        <td className="right total">
+                                            {orderDetails.totalPrice.toLocaleString('vi-VN')} ₫
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+
+
+                            <div className="address">
+                                <div>
+                                    <h3>Thông tin khách hàng </h3>
+                                    <p>{orderDetails.customer.name}</p>
+                                    <p>{orderDetails.customer.email}</p>
+                                    <p>{orderDetails.customer.phone}</p>
+                                    <p>{orderDetails.customer.address}</p>
+                                </div>
+                                <div>
+                                    <h3>Địa chỉ giao hàng</h3>
+                                    <p>{orderDetails.customer.name}</p>
+                                    <p>{orderDetails.customer.address}</p>
+                                    <p>{orderDetails.customer.phone}</p>
+                                </div>
+                            </div>
+
+                            <div className="confirm-box">
+                                <p>Cảm ơn bạn đă tin tưởng và đặt hàng bên mình. Đơn hàng của bạn đang chờ xác nhận .</p>
+                                <ul>
+                                    <li><b>Mã đơn hàng:</b> {orderDetails.codeOrder}</li>
+                                    <li><b>Ngày:</b> {orderDetails.date}</li>
+                                    <li><b>Tổng cộng:</b> {orderDetails.totalPrice.toLocaleString('vi-VN')} ₫</li>
+                                    <li><b>Phương thức thanh toán:</b> {orderDetails.paymentMethod}</li>
+                                    <li><b>Trạng thái đơn hàng :</b> Chờ xác nhận </li>
+                                </ul>
+                            </div>
+                        </>
+                    )}
                 </div>
+
+
             </div>
             <br></br>
 

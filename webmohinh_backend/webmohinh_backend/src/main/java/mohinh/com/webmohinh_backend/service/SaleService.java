@@ -25,6 +25,7 @@ import java.util.Optional;
 public class SaleService {
 
     SaleRepository saleRepository;
+
     public Sale saveSale(Sale sale) {
         if (saleRepository.existsByName(sale.getName())) {
             System.out.println("Name đã tồn tại, không thể thêm mới."); // Ghi log thay vì ném lỗi

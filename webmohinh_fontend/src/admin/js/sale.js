@@ -236,6 +236,8 @@ function Sale() {
             await axios.put(`http://localhost:8080/website/sale/${id}/status`, {
                 status: newStatus
             });
+
+            console.log("taolaf" + newStatus)
             setSale(prevSales =>
                 prevSales.map(sale =>
                     sale.id === id ? { ...sale, status: newStatus } : sale
@@ -254,36 +256,66 @@ function Sale() {
             state: { saleId: saleId }
         });
     };
+
+    const isWithinDateRange = (startDate, endDate) => {
+        const now = new Date();
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        return now >= start && now <= end;
+    };
     return (
         <div>
             {/* alert */}
             {successAlertDelete && (
                 <Slide direction="left" in={successAlertDelete} mountOnEnter unmountOnExit>
                     <Alert
-                        sx={{ width: '50%', float: 'right', mt: 2 }}
+                        sx={{
+                            width: '300px', // hoặc tùy chỉnh
+                            position: 'fixed',
+                            top: 16, // cách mép trên 16px
+                            right: 16, // cách mép phải 16px
+                            zIndex: 9999, // đảm bảo hiển thị trên các thành phần khác
+                        }}
                         severity="success"
                     >
-                        Cancel success
+                        Xóa thành công !!!
                     </Alert>
                 </Slide>
             )}
             {successAlertAdd && (
-                <Slide direction="left" in={successAlertAdd} mountOnEnter unmountOnExit>
+                <Slide
+                    direction="left"
+                    in={successAlertAdd}
+                    mountOnEnter
+                    unmountOnExit
+                >
                     <Alert
-                        sx={{ width: '50%', float: 'right', mt: 2 }}
+                        sx={{
+                            width: '300px', // hoặc tùy chỉnh
+                            position: 'fixed',
+                            top: 16, // cách mép trên 16px
+                            right: 16, // cách mép phải 16px
+                            zIndex: 9999, // đảm bảo hiển thị trên các thành phần khác
+                        }}
                         severity="success"
                     >
-                        Add success
+                        Thêm thành công !!!
                     </Alert>
                 </Slide>
             )}
             {successAlertUpdate && (
                 <Slide direction="left" in={successAlertUpdate} mountOnEnter unmountOnExit>
                     <Alert
-                        sx={{ width: '50%', float: 'right', mt: 2 }}
+                        sx={{
+                            width: '300px', // hoặc tùy chỉnh
+                            position: 'fixed',
+                            top: 16, // cách mép trên 16px
+                            right: 16, // cách mép phải 16px
+                            zIndex: 9999, // đảm bảo hiển thị trên các thành phần khác
+                        }}
                         severity="success"
                     >
-                        Update success
+                        Sửa thành công !!!
                     </Alert>
                 </Slide>
             )}
@@ -585,27 +617,28 @@ function Sale() {
                                 <TableCell>{sale.discountPercent} %</TableCell>
                                 <TableCell>{sale.description}</TableCell>
 
-                                <TableCell
-                                    className={`font-bold ${new Date() < new Date(sale.startDate)
-                                        ? "text-yellow-500"
-                                        : new Date() <= new Date(sale.endDate)
-                                            ? "text-green-600"
-                                            : "text-red-500"
-                                        }`}
-                                >
-                                    {new Date() < new Date(sale.startDate)
-                                        ? "Chưa hoạt động"
-                                        : new Date() <= new Date(sale.endDate)
-                                            ? "Đang hoạt động"
-                                            : "Ngừng hoạt động"}
+                                <TableCell>
+                                    {(() => {
+                                        const now = new Date();
+                                        const start = new Date(sale.startDate);
+                                        const end = new Date(sale.endDate);
+                                        end.setHours(23, 59, 59, 999); // cho phép endDate tính đến hết ngày
+
+                                        return now < start
+                                            ? "Chưa hoạt động"
+                                            : now <= end
+                                                ? "Đang hoạt động"
+                                                : "Ngừng hoạt động";
+                                    })()}
                                 </TableCell>
+
                                 <TableCell
                                     style={{
                                         color: sale.status ? "green" : "red",
                                         fontWeight: "bold",
                                     }}
                                 >
-                                    {sale.status ? "Đang sử dụng" : "Tạm dừng"}
+                                    {sale.status ? "Đang sử dụng" : "Không sử dụng"}
                                 </TableCell>
                                 <TableCell>
                                     <Button color="primary" variant="outlined" size="small" style={{ marginLeft: 8 }} onClick={() => handleClickOpenEdit(sale)}>Edit</Button>
@@ -628,29 +661,27 @@ function Sale() {
                                                 variant="outlined"
                                                 size="small"
                                                 style={{ marginLeft: 8 }}
-                                                onClick={() => updateStatus(sale.id, false)}
+                                                onClick={() => updateStatus(sale.id, 0)}
                                             >
                                                 Turn off
                                             </Button>
 
                                         </>
                                     )}
-                                    {sale.status == 0 && (
+                                    {sale.status === 0 && isWithinDateRange(sale.startDate, sale.endDate) && (
                                         <>
-                                            {/* <Button color="primary" variant="outlined" size="small" style={{ marginLeft: 8 }}>Chi tiết</Button> */}
                                             <Button
                                                 color="primary"
                                                 variant="outlined"
                                                 size="small"
                                                 style={{ marginLeft: 8 }}
-                                                onClick={() => updateStatus(sale.id, true)}
+                                                onClick={() => updateStatus(sale.id, 1)}
                                             >
                                                 Turn on
                                             </Button>
-                                            {/* <Button color="primary" variant="outlined" size="small" style={{ marginLeft: 8 }}>Turn off</Button> */}
-
                                         </>
                                     )}
+
 
                                 </TableCell>
                             </TableRow>

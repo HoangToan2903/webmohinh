@@ -1,5 +1,6 @@
 package mohinh.com.webmohinh_backend.service;
 
+import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -24,12 +25,23 @@ import java.util.Optional;
 public class SaleService {
 
     SaleRepository saleRepository;
-    public Sale save(Sale sale) {
+    public Sale saveSale(Sale sale) {
         if (saleRepository.existsByName(sale.getName())) {
             System.out.println("Name đã tồn tại, không thể thêm mới."); // Ghi log thay vì ném lỗi
             return null; // Hoặc có thể trả về một giá trị mặc định
         }
-        sale.setStatus(true);
+        // Xác định ngày hiện tại
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = sale.getStartDate();
+        LocalDate endDate = sale.getEndDate();
+
+        // Tính toán status dựa vào ngày hiện tại
+        if (today.isBefore(startDate)) {
+            sale.setStatus(0);
+        } else if ((today.isEqual(startDate) || today.isAfter(startDate)) && (today.isBefore(endDate) || today.isEqual(endDate))) {
+            sale.setStatus(1);
+        }
+
         sale.setCreatedAt(LocalDateTime.now());
         return saleRepository.save(sale);
     }
@@ -67,7 +79,8 @@ public class SaleService {
         return saleRepository.findByNameStartingWithIgnoreCase(namePrefix, pageable);
     }
 
-    public Sale updateStatus(String id, Boolean status) {
+    @Transactional
+    public Sale updateStatus(String id, Integer status) {
         Optional<Sale> optionalSale = saleRepository.findById(id);
         if (optionalSale.isEmpty()) {
             throw new RuntimeException("Sale not found with id: " + id);
@@ -75,7 +88,9 @@ public class SaleService {
 
         Sale sale = optionalSale.get();
         sale.setStatus(status);
-        sale.setUpdatedAt(java.time.LocalDateTime.now());
-        return saleRepository.save(sale);
+        sale.setUpdatedAt(LocalDateTime.now());
+
+        return saleRepository.saveAndFlush(sale); // Đảm bảo flush ngay lập tức
     }
+
 }

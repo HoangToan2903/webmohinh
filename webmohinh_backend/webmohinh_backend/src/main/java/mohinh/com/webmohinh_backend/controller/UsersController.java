@@ -16,12 +16,12 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@CrossOrigin
 public class UsersController {
 
     UsersService usersService;
 
     @PostMapping("/users")
-    @CrossOrigin
     public Users save(@RequestBody Users users) {
         return usersService.save(users);
     }

@@ -14,37 +14,33 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@CrossOrigin
 public class ProducerController {
 
     ProducerService producerService;
 
     @PostMapping("/producer")
-    @CrossOrigin
     public Producer save(@RequestBody Producer producer) {
         return producerService.save(producer);
     }
 
     @GetMapping("/producerAll")
-    @CrossOrigin
     public Page<Producer> getAllProducers(Pageable pageable) {
         return producerService.getAll(pageable);
     }
 
     @PutMapping("/producer/{id}")
-    @CrossOrigin
     public Producer update(@PathVariable String id, @RequestBody Producer producer) {
         return producerService.update(id, producer);
     }
 
     @DeleteMapping("/producer/{id}")
-    @CrossOrigin
     String delete(@PathVariable String id){
         producerService.delete(id);
         return " deleted successfully";
     }
 
     @GetMapping("producer/search")
-    @CrossOrigin
     public Page<Producer> searchProducers(
             @RequestParam(defaultValue = "") String name,
             @RequestParam(defaultValue = "0") int page,

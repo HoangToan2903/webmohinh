@@ -17,13 +17,13 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@CrossOrigin
 public class OrdersController {
 
     OrdersSevice ordersSevice;
 
 
     @PostMapping("/orders")
-    @CrossOrigin
     public ResponseEntity<Orders> createOrder(@RequestBody OrderDTO request) {
         Orders newOrder = ordersSevice.createOrder(request);
         return ResponseEntity.ok(newOrder);

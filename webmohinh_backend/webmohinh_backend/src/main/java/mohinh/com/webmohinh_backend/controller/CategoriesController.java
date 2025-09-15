@@ -22,6 +22,7 @@ import java.util.Base64;
 @Slf4j
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@CrossOrigin
 public class CategoriesController {
 
     CategoriesService categoriesService;
@@ -38,7 +39,6 @@ public class CategoriesController {
     }
 
     @GetMapping("/categoriesAll")
-    @CrossOrigin
     public ResponseEntity<Page<CategoryDTO>> getAllCategories(Pageable pageable) {
         Page<Categories> categoriesPage = categoriesService.getAll(pageable);
 
@@ -48,7 +48,6 @@ public class CategoriesController {
     }
 
     @PostMapping("/categories")
-    @CrossOrigin
     public ResponseEntity<?> createCategory(
             @RequestParam("name") String name,
             @RequestParam("description") String description,
@@ -68,7 +67,6 @@ public class CategoriesController {
     }
 
     @DeleteMapping("/categories/{id}")
-    @CrossOrigin
     String delete(@PathVariable String id) {
         categoriesService.delete(id);
         return " deleted successfully";
@@ -92,7 +90,6 @@ public class CategoriesController {
 //        return ResponseEntity.ok(updated);
 //    }
     @PutMapping(value = "/categories/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @CrossOrigin
     public Categories update(@PathVariable String id,
                              @RequestParam("name") String name,
                              @RequestParam("description") String description,
@@ -117,7 +114,6 @@ public class CategoriesController {
 
 
     @GetMapping("categories/search")
-    @CrossOrigin
     public Page<CategoryDTO> searchCategories(
             @RequestParam(defaultValue = "") String name,
             @RequestParam(defaultValue = "0") int page,

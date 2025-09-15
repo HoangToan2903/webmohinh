@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@CrossOrigin
 public class ProductsController {
 
     ProductsService productsService;
@@ -64,7 +65,6 @@ public class ProductsController {
     }
 
     @GetMapping("/productsAll")
-    @CrossOrigin
     public ResponseEntity<Page<ProductsDTO>> getAllProducts(Pageable pageable) {
         Page<Products> productsPage = productsService.getAll(pageable);
 
@@ -74,7 +74,6 @@ public class ProductsController {
     }
 
     @GetMapping("/products/{id}")
-    @CrossOrigin
     public ResponseEntity<ProductsDTO> getProduct(@PathVariable String id) {
         Products product = productsService.findById(id);
         ProductsDTO dto = new ProductsDTO(product); // trong đó có danh sách ảnh Base64
@@ -82,14 +81,12 @@ public class ProductsController {
     }
 
     @DeleteMapping("/products/{id}")
-    @CrossOrigin
     String delete(@PathVariable String id) {
         productsService.delete(id);
         return " deleted successfully";
     }
 
     @PostMapping("/products")
-    @CrossOrigin
     public ResponseEntity<?> createProduct(
             @RequestParam("name") String name,
             @RequestParam("product_code") String product_code,
@@ -158,7 +155,6 @@ public class ProductsController {
     }
 
     @GetMapping("products/search")
-    @CrossOrigin
     public Page<ProductsDTO> searchProducts(
             @RequestParam(defaultValue = "") String name,
             @RequestParam(defaultValue = "0") int page,
@@ -169,7 +165,6 @@ public class ProductsController {
     }
 
     @PutMapping(value = "/products/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @CrossOrigin
     public Products update(@PathVariable String id,
                            @RequestParam("name") String name,
                            @RequestParam("product_code") String product_code,
@@ -232,7 +227,6 @@ public class ProductsController {
 
 
     @GetMapping("/products/{id}/images")
-    @CrossOrigin
     public List<Map<String, String>> getProductImages(@PathVariable String id) {
         Products product = productsRepository.findById(id).orElseThrow();
         return product.getImages().stream()
@@ -254,7 +248,6 @@ public class ProductsController {
 //    }
 
     @PutMapping("/addSale")
-    @CrossOrigin
     public ResponseEntity<Products> assignSaleToProduct(
             @RequestParam String productId,
             @RequestParam(name = "idSale", required = false) String idSale) {
@@ -262,7 +255,6 @@ public class ProductsController {
         return ResponseEntity.ok(updatedProduct);
     }
     @GetMapping("/category/{categoryId}")
-    @CrossOrigin
     public ResponseEntity<Page<ProductsDTO>> getProductsByCategory(
             @PathVariable String categoryId,
             Pageable pageable

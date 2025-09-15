@@ -20,37 +20,33 @@ import java.time.LocalDateTime;
 @Slf4j
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@CrossOrigin
 public class SaleController {
     SaleService saleService;
     SaleRepository saleRepository;
 
     @PostMapping("/sale")
-    @CrossOrigin
     public Sale save(@RequestBody Sale sale) {
         return saleService.saveSale(sale);
     }
 
     @GetMapping("/saleAll")
-    @CrossOrigin
     public Page<Sale> getAllSale(Pageable pageable) {
         return saleService.getAll(pageable);
     }
 
     @PutMapping("/sale/{id}")
-    @CrossOrigin
     public Sale update(@PathVariable String id, @RequestBody Sale sale) {
         return saleService.update(id, sale);
     }
 
     @DeleteMapping("/sale/{id}")
-    @CrossOrigin
     String delete(@PathVariable String id){
         saleService.delete(id);
         return " deleted successfully";
     }
 
     @GetMapping("sale/search")
-    @CrossOrigin
     public Page<Sale> searchProducers(
             @RequestParam(defaultValue = "") String name,
             @RequestParam(defaultValue = "0") int page,
@@ -59,7 +55,6 @@ public class SaleController {
     }
 
     @PutMapping("/sale/{id}/status")
-    @CrossOrigin
     public Sale updateStatus(@PathVariable String id, @RequestBody UpdateStatusRequest request) {
         return saleService.updateStatus(id, request.getStatus());
     }

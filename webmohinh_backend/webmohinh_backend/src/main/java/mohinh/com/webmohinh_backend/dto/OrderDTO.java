@@ -18,7 +18,7 @@ public class OrderDTO {
      String name;
      String email;
      String shippingAddress;
-     Integer phone;
+     String phone;
      String notes;
      String paymentMethod;
      BigDecimal shipMoney;

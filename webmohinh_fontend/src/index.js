@@ -9,7 +9,8 @@ import SigUp from './client/js/sigup'
 import Detail from './client/js/detail'
 import ProductsCategories from './client/js/productsCategories'
 import CartItems from './client/js/cartItems'
-
+import PaymentResult from './client/js/PaymentResult';
+import Result from './client/js/result';
 
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
@@ -25,6 +26,8 @@ root.render(
         <Route path="/shopNemo/:slug" element={< Detail />} />
         <Route path="/collections/:nameCategories" element={<ProductsCategories />} />
         <Route path="/cart" element={<CartItems />} />
+        <Route path="/payment-result" element={<PaymentResult />} />
+        <Route path="/result" element={<Result />} />
       </Routes>
     </Router>
   </React.StrictMode>

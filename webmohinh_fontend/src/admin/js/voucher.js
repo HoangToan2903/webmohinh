@@ -14,6 +14,8 @@ import TableRow from '@mui/material/TableRow';
 import InputAdornment from '@mui/material/InputAdornment';
 import axios from 'axios';
 import { Alert, Slide } from '@mui/material';
+import Swal from "sweetalert2";
+
 
 const style = {
     position: 'absolute',
@@ -36,7 +38,6 @@ function Voucher() {
     };
     const [vouchers, setVoucher] = useState([]);
     // add
-    const [successAlertAdd, setSuccessAlertAdd] = useState(false);
 
     const [newVoucher, setNewVoucher] = useState({
         codeVoucher: '',
@@ -89,8 +90,11 @@ function Voucher() {
 
             setVoucher([response.data, ...vouchers]);
             setNewVoucher({ codeVoucher: '', quantity: '', reduced_value: '', conditions_apply: '', start_date: '', end_date: '', description: '' });
-            setSuccessAlertAdd(true);
-            setTimeout(() => setSuccessAlertAdd(false), 3000);
+            Swal.fire({
+                icon: "success",
+                title: "Thêm thành công 🎉",
+                confirmButtonColor: "#4CAF50",
+            });
             handleClose?.();
         } catch (error) {
             console.error("Lỗi khi thêm loại:", error);
@@ -128,7 +132,6 @@ function Voucher() {
 
     // Update
     const [openEdit, setOpenEdit] = useState(false)
-    const [successAlertUpdate, setSuccessAlertUpdate] = useState(false);
 
     const [editVoucher, setEditVoucher] = useState({
         codeVoucher: '',
@@ -161,8 +164,11 @@ function Voucher() {
                 )
             );
             handleCloseEdit();
-            setSuccessAlertUpdate(true);
-            setTimeout(() => setSuccessAlertUpdate(false), 3000);
+             Swal.fire({
+                icon: "success",
+                title: "Sửa thành công 🎉",
+                confirmButtonColor: "#4CAF50",
+            });
         } catch (error) {
             console.error('Lỗi xảy ra khi cập nhật:', error);
         }
@@ -187,7 +193,6 @@ function Voucher() {
     };
 
     // delete
-    const [successAlertDelete, setSuccessAlertDelete] = useState(false);
     const [deleteId, setDeleteId] = useState(null)
     const [confirmOpen, setConfirmOpen] = useState(false)
     const handleDelete = async (id) => {
@@ -195,8 +200,11 @@ function Voucher() {
             await axios.delete(`http://localhost:8080/website/voucher/${id}`);
             await fetchProducers(); // 👈 Gọi lại API để load dữ liệu mới nhất
             handleConfirmClose();
-            setSuccessAlertDelete(true);
-            setTimeout(() => setSuccessAlertDelete(false), 3000);
+             Swal.fire({
+                icon: "success",
+                title: "Xóa thành công 🎉",
+                confirmButtonColor: "#4CAF50",
+            });
         } catch (error) {
             alert('There was an error deleting the producer');
         }
@@ -239,60 +247,6 @@ function Voucher() {
     };
     return (
         <div>
-            {/* alert */}
-            {successAlertDelete && (
-                <Slide direction="left" in={successAlertDelete} mountOnEnter unmountOnExit>
-                    <Alert
-                        sx={{
-                            width: '300px', // hoặc tùy chỉnh
-                            position: 'fixed',
-                            top: 16, // cách mép trên 16px
-                            right: 16, // cách mép phải 16px
-                            zIndex: 9999, // đảm bảo hiển thị trên các thành phần khác
-                        }}
-                        severity="success"
-                    >
-                        Xóa thành công !!!
-                    </Alert>
-                </Slide>
-            )}
-            {successAlertAdd && (
-                <Slide
-                    direction="left"
-                    in={successAlertAdd}
-                    mountOnEnter
-                    unmountOnExit
-                >
-                    <Alert
-                        sx={{
-                            width: '300px', // hoặc tùy chỉnh
-                            position: 'fixed',
-                            top: 16, // cách mép trên 16px
-                            right: 16, // cách mép phải 16px
-                            zIndex: 9999, // đảm bảo hiển thị trên các thành phần khác
-                        }}
-                        severity="success"
-                    >
-                        Thêm thành công !!!
-                    </Alert>
-                </Slide>
-            )}
-            {successAlertUpdate && (
-                <Slide direction="left" in={successAlertUpdate} mountOnEnter unmountOnExit>
-                    <Alert
-                        sx={{
-                            width: '300px', // hoặc tùy chỉnh
-                            position: 'fixed',
-                            top: 16, // cách mép trên 16px
-                            right: 16, // cách mép phải 16px
-                            zIndex: 9999, // đảm bảo hiển thị trên các thành phần khác
-                        }}
-                        severity="success"
-                    >
-                        Sửa thành công !!!
-                    </Alert>
-                </Slide>
-            )}
             <h1>Voucher</h1>
             <br></br>
             <Box display="flex" justifyContent="flex-end">
@@ -690,14 +644,14 @@ function Voucher() {
             </div>
             {/* Xoa */}
             <Dialog open={confirmOpen} onClose={handleConfirmClose}>
-                <DialogTitle>Confirm DeleteId</DialogTitle>
-                <DialogContent>Are you sure you want to delete this ?</DialogContent>
+                <DialogTitle>Xác nhận xóa</DialogTitle>
+                <DialogContent>Bạn có chắc muốn xóa cái này không?</DialogContent>
                 <DialogActions>
                     <Button onClick={handleConfirmClose} color='primary'>
-                        Cancel
+                        Đóng
                     </Button>
                     <Button onClick={() => { handleDelete(deleteId); }} color='secondary' variant='contained'>
-                        Delete
+                        Xóa
                     </Button>
                 </DialogActions>
             </Dialog>

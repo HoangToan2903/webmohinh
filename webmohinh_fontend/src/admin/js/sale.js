@@ -15,6 +15,7 @@ import InputAdornment from '@mui/material/InputAdornment';
 import axios from 'axios';
 import { Alert, Slide } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
+import Swal from "sweetalert2";
 
 const style = {
     position: 'absolute',
@@ -38,7 +39,7 @@ function Sale() {
     const [sales, setSale] = useState([]);
     const navigate = useNavigate();
     // add
-    const [successAlertAdd, setSuccessAlertAdd] = useState(false);
+    // const [successAlertAdd, setSuccessAlertAdd] = useState(false);
 
     const [newSale, setNewSale] = useState({
         name: '',
@@ -82,10 +83,15 @@ function Sale() {
 
             setSale([response.data, ...sales]);
             setNewSale({ name: '', discountPercent: '', startDate: '', endDate: '', description: '' });
-            setSuccessAlertAdd(true);
-            setTimeout(() => setSuccessAlertAdd(false), 3000);
+            // setSuccessAlertAdd(true);
+            Swal.fire({
+                icon: "success",
+                title: "Thêm thành công 🎉",
+                confirmButtonColor: "#4CAF50",
+            });
             handleClose?.();
         } catch (error) {
+
             console.error("Lỗi khi thêm loại:", error);
         }
     };
@@ -121,8 +127,6 @@ function Sale() {
 
     // Update
     const [openEdit, setOpenEdit] = useState(false)
-    const [successAlertUpdate, setSuccessAlertUpdate] = useState(false);
-
     const [editSale, setEditSale] = useState({
         name: '',
         discountPercent: '',
@@ -152,8 +156,11 @@ function Sale() {
                 )
             );
             handleCloseEdit();
-            setSuccessAlertUpdate(true);
-            setTimeout(() => setSuccessAlertUpdate(false), 3000);
+            Swal.fire({
+                icon: "success",
+                title: "Sửa thành công 🎉",
+                confirmButtonColor: "#4CAF50",
+            });
             await fetchProducers();
         } catch (error) {
             console.error('Lỗi xảy ra khi cập nhật:', error);
@@ -179,7 +186,7 @@ function Sale() {
     };
 
     // delete
-    const [successAlertDelete, setSuccessAlertDelete] = useState(false);
+
     const [deleteId, setDeleteId] = useState(null)
     const [confirmOpen, setConfirmOpen] = useState(false)
     const handleDelete = async (id) => {
@@ -187,8 +194,12 @@ function Sale() {
             await axios.delete(`http://localhost:8080/website/sale/${id}`);
             await fetchProducers(); // 👈 Gọi lại API để load dữ liệu mới nhất
             handleConfirmClose();
-            setSuccessAlertDelete(true);
-            setTimeout(() => setSuccessAlertDelete(false), 3000);
+            handleCloseEdit();
+            Swal.fire({
+                icon: "success",
+                title: "Xóa thành công 🎉",
+                confirmButtonColor: "#4CAF50",
+            });
         } catch (error) {
             alert('There was an error deleting the producer');
         }
@@ -265,60 +276,7 @@ function Sale() {
     };
     return (
         <div>
-            {/* alert */}
-            {successAlertDelete && (
-                <Slide direction="left" in={successAlertDelete} mountOnEnter unmountOnExit>
-                    <Alert
-                        sx={{
-                            width: '300px', // hoặc tùy chỉnh
-                            position: 'fixed',
-                            top: 16, // cách mép trên 16px
-                            right: 16, // cách mép phải 16px
-                            zIndex: 9999, // đảm bảo hiển thị trên các thành phần khác
-                        }}
-                        severity="success"
-                    >
-                        Xóa thành công !!!
-                    </Alert>
-                </Slide>
-            )}
-            {successAlertAdd && (
-                <Slide
-                    direction="left"
-                    in={successAlertAdd}
-                    mountOnEnter
-                    unmountOnExit
-                >
-                    <Alert
-                        sx={{
-                            width: '300px', // hoặc tùy chỉnh
-                            position: 'fixed',
-                            top: 16, // cách mép trên 16px
-                            right: 16, // cách mép phải 16px
-                            zIndex: 9999, // đảm bảo hiển thị trên các thành phần khác
-                        }}
-                        severity="success"
-                    >
-                        Thêm thành công !!!
-                    </Alert>
-                </Slide>
-            )}
-            {successAlertUpdate && (
-                <Slide direction="left" in={successAlertUpdate} mountOnEnter unmountOnExit>
-                    <Alert
-                        sx={{
-                            width: '300px', // hoặc tùy chỉnh
-                            position: 'fixed',
-                            top: 16, // cách mép trên 16px
-                            right: 16, // cách mép phải 16px
-                            zIndex: 9999, // đảm bảo hiển thị trên các thành phần khác
-                        }}
-                        severity="success"
-                    >
-                        Sửa thành công !!!
-                    </Alert>
-                </Slide>
-            )}
+
             <h1>Sale</h1>
             <br></br>
             <Box display="flex" justifyContent="flex-end">
@@ -698,14 +656,14 @@ function Sale() {
             </div>
             {/* Xoa */}
             <Dialog open={confirmOpen} onClose={handleConfirmClose}>
-                <DialogTitle>Confirm DeleteId</DialogTitle>
-                <DialogContent>Are you sure you want to delete this ?</DialogContent>
+                <DialogTitle>Xác nhận xóa</DialogTitle>
+                <DialogContent>Bạn có chắc muốn xóa không?</DialogContent>
                 <DialogActions>
                     <Button onClick={handleConfirmClose} color='primary'>
-                        Cancel
+                        Đóng
                     </Button>
                     <Button onClick={() => { handleDelete(deleteId); }} color='secondary' variant='contained'>
-                        Delete
+                        Xóa
                     </Button>
                 </DialogActions>
             </Dialog>

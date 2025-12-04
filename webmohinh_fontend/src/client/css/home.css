@@ -551,7 +551,7 @@ h2::after {
   margin-left: -445px;
   width: 40%;
   height: 4px;
-  background: linear-gradient(90deg, #3498db, transparent);
+  /* background: linear-gradient(90deg, #3498db, transparent); */
   border-radius: 2px;
 }
 
@@ -902,7 +902,7 @@ footer .bottom-details .bottom_text {
 
 .login h3 {
   margin: 20px 0 0;
-  color: #EF5350;
+  color: #e74c3c;
   font-size: 28px;
 }
 
@@ -1483,7 +1483,7 @@ input[type=number]::-webkit-outer-spin-button {
 
 .price-title {
   margin-right: 5px;
-  backgrund: #d58e32;
+  background: #d58e32;
 }
 
 .price-wrap_line {
@@ -1579,7 +1579,7 @@ input[type=number]::-webkit-outer-spin-button {
 
 .grid-tab {
   display: grid;
-  grid-template-columns: 7fr 1px 5fr;
+  grid-template-columns: 8fr 0.5px 4fr;
   /* chia 7:5 */
   gap: 20px;
   align-items: start;
@@ -1592,9 +1592,8 @@ input[type=number]::-webkit-outer-spin-button {
 .cart-summary {
   border: 1px solid #ddd;
   padding: 20px;
-
   background: white;
-  font-family: Arial, sans-serif;
+  /* font-family: Arial, sans-serif; */
 }
 
 .cart-heading {
@@ -1680,7 +1679,7 @@ input[type=number]::-webkit-outer-spin-button {
 /*  */
 /* Phần thông tin hướng dẫn */
 .notes {
-  color: #e53935;
+  color: #fc6b4c;
   font-size: 14px;
   margin-bottom: 20px;
 }
@@ -1710,9 +1709,9 @@ table tr:last-child td {
   border-bottom: none;
 }
 
-.right {
+/* .right {
   text-align: right;
-}
+} */
 
 .total {
   font-weight: bold;
@@ -1728,7 +1727,7 @@ table tr:last-child td {
 }
 
 .address h3 {
-  color: #e53935;
+  color: #fc6b4c;
   margin-bottom: 8px;
 }
 

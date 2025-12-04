@@ -113,7 +113,7 @@ function Home() {
                             return (
                                 <div className="item" key={index}>
                                     <div className="thumb" style={{ position: "relative" }}>
-                                        <a className="category">One Piece</a>
+                                        <a className="category">{product.categories.name}</a>
 
                                         {base64Image ? (
                                             <img
@@ -350,7 +350,7 @@ function Home() {
                             return (
                                 <div className="item" key={index}>
                                     <div className="thumb" style={{ position: "relative" }}>
-                                        <a className="category">One Piece</a>
+                                        <a className="category">{product.categories.name}</a>
 
                                         {base64Image ? (
                                             <img

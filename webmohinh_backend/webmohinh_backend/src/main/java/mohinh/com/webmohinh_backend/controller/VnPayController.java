@@ -1,0 +1,189 @@
+package mohinh.com.webmohinh_backend.controller;
+
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
+import mohinh.com.webmohinh_backend.dto.OrderDTO;
+import mohinh.com.webmohinh_backend.entity.Orders;
+import mohinh.com.webmohinh_backend.service.OrdersSevice;
+import mohinh.com.webmohinh_backend.service.PaymentService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
+
+@CrossOrigin(origins = "http://localhost:3000")
+@RestController
+@Slf4j
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+public class VnPayController {
+
+    final PaymentService vnPayService; // Sử dụng cho createOrder
+    final OrdersSevice ordersSevice;
+    final PaymentService paymentService; // Sử dụng cho orderReturn
+
+    // Sử dụng ConcurrentHashMap để đảm bảo an toàn luồng (thread-safe)
+    private final Map<String, OrderDTO> tempOrders = new ConcurrentHashMap<>();
+
+    // --- Endpoint Khởi tạo đơn hàng VNPay ---
+
+    @PostMapping("/submitOrder")
+    public ResponseEntity<?> submitOrder(@RequestBody OrderDTO orderRequest, HttpServletRequest request) {
+        try {
+            // --- Tạo Mã Đơn Hàng Tạm (OrderCode) ---
+            String datePart = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            Random random = new Random();
+            StringBuilder randomPart = new StringBuilder();
+            for (int i = 0; i < 6; i++) {
+                randomPart.append(characters.charAt(random.nextInt(characters.length())));
+            }
+            String orderCode = "ORD-" + datePart + "-" + randomPart;
+
+            log.info("🛒 Khởi tạo đơn hàng VNPay: {}", orderCode);
+
+            // Lưu đơn hàng vào bộ nhớ tạm (chưa lưu DB)
+            tempOrders.put(orderCode, orderRequest);
+
+            int amount = orderRequest.getTotalPrice() != null ? orderRequest.getTotalPrice().intValue() : 0;
+
+            String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+
+            // Gọi service tạo link thanh toán
+            String paymentUrl = vnPayService.createOrder(amount, "Thanh toán đơn hàng " + orderCode, baseUrl, orderCode);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("codeOrder", orderCode);
+            response.put("paymentUrl", paymentUrl);
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("❌ Lỗi khi khởi tạo thanh toán VNPay", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Lỗi khi tạo đơn hàng"));
+        }
+    }
+
+
+    @GetMapping("/vnpay-return")
+    public ResponseEntity<?> vnpayReturn(HttpServletRequest request) {
+        try {
+            int paymentResult = paymentService.orderReturn(request);
+            String orderCode = request.getParameter("vnp_TxnRef");
+
+            log.info("🔄 VNPay return: {}, result={}", orderCode, paymentResult);
+
+            // 🟢 Nếu VNPay xác nhận thanh toán thành công
+            if (paymentResult == 1) {
+                // Sửa: Dùng .get() thay vì .remove() để kiểm tra sự tồn tại trước
+                OrderDTO orderDTO = tempOrders.get(orderCode);
+
+                if (orderDTO != null) {
+                    orderDTO.setCodeOrder(orderCode);
+                    orderDTO.setPaymentMethod("VNPay");
+
+                    try {
+                        // 1. Lưu vào DB
+                        Orders saved = ordersSevice.createOrder(orderDTO);
+
+                        if (saved != null && saved.getId() != null) {
+                            // 2. CHỈ xóa đơn hàng tạm khi lưu DB thành công
+                            tempOrders.remove(orderCode);
+                            log.info("💾 Lưu đơn hàng thành công: {}", saved.getCodeOrder());
+                            return ResponseEntity.ok(Map.of(
+                                    "status", "success",
+                                    "message", "Thanh toán và lưu đơn hàng thành công",
+                                    "codeOrder", saved.getCodeOrder()
+                            ));
+                        } else {
+                            log.error("⚠️ Thanh toán thành công nhưng lỗi khi lưu DB: {}", orderCode);
+                            // KHÔNG xóa đơn hàng tạm, để luồng sau có thể thử lại
+                            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                    .body(Map.of(
+                                            "status", "error",
+                                            "message", "Thanh toán thành công nhưng lỗi khi lưu đơn hàng"
+                                    ));
+                        }
+
+                    } catch (Exception e) {
+                        log.error("❌ Lỗi khi lưu đơn hàng sau thanh toán", e);
+                        // KHÔNG xóa đơn hàng tạm
+                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .body(Map.of(
+                                        "status", "error",
+                                        "message", "Thanh toán thành công nhưng lưu đơn hàng thất bại"
+                                ));
+                    }
+
+                } else {
+                    // Sửa: Nếu không tìm thấy trong temp, kiểm tra trong DB để xử lý trường hợp gọi lại (retry)
+                    try {
+                        ordersSevice.getOrderByCode(orderCode);
+
+                        // Nếu tìm thấy, coi như thành công và đây là yêu cầu gọi lại (retry)
+                        log.warn("🔄 Đơn hàng đã được lưu thành công trước đó (gọi lại): {}", orderCode);
+                        return ResponseEntity.ok(Map.of(
+                                "status", "success",
+                                "message", "Đơn hàng đã được xử lý thành công trước đó",
+                                "codeOrder", orderCode
+                        ));
+
+                    } catch (RuntimeException notFoundEx) {
+                        // Nếu không có cả trong temp và DB, thì mới báo lỗi
+                        log.error("❌ Không tìm thấy đơn hàng tạm và không có trong DB: {}", orderCode);
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                .body(Map.of(
+                                        "status", "error",
+                                        "message", "Không tìm thấy đơn hàng để lưu. Có thể đã bị xóa hoặc chưa khởi tạo."
+                                ));
+                    }
+                }
+
+            } else {
+                // 🔴 VNPay báo thất bại
+                log.warn("❌ Thanh toán thất bại: {}", orderCode);
+                tempOrders.remove(orderCode); // Xóa khỏi bộ nhớ tạm
+                return ResponseEntity.ok(Map.of(
+                        "status", "fail",
+                        "message", "Thanh toán thất bại hoặc bị hủy"
+                ));
+            }
+
+        } catch (Exception e) {
+            log.error("⚠️ Lỗi xử lý VNPay return", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "status", "error",
+                            "message", "Lỗi xử lý thanh toán: " + e.getMessage()
+                    ));
+        }
+    }
+
+    // --- Endpoint Lấy đơn hàng ---
+
+    @GetMapping("/orders/{codeOrder}")
+    public ResponseEntity<?> getOrderByCode(@PathVariable String codeOrder) {
+        try {
+            OrderDTO orderDTO = ordersSevice.getOrderByCode(codeOrder);
+            return ResponseEntity.ok(orderDTO);
+        } catch (RuntimeException e) {
+            // Giả định ordersSevice ném RuntimeException nếu không tìm thấy
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            log.error("❌ Lỗi hệ thống khi tìm đơn hàng: {}", codeOrder, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Lỗi hệ thống: " + e.getMessage()));
+        }
+    }
+}

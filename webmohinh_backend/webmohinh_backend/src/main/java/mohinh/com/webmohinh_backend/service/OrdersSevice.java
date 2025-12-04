@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -36,16 +37,6 @@ public class OrdersSevice {
     Order_itemsRepository order_itemsRepository;
     ProductsRepository productsRepository;
     VoucherRepository voucherRepository;
-
-//    public Orders addOrder(Orders orders) {
-//
-//        return ordersRepository.save(orders);
-//    }
-//
-//    public Order_items addOrderItem(Order_items order_items) {
-//
-//        return order_itemsRepository.save(order_items);
-//    }
 
 
     private String generateOrderCode() {
@@ -66,7 +57,6 @@ public class OrdersSevice {
     }
     @Transactional
     public Orders createOrder(OrderDTO request) {
-        // Tạo đơn hàng mới
         Orders order = new Orders();
         order.setName(request.getName());
         order.setEmail(request.getEmail());
@@ -76,19 +66,24 @@ public class OrdersSevice {
         order.setPayment_method(request.getPaymentMethod());
         order.setShip_money(request.getShipMoney().toString());
         order.setTotal_price(request.getTotalPrice());
-        order.setStatus(1); // 1 = mới tạo
+
+        // ✅ Dùng equals thay vì ==
+        if ("Thanh toán khi nhận hàng".equals(request.getPaymentMethod())) {
+            order.setStatus(0); // COD
+        } else {
+            order.setStatus(1); // Đã thanh toán online
+        }
+
         order.setCreatedAt(LocalDateTime.now());
-        order.setCodeOrder(generateOrderCode());
-        // Nếu có voucher
+        order.setCodeOrder(request.getCodeOrder() != null ? request.getCodeOrder() : generateOrderCode());
+
         if (request.getVoucherId() != null) {
             voucherRepository.findById(request.getVoucherId())
                     .ifPresent(order::setVoucher);
         }
 
-        // Lưu đơn hàng
         Orders savedOrder = ordersRepository.save(order);
 
-        // Tạo danh sách Order_items
         List<Order_items> orderItems = new ArrayList<>();
         for (OrderItemDTO itemReq : request.getItems()) {
             Products product = productsRepository.findById(itemReq.getProductId())
@@ -99,14 +94,48 @@ public class OrdersSevice {
             orderItem.setProducts(product);
             orderItem.setQuantity(itemReq.getQuantity());
             orderItem.setPrice(itemReq.getPrice());
-
             orderItems.add(orderItem);
         }
 
-        // Lưu danh sách item
         order_itemsRepository.saveAll(orderItems);
 
         return savedOrder;
     }
+
+
+    public OrderDTO getOrderByCode(String codeOrder) {
+        Orders order = ordersRepository.findByCodeOrder(codeOrder)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+
+        // Chuyển danh sách sản phẩm sang DTO gọn gàng
+        List<OrderItemDTO> itemDTOs = order.getOrderItems().stream()
+                .map(item -> new OrderItemDTO(
+                        item.getProducts().getName(),
+                        item.getQuantity(),
+                        item.getPrice()
+                ))
+                .collect(Collectors.toList());
+
+        // Trả về OrderDTO đầy đủ, KHÔNG chứa vòng lặp entity
+        OrderDTO dto = new OrderDTO();
+        dto.setCodeOrder(order.getCodeOrder());
+        dto.setName(order.getName());
+        dto.setEmail(order.getEmail());
+        dto.setPhone(order.getPhone());
+        dto.setShippingAddress(order.getShipping_address());
+        dto.setNotes(order.getNotes());
+        dto.setPaymentMethod(order.getPayment_method());
+        dto.setShipMoney(new BigDecimal(order.getShip_money()));
+        dto.setTotalPrice(order.getTotal_price());
+        dto.setVoucherId(
+                order.getVoucher() != null ? order.getVoucher().getId() : null
+        );
+
+        dto.setItems(itemDTOs);
+
+        return dto;
+    }
+
+
 }
 

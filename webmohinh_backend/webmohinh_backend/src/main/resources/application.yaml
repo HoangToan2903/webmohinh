@@ -18,8 +18,5 @@ upload:
 jwt:
   signerKey: "ywh+Jbt9f82I2/T9b+e7b2zzYQ0j8oWekdab6rqdh/ZCouY5rgrM0/B4dm89WP91"
 
-vnpay:
-  tmnCode: YOUR_VNP_TMN_CODE
-  hashSecret: YOUR_VNP_HASH_SECRET
-  url: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
-  returnUrl: http://localhost:3000/payment-return
+
+

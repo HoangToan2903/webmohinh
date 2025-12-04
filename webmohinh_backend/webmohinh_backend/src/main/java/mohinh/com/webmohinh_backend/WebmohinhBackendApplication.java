@@ -10,4 +10,5 @@ public class WebmohinhBackendApplication {
 		SpringApplication.run(WebmohinhBackendApplication.class, args);
 	}
 
+
 }

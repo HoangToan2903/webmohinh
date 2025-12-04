@@ -3,7 +3,6 @@ package mohinh.com.webmohinh_backend.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import mohinh.com.webmohinh_backend.config.OrderStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -25,7 +24,7 @@ public class Orders {
     LocalDateTime createdAt;
     String shipping_address;
     String email;
-    Integer phone;
+    String phone;
     String notes;
     String name;
     String codeOrder;

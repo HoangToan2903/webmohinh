@@ -22,6 +22,7 @@ public class OrderDTO {
      String notes;
      String paymentMethod;
      BigDecimal shipMoney;
+     LocalDateTime createdAt;
      BigDecimal totalPrice;
      String codeOrder;
      String voucherId;

@@ -127,6 +127,7 @@ public class OrdersSevice {
         dto.setPaymentMethod(order.getPayment_method());
         dto.setShipMoney(new BigDecimal(order.getShip_money()));
         dto.setTotalPrice(order.getTotal_price());
+        dto.setCreatedAt(order.getCreatedAt());
         dto.setVoucherId(
                 order.getVoucher() != null ? order.getVoucher().getId() : null
         );

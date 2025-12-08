@@ -14,6 +14,7 @@ import slugify from "./utils/slugify";
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import { useLocation } from "react-router-dom";
 import { addToCart, resizeImageToBase64, base64ToFile } from './addCart';
+import CircularProgress from '@mui/material/CircularProgress';
 
 function Detail() {
     useEffect(() => {
@@ -156,7 +157,19 @@ function Detail() {
             behavior: "smooth", // Cuộn mượt
         });
     };
-    if (!product) return <p>Đang tải...</p>;
+    if (!product)
+        return (
+            <div
+                style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    height: '80vh',   // hoặc 100vh nếu muốn giữa toàn trang
+                }}
+            >
+                <CircularProgress disableShrink />
+            </div>
+        );
 
 
 
@@ -326,7 +339,7 @@ function Detail() {
                             <img src={ship} alt="Ship" style={{ width: '70px', display: 'inline-block', verticalAlign: 'middle' }} />
                             <div style={{ display: 'inline-block', verticalAlign: 'middle', marginLeft: '20px' }}>
                                 <b>Giao hàng miễn phí</b>
-                                <p>với đơn hàng từ 1.000.000đ trở lên</p>
+                                <p>với đơn hàng từ 3.000.000đ trở lên</p>
                             </div>
                         </div>
                         <br>

@@ -1709,9 +1709,9 @@ table tr:last-child td {
   border-bottom: none;
 }
 
-/* .right {
+.right {
   text-align: right;
-} */
+}
 
 .total {
   font-weight: bold;

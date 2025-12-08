@@ -1,13 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
-
+import Navbar from './navbar'
+import Footer from './footer'
 // Định nghĩa key cho sessionStorage để kiểm soát việc hiển thị Swal
 const SWAL_DISPLAYED_KEY = "vnpay_swal_displayed";
 
 const PaymentResult = () => {
+    useEffect(() => {
+        import('../css/home.css');
+
+    }, []);
     // Khôi phục state orderDetails để lưu chi tiết đơn hàng cho việc hiển thị
-    const [orderDetails, setOrderDetails] = useState(null); 
+    const [orderDetails, setOrderDetails] = useState(null);
     const [status, setStatus] = useState("loading"); // loading, success, fail, error
     const [message, setMessage] = useState("Đang xử lý thanh toán...");
 
@@ -31,32 +36,32 @@ const PaymentResult = () => {
                 console.log("VNPay return response:", res.data);
 
                 // ✅ Nếu Backend xác nhận đã lưu đơn hàng thành công (hoặc xử lý lại thành công)
-                if (res.data.status === "success") { 
+                if (res.data.status === "success") {
                     const codeOrder = res.data.codeOrder;
 
                     if (!codeOrder) {
                         setStatus("fail");
                         setMessage("❌ Không tìm thấy mã đơn hàng.");
-                        
+
                         if (sessionStorage.getItem(SWAL_DISPLAYED_KEY) !== 'true') {
-                            Swal.fire({ 
-                                icon: "error", 
-                                title: "Lỗi", 
-                                text: "Không tìm thấy mã đơn hàng." 
+                            Swal.fire({
+                                icon: "error",
+                                title: "Lỗi",
+                                text: "Không tìm thấy mã đơn hàng."
                             });
                             sessionStorage.setItem(SWAL_DISPLAYED_KEY, 'true');
                         }
                         return;
                     }
-                    
+
                     // 2. Lấy thông tin chi tiết đơn hàng theo mã
                     try {
                         const orderRes = await axios.get(
                             `http://localhost:8080/website/orders/${codeOrder}`
                         );
-                        
-                        if (orderRes.data) { 
-                            setOrderDetails(orderRes.data); 
+
+                        if (orderRes.data) {
+                            setOrderDetails(orderRes.data);
                             setStatus("success");
                             setMessage("🎉 Thanh toán thành công!");
 
@@ -77,7 +82,7 @@ const PaymentResult = () => {
                         }
                     } catch (detailError) {
                         console.error("Lỗi khi lấy chi tiết đơn hàng:", detailError);
-                        setStatus("success"); 
+                        setStatus("success");
                         setMessage("✅ Thanh toán thành công! Nhưng lỗi khi lấy chi tiết đơn hàng.");
                         if (sessionStorage.getItem(SWAL_DISPLAYED_KEY) !== 'true') {
                             Swal.fire({ icon: "warning", title: "Cảnh báo", text: "Thanh toán thành công nhưng không lấy được chi tiết. Vui lòng kiểm tra lại đơn hàng." });
@@ -90,7 +95,7 @@ const PaymentResult = () => {
                     setStatus("fail");
                     const errorMessage = res.data.message || "Thanh toán thất bại.";
                     setMessage(`❌ ${errorMessage}`);
-                    
+
                     if (sessionStorage.getItem(SWAL_DISPLAYED_KEY) !== 'true') {
                         Swal.fire({
                             icon: "error",
@@ -106,7 +111,7 @@ const PaymentResult = () => {
                 console.error("VNPay return error:", error);
                 setStatus("error");
                 setMessage("⚠️ Có lỗi xảy ra khi xử lý thanh toán.");
-                
+
                 if (sessionStorage.getItem(SWAL_DISPLAYED_KEY) !== 'true') {
                     Swal.fire({
                         icon: "error",
@@ -121,21 +126,35 @@ const PaymentResult = () => {
         handleVNPayReturn();
     }, []);
 
-    // --- LOGIC HIỂN THỊ (RENDER) ---
+    const voucherId = orderDetails?.voucherId;
+    const [vouchers, setVoucher] = useState([]);
 
+    console.log(voucherId)
+    useEffect(() => {
+        // 1. Check if voucherId exists before making the request
+        if (voucherId) {
+            // 2. Append the voucherId directly to the URL as a path segment
+            // Assuming your backend is set up to handle requests like:
+            // GET http://localhost:8080/website/voucher/YOUR_VOUCHER_ID
+            axios.get(`http://localhost:8080/website/voucher/${voucherId}`)
+                .then(response => {
+                    setVoucher(response.data);
+                    console.log(response.data)
+                })
+                .catch(error => console.error(error));
+        } else {
+            // Handle the case where voucherId is not available if necessary
+            console.log("No voucherId available, skipping API call.");
+        }
+    }, [voucherId]);
     const containerStyle = {
-        maxWidth: "900px",
+        maxWidth: "1300px",
         margin: "20px auto",
         padding: "30px",
         backgroundColor: "#fff",
         borderRadius: "8px",
         boxShadow: "0 4px 12px rgba(0, 0, 0, 0.05)",
-        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
     };
-    
-    const primaryColor = "#f15a22"; 
-    const successColor = "#4CAF50";
-    const errorColor = "#e53935";
 
     if (status === "loading") {
         return (
@@ -145,7 +164,9 @@ const PaymentResult = () => {
             </div>
         );
     }
-
+    const subtotal = orderDetails.items.reduce((total, item) => {
+        return total + (item.price * item.quantity);
+    }, 0);
     if (status === "success" && orderDetails) {
         const formatCurrency = (amount) => {
             if (amount === undefined || amount === null) return '0 ₫';
@@ -153,126 +174,175 @@ const PaymentResult = () => {
         };
 
         return (
-            <div style={containerStyle}>
-                {/* Navigation (Giả lập) */}
-                <div style={{ display: "flex", justifyContent: "space-around", paddingBottom: "20px", marginBottom: "20px", borderBottom: "1px solid #eee", color: "#ccc", fontWeight: "500" }}>
-                    <span>Giỏ hàng</span>
-                    <span>Chi tiết thanh toán</span>
-                    <span style={{ color: primaryColor, borderBottom: `2px solid ${primaryColor}`, paddingBottom: "20px" }}>Đơn hàng hoàn tất</span>
-                </div>
+            <div>
+                <Navbar />
+                <div style={containerStyle}>
 
-                <div style={{ padding: "10px", backgroundColor: "#fcf0f0", borderLeft: "4px solid #f99", marginBottom: "30px" }}>
-                    <p style={{ color: errorColor, margin: "5px 0", fontSize: "0.9em" }}>• Các bạn yên tâm khi mua hàng tại NemoShop</p>
-                    <p style={{ color: errorColor, margin: "5px 0", fontSize: "0.9em" }}>• Khuyến khích trước khi mua hãy nhắn tin Zalo/Messenger để shop tư vấn chi tiết nhất</p>
-                    <p style={{ color: errorColor, margin: "5px 0", fontSize: "0.9em" }}>• Sản phẩm lỗi, hư hỏng có thể đổi trả</p>
-                    <p style={{ color: errorColor, margin: "5px 0", fontSize: "0.9em" }}>• Được kiểm tra hàng trước khi nhận</p>
-                    <p style={{ color: errorColor, margin: "5px 0", fontSize: "0.9em" }}>• Thời gian giao hàng sẽ từ 2-3 ngày đồng giá ship là 35k</p>
-                </div>
 
-                <h2>Chi tiết đơn hàng</h2>
+                    <h2 style={{ textAlign: 'center', color: '#00c853', marginBottom: '15px' }}>
+                        🎉 ĐẶT HÀNG THÀNH CÔNG! 🎉
+                    </h2>
 
-                <div style={{ border: "1px solid #eee", marginBottom: "30px" }}>
-                    {/* Header */}
-                    <div style={{ display: "flex", justifyContent: "space-between", padding: "15px", backgroundColor: "#f9f9f9", fontWeight: "600", borderBottom: "1px solid #eee" }}>
-                        <div style={{ width: "70%" }}>Sản phẩm</div>
-                        <div style={{ width: "30%", textAlign: "right" }}>Tổng</div>
-                    </div>
-                    
-                    {/* Danh sách sản phẩm */}
-                    {orderDetails.items?.map((item, index) => (
-                        <div key={index} style={{ display: "flex", justifyContent: "space-between", padding: "10px 15px", borderBottom: "1px dashed #eee" }}>
-                            <div style={{ width: "70%" }}>{item.name} x {item.quantity}</div>
-                            <div style={{ width: "30%", textAlign: "right" }}>{formatCurrency(item.price * item.quantity)}</div>
-                        </div>
-                    ))}
-
-                    {/* Tổng phụ, Shipping, Payment Method */}
-                    <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 15px" }}>
-                        <div style={{ width: "70%" }}>Tổng số phụ:</div>
-                        <div style={{ width: "30%", textAlign: "right" }}>{formatCurrency(orderDetails.subtotal)}</div>
-                    </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 15px" }}>
-                        <div style={{ width: "70%" }}>Giao nhận hàng:</div>
-                        <div style={{ width: "30%", textAlign: "right" }}>{formatCurrency(orderDetails.shipping)}</div>
-                    </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 15px" }}>
-                        <div style={{ width: "70%" }}>Phương thức thanh toán:</div>
-                        <div style={{ width: "30%", textAlign: "right" }}>{orderDetails.paymentMethod}</div>
-                    </div>
-
-                    {/* Tổng cộng */}
-                    <div style={{ display: "flex", justifyContent: "space-between", padding: "15px", backgroundColor: "#fff", borderTop: "2px solid #ccc", fontWeight: "700", fontSize: "1.1em" }}>
-                        <div style={{ width: "70%" }}>Tổng cộng:</div>
-                        <div style={{ width: "30%", textAlign: "right", color: errorColor }}>{formatCurrency(orderDetails.totalPrice)}</div>
-                    </div>
-                </div>
-
-                {/* Thông tin Khách hàng và Địa chỉ */}
-                <div style={{ display: "flex", gap: "5%", marginBottom: "30px", borderBottom: "1px solid #eee", paddingBottom: "20px" }}>
-                    <div style={{ flex: 1 }}>
-                        <h3 style={{ color: errorColor, marginBottom: "15px" }}>Thông tin khách hàng</h3>
-                        <p style={{ margin: "5px 0" }}><b>{orderDetails.customer?.name}</b></p>
-                        <p style={{ margin: "5px 0" }}>{orderDetails.customer?.email}</p>
-                        <p style={{ margin: "5px 0" }}>{orderDetails.customer?.phone}</p>
-                        <p style={{ margin: "5px 0" }}>{orderDetails.customer?.address}</p>
-                    </div>
-                    <div style={{ flex: 1 }}>
-                        <h3 style={{ color: errorColor, marginBottom: "15px" }}>Địa chỉ giao hàng</h3>
-                        <p style={{ margin: "5px 0" }}><b>{orderDetails.customer?.name}</b></p>
-                        <p style={{ margin: "5px 0" }}>{orderDetails.customer?.address}</p>
-                        <p style={{ margin: "5px 0" }}>{orderDetails.customer?.phone}</p>
-                    </div>
-                </div>
-
-                {/* Hộp thông báo xác nhận */}
-                <div style={{ backgroundColor: "#f9f0c5", padding: "20px", borderRadius: "4px", border: "1px solid #f7e6a7" }}>
-                    <p style={{ fontWeight: "700", fontSize: "1.1em", color: successColor, margin: "5px 0" }}>
-                        Cảm ơn bạn đã tin tưởng và đặt hàng bên mình. Đơn hàng của bạn đang chờ xác nhận .
+                    <p style={{ textAlign: 'center', marginBottom: '30px' }}>
+                        Cảm ơn bạn đã tin tưởng và đặt hàng tại NemoShop. Đơn hàng của bạn đã được đặt thành công!
                     </p>
-                    <p style={{ margin: "5px 0" }}>Mã đơn hàng: <b>{orderDetails.codeOrder}</b></p>
-                    <p style={{ margin: "5px 0" }}>Ngày: {orderDetails.date}</p>
-                    <p style={{ margin: "5px 0" }}>Tổng cộng: <b>{formatCurrency(orderDetails.totalPrice)}</b></p>
-                    <p style={{ margin: "5px 0" }}>Phương thức thanh toán: {orderDetails.paymentMethod}</p>
-                    <p style={{ margin: "5px 0" }}>Trạng thái đơn hàng: <b style={{ color: primaryColor }}>Đã thanh toán / Chờ xác nhận</b></p>
-                </div>
 
-                {/* Nút hành động */}
-                <div style={{ textAlign: "center", marginTop: "30px" }}>
-                    <a href="/" style={{
-                        display: "inline-block",
-                        backgroundColor: primaryColor,
-                        color: "#fff",
-                        padding: "12px 30px",
-                        borderRadius: "4px",
-                        textDecoration: "none",
-                        fontWeight: "600"
-                    }}>
-                        ← Quay lại cửa hàng
-                    </a>
+                    <div className="notes" style={{ border: '1px solid #ffcc80', padding: '15px', backgroundColor: '#fff3e0' }}>
+                        <h3>Lưu ý về Đơn hàng:</h3>
+                        <p>• Các bạn yên tâm khi mua hàng tại NemoShop</p>
+                        <p>• Khuyến khích trước khi mua hãy nhắn tin Zalo/Messenger để shop tư vấn chi tiết nhất</p>
+                        <p>• Sản phẩm lỗi, hư hỏng có thể đổi trả</p>
+                        <p>• Được kiểm tra hàng trước khi nhận</p>
+                        <p>• Thời gian giao hàng là 2-3 ngày. Phí ship: 15.0000 ₫</p>
+                    </div>
+
+                    <b style={{ fontSize: "24px", color: "#fc6b4c", display: 'block', margin: '20px 0 10px 0' }}>
+                        Chi tiết đơn hàng
+                    </b>
+
+                    <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}>
+                        <thead>
+                            <tr style={{ borderBottom: '1px solid #b4b4b4ff' }}>
+                                <td style={{ padding: '10px' }}><b>Sản phẩm</b></td>
+                                <td style={{ padding: '10px', textAlign: 'right' }}><b>Tổng</b></td>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {orderDetails.items.map((item, index) => (
+                                <tr key={index} style={{ borderBottom: '1px solid #eee' }}>
+                                    <td style={{ color: "#fc6b4c", padding: '10px' }}>
+                                        {item.productId} × {item.quantity}
+                                    </td>
+                                    <td style={{ padding: '10px', textAlign: 'right' }}>
+                                        <b> {formatCurrency(item.price * item.quantity)}</b>
+
+                                    </td>
+                                </tr>
+                            ))}
+
+                            {/* Tách thành 3 hàng riêng */}
+                            <tr style={{ borderBottom: '1px solid #eee' }}>
+                                <td style={{ padding: '10px' }}><b>Tổng phụ:</b></td>
+                                <td style={{ padding: '10px', textAlign: 'right' }}>
+                                    <b>{formatCurrency(subtotal)}</b>
+                                </td>
+                            </tr>
+
+                            <tr style={{ borderBottom: '1px solid #eee' }}>
+                                <td style={{ padding: '10px' }}><b>Phí ship:</b></td>
+                                <td style={{ padding: '10px', textAlign: 'right' }}>
+                                    
+                                    {subtotal < 3000000 && (
+                                        <><span> Giao Hàng Trong 2-3 Ngày: 35,000 ₫</span></>
+                                    )}
+                                    {subtotal > 3000000 && (
+                                        <><span> Miễn phí giao hàng</span></>
+                                    )}
+                                   
+
+                                </td>
+                            </tr>
+                            {vouchers && vouchers.reduced_value > 0 && (
+                                <tr style={{ borderBottom: '1px solid #eee' }}>
+                                    <td style={{ padding: '10px', color: "#e53935" }}><b>Phần trăm giảm:</b></td>
+                                    <td style={{ padding: '10px', textAlign: 'right', color: "#e53935" }}>
+                                        {/* Chỉ hiển thị nếu giá trị giảm giá > 0 */}
+                                        <b>{vouchers.reduced_value}%</b>
+                                    </td>
+                                </tr>
+                            )}
+                            <tr style={{ borderBottom: '1px solid #b4b4b4ff' }}>
+                                <td style={{ padding: '10px' }}><b>Phương thức thanh toán:</b></td>
+                                <td style={{ padding: '10px', textAlign: 'right' }}>
+                                    <b>{orderDetails.paymentMethod}</b>
+
+                                </td>
+                            </tr>
+                        </tbody>
+
+
+                        <tfoot>
+                            <tr>
+                                <td style={{ padding: '10px', fontSize: '1.2em' }}><b>Tổng cộng:</b></td>
+                                <td style={{ textAlign: 'right', fontSize: '1.2em', color: '#e53935' }}>
+                                    {orderDetails.totalPrice.toLocaleString('vi-VN')} ₫
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+
+                    {/* Thông tin Khách hàng và Địa chỉ */}
+                    <div className="address" style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
+                        <div style={{ flex: 1, border: '1px solid #ccc', padding: '15px' }}>
+                            <h3>Thông tin khách hàng</h3>
+                            <p><b>Họ tên:</b> {orderDetails.name}</p>
+                            <p><b>Email:</b> {orderDetails.email}</p>
+                            <p><b>Điện thoại:</b> {orderDetails.phone}</p>
+                            <p><b>Ghi chú:</b> {orderDetails.notes || "(Không có)"}</p>
+                        </div>
+
+                        <div style={{ flex: 1, border: '1px solid #ccc', padding: '15px' }}>
+                            <h3>Địa chỉ giao hàng</h3>
+                            <p><b>Người nhận:</b> {orderDetails.name}</p>
+                            <p><b>Địa chỉ:</b> {orderDetails.shippingAddress}</p>
+                            <p><b>Điện thoại:</b> {orderDetails.phone}</p>
+                        </div>
+                    </div>
+
+                    {/* Hộp thông báo xác nhận */}
+                    <div className="confirm-box" style={{ border: '1px solid #ccc', padding: '15px', backgroundColor: '#f9f9f9' }}>
+                        <b style={{ color: '#339933' }}>Cảm ơn bạn. Đơn hàng của bạn đã được đặt thành công.</b>
+                        <ul>
+                            <li>Mã đơn hàng: <b>{orderDetails.codeOrder}</b></li>
+                            <li>
+                                Ngày: <b>{new Date(orderDetails.createdAt).toLocaleDateString("vi-VN")}</b>
+                            </li>
+                            <li>Tổng cộng: <b style={{ color: '#fc6b4c' }}>{orderDetails.totalPrice.toLocaleString('vi-VN')} ₫</b></li>
+                            <li>Thanh toán: <b>{orderDetails.paymentMethod}</b></li>
+                            <li>Trạng thái: <b style={{ color: '#339933' }}>Đặt hàng thành công</b></li>
+                        </ul>
+                    </div>
+
+                    {/* Nút hành động */}
+                    <div style={{ textAlign: "center", marginTop: "30px" }}>
+                        <a href="/home" style={{
+                            display: "inline-block",
+                            // backgroundColor: primaryColor,
+                            backgroundColor: "#fc6b4c",
+                            color: "#fff",
+                            padding: "12px 30px",
+                            borderRadius: "4px",
+                            textDecoration: "none",
+                            fontWeight: "600"
+                        }}>
+                            ← Quay lại cửa hàng
+                        </a>
+                    </div>
                 </div>
             </div>
         );
     }
 
     // ❌ Các trường hợp thất bại / lỗi
-    return (
-        <div style={{ padding: "40px 0", textAlign: "center" }}>
-            <h1 style={{ color: errorColor }}>{message}</h1>
-            <p>Vui lòng kiểm tra lại thông tin thanh toán hoặc liên hệ bộ phận hỗ trợ.</p>
-            <div style={{ marginTop: "30px" }}>
-                <a href="/" style={{
-                    backgroundColor: errorColor,
-                    color: "#fff",
-                    padding: "10px 20px",
-                    borderRadius: "8px",
-                    textDecoration: "none",
-                    fontWeight: "600"
-                }}>
-                    ← Quay lại cửa hàng
-                </a>
-            </div>
-        </div>
-    );
+    // return (
+    //     <div style={{ padding: "40px 0", textAlign: "center" }}>
+    //         <h1 style={{ color: errorColor }}>{message}</h1>
+    //         <p>Vui lòng kiểm tra lại thông tin thanh toán hoặc liên hệ bộ phận hỗ trợ.</p>
+    //         <div style={{ marginTop: "30px" }}>
+    //             <a href="/" style={{
+    //                 backgroundColor: errorColor,
+    //                 color: "#fff",
+    //                 padding: "10px 20px",
+    //                 borderRadius: "8px",
+    //                 textDecoration: "none",
+    //                 fontWeight: "600"
+    //             }}>
+    //                 ← Quay lại cửa hàng
+    //             </a>
+    //         </div>
+    //     </div>
+    // );
 };
 
 export default PaymentResult;

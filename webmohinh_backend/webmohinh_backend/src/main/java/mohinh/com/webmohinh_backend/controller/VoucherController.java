@@ -10,6 +10,7 @@ import mohinh.com.webmohinh_backend.service.ProducerService;
 import mohinh.com.webmohinh_backend.service.VoucherService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -47,5 +48,11 @@ public class VoucherController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         return voucherService.searchVocherByPrefix(codeVoucher, page, size);
+    }
+
+    @GetMapping("/voucher/{id}")
+    public ResponseEntity<Voucher> getVoucherById(@PathVariable String id) {
+        Voucher voucher = voucherService.findById(id);
+        return ResponseEntity.ok(voucher);
     }
 }

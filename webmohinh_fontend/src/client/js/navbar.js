@@ -23,6 +23,9 @@ function Navbar() {
     const handleLoginClick = () => {
         navigate('/login');
     };
+       const handleSigupClick = () => {
+        navigate('/sigup');
+    };
     const [page, setPage] = useState(0); // page = 0 is first page
     const [size, setSize] = useState(10);
     const [totalPages, setTotalPages] = useState(0);
@@ -128,13 +131,13 @@ function Navbar() {
             <div className="header">
                 <img src="/logo.png" />
                 <input className="input-elevated" type="text" placeholder="Search" />
-                {/* <span className="header-cart-title">
-                    Đăng ký
-                    <HowToRegIcon />
-                </span> */}
+                <span className="header-cart-title" onClick={handleSigupClick} style={{ cursor: 'pointer' }}>
+                    <HowToRegIcon /> Đăng ký / 
+                </span>
                 <span className="header-cart-title" onClick={handleLoginClick} style={{ cursor: 'pointer' }}>
-                    Đăng nhập
+                    
                     <LoginIcon />
+                    Đăng nhập
                 </span>
 
                 <span className="header-cart-title">

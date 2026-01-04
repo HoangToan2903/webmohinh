@@ -26,6 +26,7 @@ public class OrderDTO {
      BigDecimal totalPrice;
      String codeOrder;
      String voucherId;
+     Integer status;
      List<OrderItemDTO> items;
 
 }

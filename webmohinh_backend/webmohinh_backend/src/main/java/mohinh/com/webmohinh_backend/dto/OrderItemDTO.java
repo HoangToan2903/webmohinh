@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class OrderItemDTO {
      String productId;
+     String productName;
      Integer quantity;
      BigDecimal price;
 }

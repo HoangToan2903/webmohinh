@@ -21,7 +21,7 @@ function LogIn() {
             {/* Form Đăng Nhập */}
 
             <form className="login">
-                <h2>Chào mừng bạn đến với NEMO SHOP!</h2>
+                <h2 style={{textAlign: "center"}}>Chào mừng bạn đến với NEMO SHOP!</h2>
                 <p>Vui lòng đăng nhập </p>
                 <p style={{ color: '#F44336' }}>(Nếu chưa có tài khoản vui lòng quý khách đăng ký tài khoản!) </p>
                 <input type="text" placeholder="Tên đăng nhập..." />

@@ -133,9 +133,7 @@ const PaymentResult = () => {
     useEffect(() => {
         // 1. Check if voucherId exists before making the request
         if (voucherId) {
-            // 2. Append the voucherId directly to the URL as a path segment
-            // Assuming your backend is set up to handle requests like:
-            // GET http://localhost:8080/website/voucher/YOUR_VOUCHER_ID
+
             axios.get(`http://localhost:8080/website/voucher/${voucherId}`)
                 .then(response => {
                     setVoucher(response.data);
@@ -223,7 +221,7 @@ const PaymentResult = () => {
 
                             {/* Tách thành 3 hàng riêng */}
                             <tr style={{ borderBottom: '1px solid #eee' }}>
-                                <td style={{ padding: '10px' }}><b>Tổng phụ:</b></td>
+                                <td style={{ padding: '10px' }}><b>Tổng tiền sản phẩm:</b></td>
                                 <td style={{ padding: '10px', textAlign: 'right' }}>
                                     <b>{formatCurrency(subtotal)}</b>
                                 </td>
@@ -299,8 +297,8 @@ const PaymentResult = () => {
                                 Ngày: <b>{new Date(orderDetails.createdAt).toLocaleDateString("vi-VN")}</b>
                             </li>
                             <li>Tổng cộng: <b style={{ color: '#fc6b4c' }}>{orderDetails.totalPrice.toLocaleString('vi-VN')} ₫</b></li>
-                            <li>Thanh toán: <b>{orderDetails.paymentMethod}</b></li>
-                            <li>Trạng thái: <b style={{ color: '#339933' }}>Đặt hàng thành công</b></li>
+                            <li>Phương thức thanh toán: <b>{orderDetails.paymentMethod}</b></li>
+                            <li>Trạng thái: <b style={{ color: '#339933' }}>Đặt hàng thành công(Chờ vận chuyển)</b></li>
                         </ul>
                     </div>
 

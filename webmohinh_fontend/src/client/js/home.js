@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import slugify from "./utils/slugify";
 import { addToCart, resizeImageToBase64, base64ToFile } from './addCart';
+import CircularProgress from '@mui/material/CircularProgress';
 
 function Home() {
 
@@ -102,7 +103,7 @@ function Home() {
             <div className="flex-center">
                 <div className="portfolio gallery gallery-container">
                     {loading ? (
-                        <p>Đang tải sản phẩm...</p>
+                        <p> <CircularProgress disableShrink /></p>
                     ) : (
                         productsOnePiece.map((product, index) => {
                             const base64Image =
@@ -339,7 +340,7 @@ function Home() {
             <div className="flex-center">
                 <div className="portfolio gallery gallery-container">
                     {loading ? (
-                        <p>Đang tải sản phẩm...</p>
+                        <p> <CircularProgress disableShrink /></p>
                     ) : (
                         productsDragonball.map((product, index) => {
                             const base64Image =

@@ -10,6 +10,7 @@ import axios from "axios";
 import { Alert, Slide } from '@mui/material';
 // import Result from './result';
 import Swal from "sweetalert2";
+import CircularProgress from '@mui/material/CircularProgress';
 
 
 const PAGE_SIZE = 10;
@@ -196,35 +197,41 @@ function CartItems() {
             address.trim() !== ""
         );
     };
-    const finalTotal = (() => {
-        // const baseTotal = (Number(subtotal) || 0) + (Number(shipping) || 0);
-        let baseTotal = 0;
+    let baseTotal = 0;
+    {
+        subtotal < 3000000 && (
+            baseTotal = (Number(subtotal) || 0) + (Number(shipping) || 0)
+        )
+    }
+    {
+        subtotal > 3000000 && (
+            baseTotal = (Number(subtotal) || 0)
+        )
+    }
+    const discountPercent =
+        vouchers.length > 0 &&
+            vouchers[0].status === "Đang hoạt động" &&
+            baseTotal >= vouchers[0].conditions_apply // Thêm điều kiện này
+            ? vouchers[0].reduced_value
+            : 0;
 
-        {
-            subtotal < 3000000 && (
-                baseTotal = (Number(subtotal) || 0) + (Number(shipping) || 0)
-            )
-        }
-        {
-            subtotal > 3000000 && (
-                baseTotal = (Number(subtotal) || 0)
-            )
-        }
-        const discountPercent =
-            vouchers.length > 0 && vouchers[0].status === "Đang hoạt động"
-                ? vouchers[0].reduced_value
-                : 0;
+    const finalTotal = (() => {
+
         return baseTotal - (baseTotal * discountPercent) / 100;
     })();
-
+    // console.log(discountPercent)
     const handlePlaceOrder = async () => {
         // 1. Kiểm tra xác thực form
         if (!validateForm()) {
             setMessage("Vui lòng điền đầy đủ thông tin bắt buộc!");
             return;
         }
+        // Tìm voucher hợp lệ nhất từ danh sách (thường là cái đầu tiên khớp mã)
+        const activeVoucher = vouchers.find(v =>
+            v.status === "Đang hoạt động" &&
+            subtotal >= v.conditions_apply
+        );
 
-        // 2. Chuẩn bị đối tượng yêu cầu đặt hàng (orderRequest)
         const orderRequest = {
             name,
             email,
@@ -232,9 +239,10 @@ function CartItems() {
             phone,
             notes,
             paymentMethod: method,
-            shipMoney: shipping,
+            shipMoney: subtotal < 3000000 ? Number(shipping) || 0 : 0,
             totalPrice: finalTotal,
-            voucherId: vouchers.length > 0 ? vouchers[0].id : null,
+            // Nếu tìm thấy voucher thỏa mãn các điều kiện trên thì lấy id, ngược lại để null
+            voucherId: activeVoucher ? activeVoucher.id : null,
             items: cartItems.map((item) => ({
                 productId: item.id,
                 quantity: item.quantity,
@@ -624,21 +632,30 @@ function CartItems() {
                                                     <div className="cart-row" style={{ color: "#e53935" }}>
 
                                                         {v.status === "Đang hoạt động" ? (
-                                                            <>
-
-                                                                <span>Phần trăm giảm</span>
-                                                                <strong> {v.reduced_value}%</strong>
-                                                            </>
+                                                            subtotal >= v.conditions_apply ? (
+                                                                // Trường hợp 1: Hoạt động VÀ đủ điều kiện tiền
+                                                                <>
+                                                                    <span>Phần trăm giảm</span>
+                                                                    <strong> {v.reduced_value}%</strong>
+                                                                </>
+                                                            ) : (
+                                                                // Trường hợp 2: Hoạt động NHƯNG không đủ số tiền tối thiểu
+                                                                <span style={{ color: "#ff9800" }}>
+                                                                    Không đủ điều kiện áp dụng Voucher
+                                                                </span>
+                                                            )
                                                         ) : (
+                                                            // Trường hợp 3: Voucher không hoạt động hoặc không tồn tại
                                                             <span style={{ color: "#e53935" }}>
-                                                                Voucher hết hạn sử dụng</span>
+                                                                Voucher không tồn tại.
+                                                            </span>
                                                         )}
                                                     </div>
                                                 </ul>
                                             ))}
                                         </ul>
                                     ) : (
-                                        searchText && <p style={{ color: "#e53935" }}>Không tìm thấy mã phù hợp.</p>
+                                        searchText && <p style={{ color: "#e53935" }}>Voucher không tồn tại.</p>
                                     )}
                                 </div>
 
@@ -664,10 +681,12 @@ function CartItems() {
                                             }
 
                                             // Nếu voucher đầu tiên đang hoạt động thì mới giảm, ngược lại giữ nguyên
-                                            const discountPercent =
-                                                vouchers.length > 0 && vouchers[0].status === "Đang hoạt động"
-                                                    ? vouchers[0].reduced_value
-                                                    : 0;
+                                            // const discountPercent =
+                                            //     vouchers.length > 0 &&
+                                            //         vouchers[0].status === "Đang hoạt động" &&
+                                            //         baseTotal >= vouchers[0].conditions_apply // Thêm điều kiện này
+                                            //         ? vouchers[0].reduced_value
+                                            //         : 0;
 
                                             const finalTotal = baseTotal - (baseTotal * discountPercent) / 100;
 
@@ -771,8 +790,18 @@ function CartItems() {
                     </div>
                 </div>
                 <div className="tab-content" id="settings" style={{ display: orderDetails ? 'block' : 'none' }}>
-
-                    {orderDetails && (
+                    {!orderDetails ? (
+                        <div
+                            style={{
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                // height: '80vh',   // hoặc 100vh nếu muốn giữa toàn trang
+                            }}
+                        >
+                            <CircularProgress disableShrink />
+                        </div>
+                    ) : (
                         <div style={{ maxWidth: '100%', margin: 'auto' }}>
                             <h2 style={{ textAlign: 'center', color: '#00c853', marginBottom: '15px' }}>
                                 🎉 ĐẶT HÀNG THÀNH CÔNG! 🎉
@@ -817,7 +846,7 @@ function CartItems() {
 
                                     {/* Tách thành 3 hàng riêng */}
                                     <tr style={{ borderBottom: '1px solid #eee' }}>
-                                        <td style={{ padding: '10px' }}><b>Tổng phụ:</b></td>
+                                        <td style={{ padding: '10px' }}><b>Tổng tiền sản phẩm:</b></td>
                                         <td style={{ padding: '10px', textAlign: 'right' }}>
                                             <b>{orderDetails.subtotal.toLocaleString('vi-VN')} ₫</b>
                                         </td>
@@ -838,22 +867,16 @@ function CartItems() {
 
                                     </tr>
 
-                                    {vouchers.map((v) => (
-                                        <tr key={v.id}>
-                                            {v.status === "Đang hoạt động" ? (
-                                                <>
-                                                    <td style={{ padding: '10px', color: "#e53935" }}><b>Phần trăm giảm giá:</b></td>
-                                                    <td className="right" style={{ color: "#e53935" }}>
-                                                        <b>{v.reduced_value}%</b>
-                                                    </td>
-                                                </>
-                                            ) : (
-                                                <td colSpan="2" style={{ color: "#e53935" }}>
-                                                    Voucher hết hạn sử dụng
-                                                </td>
-                                            )}
+                                    {discountPercent > 0 && (
+                                        <tr>
+                                            <td style={{ padding: '10px', color: "#e53935" }}>
+                                                <b>Phần trăm giảm giá:</b>
+                                            </td>
+                                            <td className="right" style={{ color: "#e53935" }}>
+                                                <b>{discountPercent}%</b>
+                                            </td>
                                         </tr>
-                                    ))}
+                                    )}
                                     <tr style={{ borderBottom: '1px solid #b4b4b4ff' }}>
                                         <td style={{ padding: '10px' }}><b>Phương thức thanh toán:</b></td>
                                         <td style={{ padding: '10px', textAlign: 'right' }}>
@@ -897,7 +920,7 @@ function CartItems() {
                                     <li>Mã đơn hàng: <b>{orderDetails.codeOrder}</b></li>
                                     <li>Ngày: <b>{orderDetails.date}</b></li>
                                     <li>Tổng cộng: <b style={{ color: '#fc6b4c' }}>{orderDetails.totalPrice.toLocaleString('vi-VN')} ₫</b></li>
-                                    <li>Thanh toán: <b>{orderDetails.paymentMethod}</b></li>
+                                    <li>Phương thức thanh toán: <b>{orderDetails.paymentMethod}</b></li>
                                     <li>Trạng thái: <b style={{ color: '#ff9800' }}>Chờ xác nhận</b></li>
                                 </ul>
                             </div>

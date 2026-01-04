@@ -110,6 +110,7 @@ public class OrdersSevice {
         // Chuyển danh sách sản phẩm sang DTO gọn gàng
         List<OrderItemDTO> itemDTOs = order.getOrderItems().stream()
                 .map(item -> new OrderItemDTO(
+                        item.getProducts().getId(),
                         item.getProducts().getName(),
                         item.getQuantity(),
                         item.getPrice()

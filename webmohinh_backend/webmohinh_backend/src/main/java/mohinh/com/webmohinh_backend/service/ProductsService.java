@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -99,6 +100,9 @@ public class ProductsService {
 
     public Page<Products> getProductsByCategoryId(String categoryId, Pageable pageable) {
         return productsRepository.findAllByCategoryId(categoryId, pageable);
+    }
+    public Optional<Products> getProductById(String idProducts) {
+        return productsRepository.findById(idProducts);
     }
 
 }

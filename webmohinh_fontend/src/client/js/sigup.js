@@ -102,7 +102,7 @@ function SigUp() {
                     placeholder="Tên đăng nhập..." />
 
                 <input
-                    type="email"
+                    type="text"
                     name='email'
                     value={newUsers.email}
                     onChange={handleChange}

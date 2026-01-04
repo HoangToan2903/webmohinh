@@ -5,20 +5,25 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import mohinh.com.webmohinh_backend.dto.EmailRequest;
 import mohinh.com.webmohinh_backend.dto.OrderDTO;
 import mohinh.com.webmohinh_backend.entity.Orders;
-import mohinh.com.webmohinh_backend.service.OrdersSevice;
-import mohinh.com.webmohinh_backend.service.PaymentService;
+import mohinh.com.webmohinh_backend.entity.Products;
+import mohinh.com.webmohinh_backend.entity.Voucher;
+import mohinh.com.webmohinh_backend.service.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
@@ -30,6 +35,9 @@ public class VnPayController {
     final PaymentService vnPayService; // Sử dụng cho createOrder
     final OrdersSevice ordersSevice;
     final PaymentService paymentService; // Sử dụng cho orderReturn
+    EmailService emailService;
+    ProductsService productsService;
+    VoucherService voucherService;
 
     // Sử dụng ConcurrentHashMap để đảm bảo an toàn luồng (thread-safe)
     private final Map<String, OrderDTO> tempOrders = new ConcurrentHashMap<>();
@@ -37,7 +45,7 @@ public class VnPayController {
     // --- Endpoint Khởi tạo đơn hàng VNPay ---
 
     @PostMapping("/submitOrder")
-    public ResponseEntity<?> submitOrder(@RequestBody OrderDTO orderRequest, HttpServletRequest request) {
+    public ResponseEntity<?> submitOrder(@RequestBody OrderDTO orderRequest, HttpServletRequest request, EmailRequest emailrequest) {
         try {
             // --- Tạo Mã Đơn Hàng Tạm (OrderCode) ---
             String datePart = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
@@ -76,7 +84,7 @@ public class VnPayController {
 
 
     @GetMapping("/vnpay-return")
-    public ResponseEntity<?> vnpayReturn(HttpServletRequest request) {
+    public ResponseEntity<?> vnpayReturn(HttpServletRequest request, EmailRequest emailrequest) {
         try {
             int paymentResult = paymentService.orderReturn(request);
             String orderCode = request.getParameter("vnp_TxnRef");
@@ -85,14 +93,105 @@ public class VnPayController {
 
             // 🟢 Nếu VNPay xác nhận thanh toán thành công
             if (paymentResult == 1) {
+
                 // Sửa: Dùng .get() thay vì .remove() để kiểm tra sự tồn tại trước
                 OrderDTO orderDTO = tempOrders.get(orderCode);
 
                 if (orderDTO != null) {
                     orderDTO.setCodeOrder(orderCode);
-                    orderDTO.setPaymentMethod("VNPay");
+                    orderDTO.setPaymentMethod("Thanh toán VNPay");
 
                     try {
+                        NumberFormat currencyVN = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
+//                        Orders newOrder = ordersSevice.createOrder(request);
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+                        String productInfo = orderDTO.getItems()
+                                .stream()
+                                .map(item -> {
+                                    Products product = productsService.getProductById(item.getProductId())
+                                            .orElseThrow(() -> new RuntimeException("Product not found"));
+
+                                    String name = product.getName();
+
+                                    int quantity = item.getQuantity();
+
+                                    return name + "(Số lương : " + quantity + " x " + currencyVN.format(product.getPrice()) + ")";
+                                })
+                                .collect(Collectors.joining("\n"));
+                        Voucher voucher = null;
+                        if (orderDTO.getVoucherId() != null) {
+                            try {
+                                voucher = voucherService.findById(orderDTO.getVoucherId());
+                            } catch (Exception e) {
+                                // Có thể log lại hoặc xử lý nếu voucher không tồn tại
+                                System.out.println("Không tìm thấy voucher: " + e.getMessage());
+                            }
+                        }
+                        String reducedValueStr = (voucher != null) ? String.valueOf(voucher.getReduced_value()) : "0";
+
+                        // Tạo HTML email
+                        String emailBody =
+                                "<div style='font-size:15px; font-weight:bold; display:inline-block;'>Mã đơn hàng :</div>"
+                                        + "<div style='display:inline-block; margin-left:10px; white-space:pre'>"
+                                        + orderDTO.getCodeOrder() +
+                                        "</div>" + "<br>" +
+                                        "<div style='font-size:15px; font-weight:bold; display:inline-block;'>Ngày mua :</div>"
+                                        + "<div style='display:inline-block; margin-left:10px; white-space:pre'>"
+                                        + orderDTO.getCodeOrder() +
+                                        "</div>" + "<br>" +
+                                        "<div style='font-size:15px; font-weight:bold; display:inline-block;'>Sản phẩm :</div>"
+                                        + "<div style='display:inline-block; margin-left:10px; white-space:pre'>"
+                                        + productInfo +
+                                        "</div>" + "<br>" +
+                                        "<div style='font-size:15px; font-weight:bold; display:inline-block;'>Phí ship :</div>"
+                                        + "<div style='display:inline-block; margin-left:10px; white-space:pre'>"
+                                        + currencyVN.format(orderDTO.getShipMoney()) +
+                                        "</div>"
+                                        + "<br>" +
+                                        "<div style='font-size:15px; font-weight:bold; display:inline-block;'>Phần trăm giảm :</div>"
+                                        + "<div style='display:inline-block; margin-left:10px; white-space:pre'>"
+                                        + reducedValueStr + "%" +
+                                        "</div>"
+                                        + "<br>" +
+                                        "<div style='font-size:15px; font-weight:bold; display:inline-block;'>Tổng cộng :</div>"
+                                        + "<div style='display:inline-block; margin-left:10px; white-space:pre'>"
+                                        + currencyVN.format(orderDTO.getTotalPrice()) +
+                                        "</div>" + "<br>" +
+                                        "<div style='font-size:15px; font-weight:bold; display:inline-block;'>Phương thức thanh toán  :</div>"
+                                        + "<div style='display:inline-block; margin-left:10px; white-space:pre'>"
+                                        + orderDTO.getPaymentMethod() +
+                                        "</div>" + "<br>" +
+                                        "<div style='font-size:15px; font-weight:bold; display:inline-block;'>Trạng thái :</div>"
+                                        + "<div style='display:inline-block; margin-left:10px; white-space:pre'>"
+                                        + "Thanh toán thành công(Chờ vận chuyển)" +
+                                        "</div>"+"<br>" +
+                                        "<div style='font-size:15px; font-weight:bold; display:inline-block;'>Tên người nhận :</div>"
+                                        + "<div style='display:inline-block; margin-left:10px; white-space:pre'>"
+                                        + orderDTO.getName() +
+                                        "</div>"+ "<br>"
+                                        +
+                                        "<div style='font-size:15px; font-weight:bold; display:inline-block;'>Số điện thoại :</div>"
+                                        + "<div style='display:inline-block; margin-left:10px; white-space:pre'>"
+                                        + orderDTO.getPhone() +
+                                        "</div>"+ "<br>"
+                                        +
+                                        "<div style='font-size:15px; font-weight:bold; display:inline-block;'>Địa chỉ :</div>"
+                                        + "<div style='display:inline-block; margin-left:10px; white-space:pre'>"
+                                        + orderDTO.getShippingAddress()+
+                                        "</div>"+ "<br>"+ "<br>"+
+                                        "<div style='font-size:15px; font-weight:bold; display:inline-block;'>Cảm ơn bạn đã đặt hàng!!!</div>";
+
+                        // Gửi email
+                        emailrequest.setRecipient(orderDTO.getEmail());
+                        emailrequest.setSubject("Thông tin đơn hàng của bạn");
+                        emailrequest.setBody(emailBody);
+
+                        emailService.sendEmailHtml(
+                                emailrequest.getRecipient(),
+                                emailrequest.getSubject(),
+                                emailrequest.getBody()
+                        );
+
                         // 1. Lưu vào DB
                         Orders saved = ordersSevice.createOrder(orderDTO);
 

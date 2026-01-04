@@ -4,6 +4,17 @@ server:
     context-path: /website
 
 spring:
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: hoangductoan290803@gmail.com
+    password: wqzt nhin yhxz bkrc
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
   datasource:
     url: "jdbc:mysql://localhost:3306/websitemohinh"
     username: root
@@ -12,6 +23,8 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+
+
 upload:
   image:
     dir: uploads/

@@ -10,6 +10,7 @@ import TextField from '@mui/material/TextField';
 import TextareaAutosize from '@mui/material/TextareaAutosize';
 import axios from 'axios';
 import { Alert, Slide } from '@mui/material';
+import Swal from "sweetalert2";
 
 
 const style = {
@@ -104,8 +105,11 @@ function Categories() {
             setSelectedImage(null);
             setImagePreview('');
             handleClose();
-            setSuccessAlertAdd(true);
-            setTimeout(() => setSuccessAlertAdd(false), 3000);
+            Swal.fire({
+                icon: "success",
+                title: "Thêm thành công 🎉",
+                confirmButtonColor: "#4CAF50",
+            });
             await fetchCategories();
         } catch (error) {
             console.error('Error saving category:', error);
@@ -120,8 +124,11 @@ function Categories() {
             await axios.delete(`http://localhost:8080/website/categories/${id}`);
             await fetchCategories(); // 👈 Gọi lại API để load dữ liệu mới nhất
             handleConfirmClose();
-              setSuccessAlertAdd(true);
-            setTimeout(() => setSuccessAlertAdd(false), 3000);
+            Swal.fire({
+                           icon: "success",
+                           title: "Xóa thành công 🎉",
+                           confirmButtonColor: "#4CAF50",
+                       });
         } catch (error) {
             alert('There was an error deleting the producer');
         }
@@ -193,8 +200,11 @@ function Categories() {
             );
             await fetchCategories();
             handleCloseEdit();
-            setSuccessAlertUpdate(true);
-            setTimeout(() => setSuccessAlertUpdate(false), 3000);
+            Swal.fire({
+                icon: "success",
+                title: "Sửa thành công 🎉",
+                confirmButtonColor: "#4CAF50",
+            });
         } catch (error) {
             console.error("Lỗi xảy ra khi cập nhật:", error);
         }
@@ -238,37 +248,7 @@ function Categories() {
     };
     return (
         <div>
-            {/* alert */}
-            {successAlertDelete && (
-                <Slide direction="left" in={successAlertDelete} mountOnEnter unmountOnExit>
-                    <Alert
-                        sx={{ width: '50%', float: 'right', mt: 2 }}
-                        severity="success"
-                    >
-                        Delete success
-                    </Alert>
-                </Slide>
-            )}
-            {successAlertAdd && (
-                <Slide direction="left" in={successAlertAdd} mountOnEnter unmountOnExit>
-                    <Alert
-                        sx={{ width: '50%', float: 'right', mt: 2 }}
-                        severity="success"
-                    >
-                        Add success
-                    </Alert>
-                </Slide>
-            )}
-            {successAlertUpdate && (
-                <Slide direction="left" in={successAlertUpdate} mountOnEnter unmountOnExit>
-                    <Alert
-                        sx={{ width: '50%', float: 'right', mt: 2 }}
-                        severity="success"
-                    >
-                        Update success
-                    </Alert>
-                </Slide>
-            )}
+          
             <h1>Categories</h1>
             <br></br>
             <Box display="flex" justifyContent="flex-end">

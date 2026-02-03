@@ -143,7 +143,7 @@ function Products() {
     const [inputValue, setInputValue] = useState('');
     const fetchCategories = async () => {
         try {
-            const response = await axios.get('http://localhost:8080/website/categoriesAll', {
+            const response = await axios.get('http://localhost:8080/website/categoryAll', {
             });
 
             setCategories(response.data.content);
@@ -482,7 +482,7 @@ function Products() {
             >
                 <Box sx={style}>
                     <Typography id="modal-modal-title" variant="h6" component="h2">
-                        Create Categories
+                        Create Products
                     </Typography>
                     <hr />
                     <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>

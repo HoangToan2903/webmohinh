@@ -662,7 +662,7 @@ function Sale() {
                     <Button onClick={handleConfirmClose} color='primary'>
                         Đóng
                     </Button>
-                    <Button onClick={() => { handleDelete(deleteId); }} color='secondary' variant='contained'>
+                    <Button onClick={() => { handleDelete(deleteId); }} color="error" variant='contained'>
                         Xóa
                     </Button>
                 </DialogActions>

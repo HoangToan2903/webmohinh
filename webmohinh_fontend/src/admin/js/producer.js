@@ -14,6 +14,7 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import axios from 'axios';
 import { Alert, Slide } from '@mui/material';
+import Swal from "sweetalert2";
 
 
 const style = {
@@ -60,9 +61,11 @@ function Producer() {
 
             setProducers([response.data, ...producers]);
             setNewProducer({ name: '', description: '' });
-            setSuccessAlertAdd(true);
-            handleClose?.();
-            setTimeout(() => setSuccessAlertAdd(false), 3000);
+            Swal.fire({
+                icon: "success",
+                title: "Thêm thành công 🎉",
+                confirmButtonColor: "#4CAF50",
+            });
 
         } catch (error) {
             console.error("Lỗi khi thêm loại:", error);
@@ -106,9 +109,11 @@ function Producer() {
         try {
             await axios.delete(`http://localhost:8080/website/producer/${id}`);
             await fetchProducers(); // 👈 Gọi lại API để load dữ liệu mới nhất
-            handleConfirmClose();
-            setSuccessAlertDelete(true);
-            setTimeout(() => setSuccessAlertDelete(false), 3000);
+            Swal.fire({
+                icon: "success",
+                title: "Xóa thành công 🎉",
+                confirmButtonColor: "#4CAF50",
+            });
         } catch (error) {
             alert('There was an error deleting the producer');
         }
@@ -152,8 +157,11 @@ function Producer() {
                 )
             );
             handleCloseEdit();
-            setSuccessAlertUpdate(true);
-            setTimeout(() => setSuccessAlertUpdate(false), 3000);
+            Swal.fire({
+                icon: "success",
+                title: "Sửa thành công 🎉",
+                confirmButtonColor: "#4CAF50",
+            });
         } catch (error) {
             console.error('Lỗi xảy ra khi cập nhật:', error);
         }
@@ -189,36 +197,7 @@ function Producer() {
     return (
         <div>
             {/* alert */}
-            {successAlertDelete && (
-                <Slide direction="left" in={successAlertDelete} mountOnEnter unmountOnExit>
-                    <Alert
-                        sx={{ width: '50%', float: 'right', mt: 2 }}
-                        severity="success"
-                    >
-                        Delete success
-                    </Alert>
-                </Slide>
-            )}
-            {successAlertAdd && (
-                <Slide direction="left" in={successAlertAdd} mountOnEnter unmountOnExit>
-                    <Alert
-                        sx={{ width: '50%', float: 'right', mt: 2 }}
-                        severity="success"
-                    >
-                        Add success
-                    </Alert>
-                </Slide>
-            )}
-            {successAlertUpdate && (
-                <Slide direction="left" in={successAlertUpdate} mountOnEnter unmountOnExit>
-                    <Alert
-                        sx={{ width: '50%', float: 'right', mt: 2 }}
-                        severity="success"
-                    >
-                        Update success
-                    </Alert>
-                </Slide>
-            )}
+
             <h1>Producer</h1>
             <br></br>
 
@@ -383,14 +362,14 @@ function Producer() {
             </div>
             {/* Xoa */}
             <Dialog open={confirmOpen} onClose={handleConfirmClose}>
-                <DialogTitle>Confirm DeleteId</DialogTitle>
-                <DialogContent>Are you sure you want to delete this ?</DialogContent>
+                <DialogTitle>Xác nhận xóa</DialogTitle>
+                <DialogContent>Bạn chắc muốn xóa không?</DialogContent>
                 <DialogActions>
                     <Button onClick={handleConfirmClose} color='primary'>
-                        Cancel
+                        Hủy
                     </Button>
-                    <Button onClick={() => { handleDelete(deleteId); }} color='secondary' variant='contained'>
-                        Delete
+                    <Button onClick={() => { handleDelete(deleteId); }} color="error" variant='contained'>
+                        Xóa
                     </Button>
                 </DialogActions>
             </Dialog>

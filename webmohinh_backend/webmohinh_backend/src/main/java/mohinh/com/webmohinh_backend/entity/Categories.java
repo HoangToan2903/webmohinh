@@ -15,9 +15,13 @@ public class Categories {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     String id;
-    String name;
-    String description;
-    @Lob
-    @Basic(fetch = FetchType.LAZY)  // ảnh chỉ load khi cần thiết
-    private byte[] image;
+
+    @Column(nullable = false)
+    private String name;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @Column(name = "image_url")
+    private String image; // Đây là link ảnh từ Cloudinary/S3
 }

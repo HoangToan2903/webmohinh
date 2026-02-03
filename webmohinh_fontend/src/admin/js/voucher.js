@@ -164,7 +164,7 @@ function Voucher() {
                 )
             );
             handleCloseEdit();
-             Swal.fire({
+            Swal.fire({
                 icon: "success",
                 title: "Sửa thành công 🎉",
                 confirmButtonColor: "#4CAF50",
@@ -200,7 +200,7 @@ function Voucher() {
             await axios.delete(`http://localhost:8080/website/voucher/${id}`);
             await fetchProducers(); // 👈 Gọi lại API để load dữ liệu mới nhất
             handleConfirmClose();
-             Swal.fire({
+            Swal.fire({
                 icon: "success",
                 title: "Xóa thành công 🎉",
                 confirmButtonColor: "#4CAF50",
@@ -645,12 +645,12 @@ function Voucher() {
             {/* Xoa */}
             <Dialog open={confirmOpen} onClose={handleConfirmClose}>
                 <DialogTitle>Xác nhận xóa</DialogTitle>
-                <DialogContent>Bạn có chắc muốn xóa cái này không?</DialogContent>
+                <DialogContent>Bạn có chắc muốn xóa không?</DialogContent>
                 <DialogActions>
                     <Button onClick={handleConfirmClose} color='primary'>
-                        Đóng
+                        Hủy
                     </Button>
-                    <Button onClick={() => { handleDelete(deleteId); }} color='secondary' variant='contained'>
+                    <Button onClick={() => { handleDelete(deleteId); }} color="error" variant='contained'>
                         Xóa
                     </Button>
                 </DialogActions>

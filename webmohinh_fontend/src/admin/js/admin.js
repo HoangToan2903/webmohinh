@@ -138,9 +138,8 @@ function Admin() {
 
                 <div className="main-content">
                     <header>
-                        <div className="search-bar">
-                            <i className="fas fa-search"></i>
-                            <input type="text" placeholder="Search..." />
+                        <div >
+                           <h3>Xin Chào, Admin</h3>
                         </div>
                         <div className="user-profile">
                             <div className="notifications">

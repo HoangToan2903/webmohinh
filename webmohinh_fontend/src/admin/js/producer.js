@@ -66,7 +66,7 @@ function Producer() {
                 title: "Thêm thành công 🎉",
                 confirmButtonColor: "#4CAF50",
             });
-
+            handleClose?.();
         } catch (error) {
             console.error("Lỗi khi thêm loại:", error);
         }
@@ -109,6 +109,7 @@ function Producer() {
         try {
             await axios.delete(`http://localhost:8080/website/producer/${id}`);
             await fetchProducers(); // 👈 Gọi lại API để load dữ liệu mới nhất
+            handleConfirmClose();
             Swal.fire({
                 icon: "success",
                 title: "Xóa thành công 🎉",
@@ -198,14 +199,14 @@ function Producer() {
         <div>
             {/* alert */}
 
-            <h1>Producer</h1>
+            <h1>Nhà sản xuất</h1>
             <br></br>
 
 
             <br></br>
             <Box display="flex" justifyContent="flex-end">
                 <Button variant="contained" disableElevation onClick={handleOpen}>
-                    <AddIcon />  Add producer new
+                    <AddIcon />  Thêm
                 </Button>
             </Box>
             {/* Search */}
@@ -231,7 +232,7 @@ function Producer() {
             >
                 <Box sx={style}>
                     <Typography id="modal-modal-title" variant="h6" component="h2">
-                        Create Producer
+                        Thêm
                     </Typography>
                     <hr />
                     <Box sx={{ mt: 2 }}>
@@ -270,10 +271,10 @@ function Producer() {
                     </br>
                     <Box display="flex" justifyContent="flex-end" gap={2}>
                         <Button onClick={handleAdd} variant="contained" disableElevation>
-                            Add
+                            Thêm
                         </Button>
                         <Button disableElevation onClick={handleClose}>
-                            Close
+                            Thoát
                         </Button>
                     </Box>
                 </Box>
@@ -285,7 +286,7 @@ function Producer() {
                 fullWidth
                 maxWidth="sm"
             >
-                <DialogTitle>Update Type</DialogTitle>
+                <DialogTitle>Sửa thông tin</DialogTitle>
                 <DialogContent>
 
                     <TextField
@@ -321,8 +322,8 @@ function Producer() {
                 </DialogContent>
 
                 <DialogActions>
-                    <Button onClick={handleCloseEdit} color="primary">Cancel</Button>
-                    <Button color="primary" variant="contained" onClick={handleEditProducer}>Update</Button>
+                    <Button onClick={handleCloseEdit} color="primary">Thoát</Button>
+                    <Button color="primary" variant="contained" onClick={handleEditProducer}>Sửa </Button>
                 </DialogActions>
             </Dialog>
 
@@ -333,9 +334,9 @@ function Producer() {
                     <TableHead>
                         <TableRow style={{ backgroundColor: '#b8b8b8' }}>
                             <TableCell>STT</TableCell>
-                            <TableCell>Name Producer</TableCell>
-                            <TableCell>Description</TableCell>
-                            <TableCell>Action</TableCell>
+                            <TableCell>Tên nhà sản xuất</TableCell>
+                            <TableCell>Mô tả</TableCell>
+                            <TableCell>Hành động</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -345,8 +346,8 @@ function Producer() {
                                 <TableCell>{producer.name}</TableCell>
                                 <TableCell>{producer.description}</TableCell>
                                 <TableCell>
-                                    <Button color="primary" variant="outlined" size="small" onClick={() => handleClickOpenEdit(producer)}>Edit</Button>
-                                    <Button color="error" variant="outlined" size="small" style={{ marginLeft: 8 }} onClick={() => handleConfirmOpen(producer.id)}>Delete</Button>
+                                    <Button color="primary" variant="outlined" size="small" onClick={() => handleClickOpenEdit(producer)}>Sửa</Button>
+                                    <Button color="error" variant="outlined" size="small" style={{ marginLeft: 8 }} onClick={() => handleConfirmOpen(producer.id)}>Xóa</Button>
                                 </TableCell>
                             </TableRow>
                         ))}

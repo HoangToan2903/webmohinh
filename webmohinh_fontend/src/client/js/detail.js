@@ -15,6 +15,7 @@ import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import { useLocation } from "react-router-dom";
 import { addToCart, resizeImageToBase64, base64ToFile } from './addCart';
 import CircularProgress from '@mui/material/CircularProgress';
+import { Avatar } from '@mui/material';
 
 function Detail() {
     useEffect(() => {
@@ -26,30 +27,35 @@ function Detail() {
     // lấy id
     const [product, setProduct] = useState(null);
     const [categoryName, setCategoryName] = useState(null);
-
     useEffect(() => {
         const productId = localStorage.getItem("productsId");
+
         if (productId) {
             fetch(`http://localhost:8080/website/products/${productId}`)
-                .then((res) => res.json())
+                .then((res) => {
+                    if (!res.ok) throw new Error("Không thể lấy dữ liệu sản phẩm");
+                    return res.json();
+                })
                 .then((data) => {
+                    // Lưu toàn bộ thông tin sản phẩm (name, price, description...)
                     setProduct(data);
-
-                    // Lưu categories.name vào state để dùng sau
                     if (data.categories?.name) {
                         setCategoryName(data.categories.name);
                     }
 
-                    // Nếu có ảnh base64 thì set
-                    if (data.imageBase64List?.length) {
-                        const imgs = data.imageBase64List.map((b64) => ({
-                            data_url: `data:image/jpeg;base64,${b64}`,
+                    // Xử lý danh sách hình ảnh từ List<ProductImage>
+                    if (data.images && data.images.length > 0) {
+                        const formattedImages = data.images.map((imgObj) => ({
+                            // React-images-uploading yêu cầu key 'data_url' để hiển thị preview
+                            // Ta gán imageUrl từ Backend vào data_url
+                            data_url: imgObj.imageUrl
                         }));
-                        setImages(imgs); // giả sử bạn đã khai báo setImages
-                        setDefaultImageIndex(0); // giả sử bạn có index
+
+                        setImages(formattedImages);
+                        setDefaultImageIndex(0); // Mặc định hiển thị ảnh đầu tiên
                     }
                 })
-                .catch((err) => console.error(err));
+                .catch((err) => console.error("Lỗi lấy dữ liệu:", err));
         }
     }, []);
 
@@ -100,7 +106,7 @@ function Detail() {
                     });
 
                     const data = response.data;
-
+                    console.log(data)
                     const filtered = data.content.filter(
                         (p) => p.categories?.name === categoryName
                     );
@@ -182,47 +188,80 @@ function Detail() {
                 <div className="breadcrumb">
                     <Link style={{ color: "#555" }} to="/home" >Trang chủ</Link>  / {product.categories.name}
                 </div>
-                <div class="grid-container" id="product-section">
-                    <div class="grid-item">
+                <div className="grid-container" id="product-section">
+                    <div className="grid-item">
                         <div className="uploader-wrapper">
                             <ImageUploading
                                 multiple
                                 value={images}
                                 onChange={onChange}
-                                // maxNumber={maxNumber}
                                 dataURLKey="data_url"
                             >
-                                {({ imageList, onImageUpload, onImageUpdate, onImageRemove }) => (
-                                    <>
-                                        {imageList.length > 0 && (
-                                            <div className="preview-box">
-                                                <img
-                                                    src={imageList[defaultImageIndex ?? 0]?.data_url}
-                                                    alt="main preview"
-                                                    className="main-preview"
-                                                />
+                                {({ imageList }) => (
+                                    <div className="product-image-section">
 
-                                            </div>
-                                        )}
-                                        <div className="thumbs-container">
+                                        {/* 1. KHUNG ẢNH CHÍNH (PREVIEW) */}
+                                        <div className="main-preview-box" style={{ width: '100%', marginBottom: '15px' }}>
+                                            {imageList.length > 0 ? (
+                                                <img
+                                                    src={imageList[defaultImageIndex]?.data_url || imageList[0]?.data_url}
+                                                    alt="Sản phẩm chính"
+                                                    style={{
+                                                        width: '100%',
+                                                        height: '450px',
+                                                        objectFit: 'contain',
+                                                        border: '1px solid #f0f0f0',
+                                                        borderRadius: '8px'
+                                                    }}
+                                                />
+                                            ) : (
+                                                <div style={{ height: '450px', background: '#f9f9f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                    <p>Chưa có hình ảnh sản phẩm</p>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div
+                                            className="thumbnails-grid"
+                                            style={{
+                                                display: 'flex',
+                                                gap: '10px',
+                                                flexWrap: 'wrap',
+                                                justifyContent: 'center', // Căn giữa các item theo chiều ngang
+                                                alignItems: 'center',     // Căn giữa các item theo chiều dọc (nếu cần)
+                                                marginTop: '15px'         // Khoảng cách với ảnh chính phía trên
+                                            }}
+                                        >
                                             {imageList.map((image, index) => (
                                                 <div
                                                     key={index}
-                                                    className={`thum ${index === defaultImageIndex ? 'active' : ''}`}
-                                                    onClick={() => setAsDefault(index)}
+                                                    onClick={() => setDefaultImageIndex(index)}
+                                                    style={{
+                                                        width: '80px',
+                                                        height: '80px',
+                                                        cursor: 'pointer',
+                                                        border: index === defaultImageIndex ? '2px solid #ee4d2d' : '1px solid #ddd',
+                                                        borderRadius: '4px',
+                                                        overflow: 'hidden',
+                                                        position: 'relative',
+                                                        transition: 'all 0.2s ease' // Thêm hiệu ứng mượt khi chọn
+                                                    }}
                                                 >
-                                                    <img src={image.data_url} alt="" />
+                                                    <img
+                                                        src={image.data_url}
+                                                        alt={`Thumb ${index}`}
+                                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                    />
                                                 </div>
                                             ))}
-
                                         </div>
-                                    </>
+                                    </div>
                                 )}
                             </ImageUploading>
                         </div>
                     </div>
                     <div className="vertical-line"></div>
-                    <div class="grid-item">
+                    <div className="grid-item">
                         <div className="content">
                             <h1>{product.name}</h1>
                             <div className="horizontal-line"></div>
@@ -236,7 +275,7 @@ function Detail() {
                                         <del style={{ color: "gray", marginRight: "8px" }}>
                                             {Number(product.price).toLocaleString("vi-VN")} đ
                                         </del>
-                                        <strong>
+                                        <strong style={{ color: '#e74c3c' }}>
                                             {Number(
                                                 product.price - (product.price * (product.sale.discountPercent / 100))
                                             ).toLocaleString("vi-VN")} đ
@@ -268,38 +307,41 @@ function Detail() {
                                     className="view"
                                     onClick={async (e) => {
                                         e.preventDefault();
-
                                         try {
-                                            const base64Image =
-                                                Array.isArray(product.imageBase64List) && typeof product.imageBase64List[0] === "string"
-                                                    ? `data:image/jpeg;base64,${product.imageBase64List[0]}`
-                                                    : null;
+                                            // Lấy ảnh ưu tiên theo thứ tự: 
+                                            // 1. Link Cloudinary (imageUrl) -> 2. Chuỗi Base64
+                                            const rawImage = product.imageUrls?.[0] || product.imageBase64List?.[0] || null;
 
-                                            if (!base64Image) {
+                                            if (!rawImage) {
                                                 alert("Không có ảnh để thêm vào giỏ.");
                                                 return;
                                             }
 
-                                            const file = base64ToFile(base64Image);
-                                            const resizedImage = await resizeImageToBase64(file);
+                                            let imageToSave = rawImage;
 
-                                            const finalPrice =
-                                                product.sale?.id && product.sale?.status === 1
-                                                    ? product.price - (product.price * (product.sale.discountPercent / 100))
-                                                    : product.price;
+                                            // Nếu là Base64 thì mới cần thêm prefix và resize
+                                            if (!rawImage.startsWith('http')) {
+                                                const base64WithPrefix = rawImage.startsWith('data:image')
+                                                    ? rawImage
+                                                    : `data:image/jpeg;base64,${rawImage}`;
+                                                const file = base64ToFile(base64WithPrefix);
+                                                imageToSave = await resizeImageToBase64(file, 100, 100, 0.7);
+                                            }
+                                            const finalPrice = product.sale?.id && product.sale?.status === 1
+                                                ? product.price - (product.price * (product.sale.discountPercent / 100))
+                                                : product.price;
 
                                             addToCart({
                                                 id: product.id,
                                                 name: product.name,
                                                 price: finalPrice,
-                                                image: resizedImage,
-                                                quantity: quantity,
+                                                image: imageToSave, // Giờ đã có giá trị là URL hoặc Base64 nén
+                                                quantity: quantity || 1,
                                             });
 
                                             alert("Đã thêm vào giỏ hàng!");
                                         } catch (error) {
-                                            console.error("Lỗi khi xử lý ảnh:", error);
-                                            alert("Không thể thêm sản phẩm vào giỏ hàng.");
+                                            alert("Lỗi xử lý ảnh: " + error.message);
                                         }
                                     }}
                                 >
@@ -320,8 +362,8 @@ function Detail() {
                     </div>
                 </div>
                 <hr></hr>
-                <div class="grid-container">
-                    <div class="grid-item">
+                <div className="grid-container">
+                    <div className="grid-item">
                         <b style={{ fontSize: "19px" }}>Đặc tả </b>
                         <div className="horizontal-line"></div>
                         <p>✅Chất liệu: {product.material} </p><br></br>
@@ -371,41 +413,24 @@ function Detail() {
                         </div>
                     </div>
                     <div className="vertical-line"></div>
-                    <div class="grid-item">
+                    <div className="grid-item">
                         <b style={{ fontSize: "19px" }}> Sản phẩm liên quan</b>
                         <div className="horizontal-line"></div>
                         {Array.isArray(productsOnePiece) &&
                             productsOnePiece.map((product, index) => (
                                 <div key={index}>
                                     <div style={{ marginBottom: '10px' }}>
-                                        {Array.isArray(product.imageBase64List) && product.imageBase64List.length > 0 ? (
-                                            <img
-                                                style={{
-                                                    height: '80px',
-                                                    width: '60px',
-                                                    objectFit: 'cover',
-                                                    display: 'inline-block',
-                                                    verticalAlign: 'middle',
-                                                }}
-                                                src={`data:image/jpeg;base64,${product.imageBase64List[0]}`}
-                                                alt="Product"
-                                            />
-                                        ) : (
-                                            <div
-                                                style={{
-                                                    height: '80px',
-                                                    width: '60px',
-                                                    backgroundColor: '#eee',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    fontSize: '12px',
-                                                    color: '#999',
-                                                }}
-                                            >
-                                                No image
-                                            </div>
-                                        )}
+                                        <Avatar
+                                            variant="rounded"
+                                            src={product.images?.[0]?.imageUrl || ''}
+                                            style={{
+                                                height: '80px',
+                                                width: '60px',
+                                                objectFit: 'cover',
+                                                display: 'inline-block',
+                                                verticalAlign: 'middle',
+                                            }}
+                                        >N/A</Avatar>
                                         <div
                                             style={{
                                                 display: 'inline-block',
@@ -433,7 +458,7 @@ function Detail() {
                                                     <del style={{ color: "gray", marginRight: "8px" }}>
                                                         {Number(product.price).toLocaleString("vi-VN")} đ
                                                     </del>
-                                                    <strong>
+                                                    <strong style={{ color: '#e74c3c' }}>
                                                         {Number(
                                                             product.price - (product.price * (product.sale.discountPercent / 100))
                                                         ).toLocaleString("vi-VN")} đ
@@ -459,27 +484,31 @@ function Detail() {
                 style={{ display: 'flex', alignItems: 'center', padding: '10px 20px' }}
             >                {/* Nội dung căn giữa */}
                 <div className='nav-products' style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
-                    {Array.isArray(product.imageBase64List) && product.imageBase64List.length > 0 ? (
-                        <img
-                            style={{
-                                height: '80px',
-                                width: '70px',
-                                objectFit: 'cover',
+                    {/* Kiểm tra mảng imageUrls từ Backend DTO */}
+                    {product.images && product.images.length > 0 ? (
+                        <Avatar
+                            variant="rounded"
+                            src={product.images[0].imageUrl} // Lấy trực tiếp imageUrl từ ProductImage
+                            sx={{
+                                width: 60,
+                                height: 60,
+                                border: '1px solid #f0f0f0'
                             }}
-                            src={`data:image/jpeg;base64,${product.imageBase64List[0]}`}
-                            alt="Product"
                         />
                     ) : (
                         <div
                             style={{
-                                height: '80px',
+                                height: '60px',  // Đồng bộ lại 60px cho khớp với Avatar sx
                                 width: '60px',
-                                backgroundColor: '#eee',
+                                backgroundColor: '#f5f5f5',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                fontSize: '12px',
+                                fontSize: '10px',
                                 color: '#999',
+                                borderRadius: '4px',
+                                border: '1px solid #eee',
+                                textAlign: 'center'
                             }}
                         >
                             No image
@@ -487,8 +516,13 @@ function Detail() {
                     )}
 
                     <div style={{ marginLeft: '20px' }}>
-                        <b style={{ color: '#e74c3c' }}>{product.name}</b>
-                        <p>
+                        {/* Tên sản phẩm */}
+                        <b style={{ color: '#e74c3c', display: 'block', marginBottom: '5px' }}>
+                            {product.name}
+                        </b>
+
+                        {/* PHẦN GIÁ: Thay thẻ <p> ngoài cùng bằng <div> để hết lỗi nội lồng nhau */}
+                        <div style={{ fontSize: '14px' }}>
                             {!product.sale?.id || product.sale?.status === 0 ? (
                                 <p>{Number(product.price).toLocaleString("vi-VN")} đ</p>
                             ) : (
@@ -496,15 +530,14 @@ function Detail() {
                                     <del style={{ color: "gray", marginRight: "8px" }}>
                                         {Number(product.price).toLocaleString("vi-VN")} đ
                                     </del>
-                                    <strong>
+                                    <strong style={{ color: '#e74c3c' }}>
                                         {Number(
                                             product.price - (product.price * (product.sale.discountPercent / 100))
                                         ).toLocaleString("vi-VN")} đ
                                     </strong>
                                 </p>
                             )}
-
-                        </p>
+                        </div>
                     </div>
 
                     <div style={{ marginLeft: '20px' }}>
@@ -519,41 +552,45 @@ function Detail() {
 
                     <div style={{ marginLeft: '20px' }}>
                         {product.status !== "Hết hàng" && (
+
                             <a href="#" className="view"
                                 onClick={async (e) => {
                                     e.preventDefault();
-
                                     try {
-                                        const base64Image =
-                                            Array.isArray(product.imageBase64List) && typeof product.imageBase64List[0] === "string"
-                                                ? `data:image/jpeg;base64,${product.imageBase64List[0]}`
-                                                : null;
+                                        // Lấy ảnh ưu tiên theo thứ tự: 
+                                        // 1. Link Cloudinary (imageUrl) -> 2. Chuỗi Base64
+                                        const rawImage = product.imageUrls?.[0] || product.imageBase64List?.[0] || null;
 
-                                        if (!base64Image) {
+                                        if (!rawImage) {
                                             alert("Không có ảnh để thêm vào giỏ.");
                                             return;
                                         }
 
-                                        const file = base64ToFile(base64Image);
-                                        const resizedImage = await resizeImageToBase64(file);
+                                        let imageToSave = rawImage;
 
-                                        const finalPrice =
-                                            product.sale?.id && product.sale?.status === 1
-                                                ? product.price - (product.price * (product.sale.discountPercent / 100))
-                                                : product.price;
+                                        // Nếu là Base64 thì mới cần thêm prefix và resize
+                                        if (!rawImage.startsWith('http')) {
+                                            const base64WithPrefix = rawImage.startsWith('data:image')
+                                                ? rawImage
+                                                : `data:image/jpeg;base64,${rawImage}`;
+                                            const file = base64ToFile(base64WithPrefix);
+                                            imageToSave = await resizeImageToBase64(file, 100, 100, 0.7);
+                                        }
+                                        const finalPrice = product.sale?.id && product.sale?.status === 1
+                                            ? product.price - (product.price * (product.sale.discountPercent / 100))
+                                            : product.price;
 
                                         addToCart({
                                             id: product.id,
                                             name: product.name,
                                             price: finalPrice,
-                                            image: resizedImage,
-                                            quantity: quantity,
+                                            image: imageToSave, // Giờ đã có giá trị là URL hoặc Base64 nén
+                                            quantity: quantity || 1,
                                         });
 
                                         alert("Đã thêm vào giỏ hàng!");
                                     } catch (error) {
-                                        console.error("Lỗi khi xử lý ảnh:", error);
-                                        alert("Không thể thêm sản phẩm vào giỏ hàng.");
+                                        alert("Lỗi xử lý ảnh: " + error.message);
                                     }
                                 }}>
                                 Thêm vào giỏ hàng <span className="fa-solid fa-angle-right"></span>

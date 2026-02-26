@@ -281,7 +281,7 @@ function Sale() {
             <br></br>
             <Box display="flex" justifyContent="flex-end">
                 <Button variant="contained" disableElevation onClick={handleOpen}>
-                    <AddIcon />  Add Sale new
+                    <AddIcon />  Thêm Sale mới
                 </Button>
             </Box>
             {/* Search */}
@@ -397,10 +397,10 @@ function Sale() {
                     <br />
                     <Box display="flex" justifyContent="flex-end" gap={2}>
                         <Button onClick={handleAdd} variant="contained" disableElevation>
-                            Add
+                            Thêm
                         </Button>
                         <Button disableElevation onClick={handleClose}>
-                            Close
+                            THoát
                         </Button>
                     </Box>
                 </Box>
@@ -413,7 +413,7 @@ function Sale() {
                 fullWidth
                 maxWidth="sm"
             >
-                <DialogTitle>Update Sale</DialogTitle>
+                <DialogTitle>Sửa thông tin</DialogTitle>
                 <DialogContent>
 
                     <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
@@ -548,8 +548,8 @@ function Sale() {
                 </DialogContent>
 
                 <DialogActions>
-                    <Button onClick={handleCloseEdit} color="primary">Cancel</Button>
-                    <Button color="primary" variant="contained" onClick={handleEditVoucher}>Update</Button>
+                    <Button onClick={handleCloseEdit} color="primary">Thoát</Button>
+                    <Button color="primary" variant="contained" onClick={handleEditVoucher}>Sửa</Button>
                 </DialogActions>
             </Dialog>
             <br>
@@ -559,12 +559,12 @@ function Sale() {
                     <TableHead>
                         <TableRow style={{ backgroundColor: '#b8b8b8' }}>
                             <TableCell>STT</TableCell>
-                            <TableCell>Name</TableCell>
-                            <TableCell>Discount Percent</TableCell>
-                            <TableCell>Description</TableCell>
-                            <TableCell>Status</TableCell>
-                            <TableCell>Condition</TableCell>
-                            <TableCell>Action</TableCell>
+                            <TableCell>Tên</TableCell>
+                            <TableCell>Phần trăm giảm</TableCell>
+                            <TableCell>Mô tả</TableCell>
+                            <TableCell>Trạng thái</TableCell>
+                            <TableCell>Tình trạng</TableCell>
+                            <TableCell>Hành động</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -599,8 +599,8 @@ function Sale() {
                                     {sale.status ? "Đang sử dụng" : "Không sử dụng"}
                                 </TableCell>
                                 <TableCell>
-                                    <Button color="primary" variant="outlined" size="small" style={{ marginLeft: 8 }} onClick={() => handleClickOpenEdit(sale)}>Edit</Button>
-                                    <Button color="error" variant="outlined" size="small" style={{ marginLeft: 8 }} onClick={() => handleConfirmOpen(sale.id)}>Delete</Button>
+                                    <Button color="primary" variant="outlined" size="small" style={{ marginLeft: 8 }} onClick={() => handleClickOpenEdit(sale)}>Sửa</Button>
+                                    <Button color="error" variant="outlined" size="small" style={{ marginLeft: 8 }} onClick={() => handleConfirmOpen(sale.id)}>Xóa</Button>
                                     {sale.status == 1 && (
                                         <>
                                             <Button
@@ -611,7 +611,7 @@ function Sale() {
                                                 className={tab === 'add_sale_Products' ? 'active' : ''}
                                                 onClick={() => handleTabChange('add_sale_Products', sale.id)}
                                             >
-                                                Detail
+                                               Thêm sản phẩm sale
                                             </Button>
                                             {/* <Button color="primary" variant="outlined" size="small" style={{ marginLeft: 8 }}>Turn on</Button> */}
                                             <Button
@@ -621,7 +621,7 @@ function Sale() {
                                                 style={{ marginLeft: 8 }}
                                                 onClick={() => updateStatus(sale.id, 0)}
                                             >
-                                                Turn off
+                                               Tắt 
                                             </Button>
 
                                         </>
@@ -635,7 +635,7 @@ function Sale() {
                                                 style={{ marginLeft: 8 }}
                                                 onClick={() => updateStatus(sale.id, 1)}
                                             >
-                                                Turn on
+                                                Bật
                                             </Button>
                                         </>
                                     )}

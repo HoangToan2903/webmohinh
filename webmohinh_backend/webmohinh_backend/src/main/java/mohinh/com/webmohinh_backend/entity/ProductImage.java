@@ -1,5 +1,6 @@
 package mohinh.com.webmohinh_backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -16,11 +17,10 @@ public class ProductImage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Lob
-    @Basic(fetch = FetchType.LAZY)
-    private byte[] image;
+    private String imageUrl; // Lưu link từ Cloudinary
 
     @ManyToOne
     @JoinColumn(name = "product_id")
+    @JsonIgnore // Ngăn không cho Image gọi ngược lại Product khi tạo JSON
     private Products product;
 }

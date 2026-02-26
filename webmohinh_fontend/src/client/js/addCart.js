@@ -74,21 +74,30 @@ export const saveCart = (cart) => {
 
 
 // ✅ Thêm sản phẩm vào giỏ (cộng dồn chứ không ghi đè)
+// ✅ Thêm sản phẩm vào giỏ (Đảm bảo lưu đúng thông tin ảnh)
 export const addToCart = (product, quantity = 1) => {
     const cart = getCart();
     const index = cart.findIndex(item => item.id === product.id);
 
     if (index !== -1) {
         cart[index].quantity += quantity;
+        // Cập nhật lại giá hoặc ảnh mới nhất nếu cần
+        cart[index].price = product.price; 
+        cart[index].image = product.image; 
     } else {
-        cart.push({ ...product, quantity });
+        cart.push({ 
+            id: product.id, 
+            name: product.name, 
+            price: product.price, 
+            image: product.image, // Lưu URL hoặc chuỗi base64 đã xử lý
+            quantity 
+        });
     }
-    console.log("📦 Giỏ hàng sau khi thêm:", cart);
 
     saveCart(cart);
+    // Phát sự kiện để các component khác (như Icon giỏ hàng) cập nhật số lượng
     window.dispatchEvent(new Event("cartUpdated"));
 };
-
 
 // ✅ Xoá sản phẩm
 export const removeFromCart = (productId) => {

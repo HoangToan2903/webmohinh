@@ -251,7 +251,7 @@ function Voucher() {
             <br></br>
             <Box display="flex" justifyContent="flex-end">
                 <Button variant="contained" disableElevation onClick={handleOpen}>
-                    <AddIcon />  Add voucher new
+                    <AddIcon />  Thêm Voucher mới
                 </Button>
             </Box>
             {/* Search */}
@@ -276,7 +276,7 @@ function Voucher() {
             >
                 <Box sx={style}>
                     <Typography id="modal-modal-title" variant="h6" component="h2">
-                        Create Voucher
+                        Thêm thong tin
                     </Typography>
                     <hr />
                     <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
@@ -419,7 +419,7 @@ function Voucher() {
                 fullWidth
                 maxWidth="sm"
             >
-                <DialogTitle>Update Type</DialogTitle>
+                <DialogTitle>Sửa thông tin</DialogTitle>
                 <DialogContent>
 
                     <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
@@ -586,8 +586,8 @@ function Voucher() {
                 </DialogContent>
 
                 <DialogActions>
-                    <Button onClick={handleCloseEdit} color="primary">Cancel</Button>
-                    <Button color="primary" variant="contained" onClick={handleEditVoucher}>Update</Button>
+                    <Button onClick={handleCloseEdit} color="primary">Hủy</Button>
+                    <Button color="primary" variant="contained" onClick={handleEditVoucher}>Sửa</Button>
                 </DialogActions>
             </Dialog>
 
@@ -598,11 +598,11 @@ function Voucher() {
                     <TableHead>
                         <TableRow style={{ backgroundColor: '#b8b8b8' }}>
                             <TableCell>STT</TableCell>
-                            <TableCell>Code Voucher</TableCell>
-                            <TableCell>Quantity</TableCell>
-                            <TableCell>Reduced value</TableCell>
-                            <TableCell>Status</TableCell>
-                            <TableCell>Action</TableCell>
+                            <TableCell>Mã Voucher</TableCell>
+                            <TableCell>Sô lượng</TableCell>
+                            <TableCell>Giá trị giảm</TableCell>
+                            <TableCell>Trạng thái</TableCell>
+                            <TableCell>Hành động</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -627,8 +627,8 @@ function Voucher() {
 
 
                                 <TableCell>
-                                    <Button color="primary" variant="outlined" size="small" onClick={() => handleClickOpenEdit(voucher)}>Edit</Button>
-                                    <Button color="error" variant="outlined" size="small" style={{ marginLeft: 8 }} onClick={() => handleConfirmOpen(voucher.id)}>Delete</Button>
+                                    <Button color="primary" variant="outlined" size="small" onClick={() => handleClickOpenEdit(voucher)}>Sửa</Button>
+                                    <Button color="error" variant="outlined" size="small" style={{ marginLeft: 8 }} onClick={() => handleConfirmOpen(voucher.id)}>Xóa</Button>
                                 </TableCell>
                             </TableRow>
                         ))}

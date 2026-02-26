@@ -14,6 +14,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import { Alert, Slide } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useNavigate, useParams } from 'react-router-dom';
+import { Avatar } from '@mui/material';
 
 
 const PAGE_SIZE = 10;
@@ -204,7 +205,7 @@ function Statistics() {
                 </Slide>
             )}
 
-            <h1>Products Sale</h1>
+            <h1>Sản phẩm giảm giá</h1>
             <br></br>
             <Button
                 style={{ marginBottom: 10, }}
@@ -240,12 +241,12 @@ function Statistics() {
                                     onChange={handleSelectAllClick}
                                 />
                             </TableCell>
-                            <TableCell>Image</TableCell>
-                            <TableCell>Name</TableCell>
-                            <TableCell>Category</TableCell>
-                            <TableCell>Price</TableCell>
+                            <TableCell>Ảnh</TableCell>
+                            <TableCell>Tên</TableCell>
+                            <TableCell>Danh mục</TableCell>
+                            <TableCell>Giá</TableCell>
                             <TableCell>Sale (%)</TableCell>
-                            <TableCell>Price_Sale</TableCell>
+                            <TableCell>Giá giảm</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -266,12 +267,12 @@ function Statistics() {
                                         />
                                     </TableCell>
                                     <TableCell>
-                                        {Array.isArray(product.imageBase64List) && product.imageBase64List.length > 0 ? (
-                                            <img
-                                                style={{ height: '80px', width: '60px', objectFit: 'cover' }}
-                                                src={`data:image/jpeg;base64,${product.imageBase64List[0]}`}
-                                                alt="Product"
-                                            />
+                                        {Array.isArray(product.images) && product.images.length > 0 ? (
+                                            <Avatar
+                                                variant="rounded"
+                                                src={product.images?.[0]?.imageUrl || ''}
+                                                sx={{ width: 60, height: 60, border: '1px solid #ddd' }}
+                                            >N/A</Avatar>
                                         ) : (
                                             <div
                                                 style={{
@@ -322,7 +323,7 @@ function Statistics() {
                 disableElevation
                 onClick={handleAddSaleToSelected}
             >
-                <AddIcon /> Add sale
+                <AddIcon /> Thêm sale
             </Button>
 
             <Button
@@ -331,7 +332,7 @@ function Statistics() {
                 disableElevation
                 onClick={handleCancelSaleToSelected}
             >
-                <CloseIcon /> Cancel sale
+                <CloseIcon /> Hủy sale
             </Button>
 
 

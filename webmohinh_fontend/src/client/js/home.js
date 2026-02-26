@@ -106,24 +106,24 @@ function Home() {
                         <p> <CircularProgress disableShrink /></p>
                     ) : (
                         productsOnePiece.map((product, index) => {
-                            const base64Image =
-                                Array.isArray(product.imageBase64List) && typeof product.imageBase64List[0] === "string"
-                                    ? `data:image/jpeg;base64,${product.imageBase64List[0]}`
-                                    : null;
+                            // Lấy URL ảnh từ danh sách images (giả sử phần tử đầu tiên)
+                            const displayImage = product.images && product.images.length > 0
+                                ? product.images[0].imageUrl
+                                : null;
 
                             return (
                                 <div className="item" key={index}>
                                     <div className="thumb" style={{ position: "relative" }}>
                                         <a className="category">{product.categories.name}</a>
 
-                                        {base64Image ? (
+                                        {displayImage ? (
                                             <img
-                                                style={{ objectFit: "cover" }}
-                                                src={base64Image}
-                                                alt="Product"
+                                                // style={{ objectFit: "cover", width: "100%", height: "300px" }} // Thêm kích thước cố định để card đều
+                                                src={product.images?.[0]?.imageUrl || ''}
+                                                alt={product.name}
                                             />
                                         ) : (
-                                            <div style={{ height: "80px", width: "60px", backgroundColor: "#eee", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", color: "#999" }}>
+                                            <div style={{ height: "250px", width: "100%", backgroundColor: "#eee", display: "flex", alignItems: "center", justifyContent: "center", color: "#999" }}>
                                                 No image
                                             </div>
                                         )}
@@ -167,7 +167,7 @@ function Home() {
                                                 <del style={{ color: "gray", marginRight: "8px" }}>
                                                     {Number(product.price).toLocaleString("vi-VN")} đ
                                                 </del>
-                                                <strong>
+                                                <strong style={{color:'#e74c3c'}}>
                                                     {Number(
                                                         product.price - (product.price * (product.sale.discountPercent / 100))
                                                     ).toLocaleString("vi-VN")} đ
@@ -182,31 +182,35 @@ function Home() {
                                                 onClick={async (e) => {
                                                     e.preventDefault();
                                                     try {
-                                                        if (!base64Image) {
+                                                        if (!displayImage) {
                                                             alert("Không có ảnh để thêm vào giỏ.");
                                                             return;
                                                         }
 
-                                                        const file = base64ToFile(base64Image);
-                                                        const resizedImage = await resizeImageToBase64(file);
+                                                        let imageToSave = displayImage;
 
-                                                        const finalPrice =
-                                                            product.sale?.id && product.sale?.status === 1
-                                                                ? product.price - (product.price * (product.sale.discountPercent / 100))
-                                                                : product.price;
+                                                        // CHỈ resize nếu displayImage là chuỗi Base64 quá lớn
+                                                        // Nếu displayImage là URL (http...), bỏ qua đoạn resize này để tối ưu tốc độ
+                                                        if (displayImage.startsWith('data:image')) {
+                                                            const file = base64ToFile(displayImage);
+                                                            imageToSave = await resizeImageToBase64(file, 100, 100, 0.5);
+                                                        }
 
+                                                        const finalPrice = product.sale?.id && product.sale?.status === 1
+                                                            ? product.price - (product.price * (product.sale.discountPercent / 100))
+                                                            : product.price;
 
                                                         addToCart({
                                                             id: product.id,
                                                             name: product.name,
                                                             price: finalPrice,
-                                                            image: resizedImage,
+                                                            image: imageToSave, // URL hoặc base64 ngắn gọn
                                                         });
 
                                                         alert("Đã thêm vào giỏ hàng!");
                                                     } catch (error) {
-                                                        console.error("Lỗi khi xử lý ảnh:", error);
-                                                        alert("Không thể thêm sản phẩm vào giỏ hàng.");
+                                                        console.error("Lỗi khi thêm giỏ hàng:", error);
+                                                        alert("Không thể thêm sản phẩm.");
                                                     }
                                                 }}
                                             >
@@ -231,7 +235,7 @@ function Home() {
                             {/* <a href="https://i.ibb.co/SvXbL1L/astronaut.jpg" className="galleryimage">
                                 <span className="fa-solid fa-plus"></span>
                             </a> */}
-                            <img src="https://mohinhfigure.com/wp-content/uploads/2025/04/mo-hinh-onepiece-luffy-gear-5-trang-thai-chien-dau-cao-19cm-nang-300gram-figure-one-piece-hop-mau-1-510x510.webp" alt="" />
+                            <img src="https://i.ibb.co/SvXbL1L/astronaut.jpg" alt="" />
                         </div>
                         <div className="text">
                             <h3><a >Astronaut 3D</a></h3>

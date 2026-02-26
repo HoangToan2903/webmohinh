@@ -26,7 +26,7 @@ public class Products {
     String product_code;
     String character_name;
     BigDecimal price;
-    BigDecimal price_promotion;
+//    BigDecimal price_promotion;
     Integer quantity;
     String description;
     Double width;
@@ -53,9 +53,6 @@ public class Products {
     @JoinColumn(name = "producer_id")
     private Producer producer;
 
-    @Lob
-    @Basic(fetch = FetchType.LAZY)  // ảnh chỉ load khi cần thiết
-    private byte[] image;
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductImage> images = new ArrayList<>();
 

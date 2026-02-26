@@ -159,10 +159,10 @@ function Categories() {
             URL.revokeObjectURL(localImageUrl);
 
             Swal.fire({
-                           icon: "success",
-                           title: "Thêm thành công 🎉",
-                           confirmButtonColor: "#4CAF50",
-                       });
+                icon: "success",
+                title: "Thêm thành công 🎉",
+                confirmButtonColor: "#4CAF50",
+            });
 
         } catch (error) {
             // Nếu lỗi, xóa danh mục ảo và mở lại Form hoặc báo lỗi
@@ -227,7 +227,7 @@ function Categories() {
 
     return (
         <div >
-            <h1>Categories</h1>
+            {/* <h1>Categories</h1>
 
             <Box display="flex" justifyContent="space-between" mb={2}>
                 <TextField
@@ -239,8 +239,27 @@ function Categories() {
                 <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpen(true)}>
                     Add New Category
                 </Button>
-            </Box>
+            </Box> */}
 
+            <h1>Danh mục</h1>
+            <br></br>
+            <Box display="flex" justifyContent="flex-end">
+               <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpen(true)}>
+                    Thêm danh mục
+                </Button>
+            </Box>
+            {/* Search */}
+            <div className="search-bar" style={{ marginBottom: 16 }}>
+                <i className="fas fa-search" style={{ marginRight: 8 }}></i>
+                <input
+                    placeholder="Search name..."
+                    size="small"
+                    value={searchText}
+                    onChange={(e) => { setSearchText(e.target.value); setPage(0); }}
+                    style={{ padding: 8, width: 250 }}
+                />
+            </div>
+            <br></br>
             {/* Modal Add */}
             <Modal open={open} onClose={resetAddForm}>
                 <Box sx={style}>
@@ -270,15 +289,15 @@ function Categories() {
                         {imagePreview && <img src={imagePreview} alt="preview" style={{ width: '100px', display: 'block', marginTop: '10px' }} />}
                     </Box>
                     <Box display="flex" justifyContent="flex-end" gap={2} mt={3}>
-                        <Button onClick={resetAddForm}>Cancel</Button>
-                        <Button variant="contained" onClick={handleAdd}>Add</Button>
+                        <Button onClick={resetAddForm}>Thoát</Button>
+                        <Button variant="contained" onClick={handleAdd}>Thêm</Button>
                     </Box>
                 </Box>
             </Modal>
 
             {/* Modal Edit */}
             <Dialog open={openEdit} onClose={() => setOpenEdit(false)} fullWidth maxWidth="sm">
-                <DialogTitle>Update Category</DialogTitle>
+                <DialogTitle>Sửa thông tin</DialogTitle>
                 <DialogContent>
                     <TextField
                         fullWidth label="Name" sx={{ mt: 2 }}
@@ -307,8 +326,8 @@ function Categories() {
                     </Box>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setOpenEdit(false)}>Cancel</Button>
-                    <Button variant="contained" onClick={handleEditCategories}>Update</Button>
+                    <Button onClick={() => setOpenEdit(false)}>Thoát</Button>
+                    <Button variant="contained" onClick={handleEditCategories}>Sửa</Button>
                 </DialogActions>
             </Dialog>
 
@@ -331,8 +350,8 @@ function Categories() {
                             </Typography>
                         </CardContent>
                         <CardActions>
-                            <Button size="small" onClick={() => handleClickOpenEdit(cat)}>Edit</Button>
-                            <Button size="small" color="error" onClick={() => { setDeleteId(cat.id); setConfirmOpen(true); }}>Delete</Button>
+                            <Button size="small" onClick={() => handleClickOpenEdit(cat)}>Sửa</Button>
+                            <Button size="small" color="error" onClick={() => { setDeleteId(cat.id); setConfirmOpen(true); }}>Xóa</Button>
                         </CardActions>
                     </Card>
                 ))}

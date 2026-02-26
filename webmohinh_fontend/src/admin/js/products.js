@@ -16,7 +16,9 @@ import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
-
+import Swal from "sweetalert2";
+import { Avatar } from '@mui/material';
+import { Pagination, Stack } from '@mui/material';
 
 const style = {
     position: 'absolute',
@@ -65,27 +67,31 @@ function Products() {
     const [tags, setTags] = React.useState([]);
     // tag
     //GetAll
-    const [page, setPage] = useState(0); // page = 0 is first page
-    const [size, setSize] = useState(10);
+    const [page, setPage] = useState(0);
+    const [size, setSize] = useState(10); // Đảm bảo dùng biến này xuyên suốt
     const [totalPages, setTotalPages] = useState(0);
     const [products, setProducts] = useState([]);
-
     const fetchProducts = async () => {
         try {
             const response = await axios.get('http://localhost:8080/website/productsAll', {
                 params: { page, size }
             });
-
+            console.log("Dữ liệu nhận về:", response.data.content); // Kiểm tra xem array này có mấy phần tử
             setProducts(response.data.content);
             setTotalPages(response.data.totalPages);
         } catch (error) {
             console.error(error);
         }
-    };
+    }
 
     useEffect(() => {
         fetchProducts();
     }, [page, size]);
+
+    // Hàm xử lý khi đổi trang
+    const handlePageChange = (event, value) => {
+        setPage(value - 1); // Material UI Pagination dùng base-1, Spring Boot dùng base-0
+    };
 
     const handleClose = () => {
         // Reset form fields
@@ -170,90 +176,103 @@ function Products() {
         fetchProducers();
     }, []);
     // add
-    const [successAlertAdd, setSuccessAlertAdd] = useState(false);
 
     const [newProducts, setNewProducts] = useState({});
-    // Convert dataURL to File
-    const dataURLtoFile = (dataurl, filename) => {
-        const arr = dataurl.split(',');
-        const mime = arr[0].match(/:(.*?);/)[1];
-        const bstr = atob(arr[1]);
-        let n = bstr.length;
-        const u8arr = new Uint8Array(n);
-        while (n--) u8arr[n] = bstr.charCodeAt(n);
-        return new File([u8arr], filename, { type: mime });
-    };
 
-
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const handleAdd = async () => {
-        const formData = new FormData();
-
+        // 1. Kiểm tra điều kiện bắt buộc
         if (!name || !description || !price || !quantity || !categoryValue || !producerValue) {
-            alert("Vui lòng điền đầy đủ thông tin bắt buộc!");
+            Swal.fire("Chú ý", "Vui lòng điền đầy đủ thông tin bắt buộc!", "warning");
             return;
         }
 
-        // Text fields
-        formData.append('name', name);
-        formData.append('product_code', product_code);
-        formData.append('character_name', character_name);
-        formData.append('price', price);
-        formData.append('quantity', quantity);
-        formData.append('width', width);
-        formData.append('height', height);
-        formData.append('weight', weight);
-        formData.append('type', type);
-        formData.append('status', newProducts.status);
-        formData.append('material', material);
-        formData.append('tag', tags);
-        formData.append('description', description);
-        formData.append('categories', categoryValue?.id || '');
-        formData.append('producer', producerValue?.id || '');
-        console.log("tôi là:" + status)
-        // Ảnh mặc định
-        if (images.length > 0 && typeof defaultImageIndex === 'number') {
-            const defaultImage = images[defaultImageIndex];
-            const file = dataURLtoFile(defaultImage.data_url, 'default-image.png');
-            formData.append('image', file);
-        }
-
-        // Ảnh phụ
-        images.forEach((img, i) => {
-            const file = dataURLtoFile(img.data_url, `image-${i}.png`);
-            formData.append('images[]', file);
-        });
+        // Ngăn chặn bấm nút liên tục gây lỗi
+        if (isSubmitting) return;
 
         try {
-            const res = await axios.post('http://localhost:8080/website/products', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' },
+            setIsSubmitting(true); // Bắt đầu trạng thái chờ
+
+            const cloudName = "djw87hphx";
+            const uploadPreset = "my_preset_123";
+
+            // 2. Upload ảnh (Chỉ upload những file mới chọn, giữ nguyên những file đã có URL)
+            const uploadPromises = images.map(async (img) => {
+                if (img.data_url.startsWith('http')) return img.data_url;
+
+                const formData = new FormData();
+                formData.append("file", img.file);
+                formData.append("upload_preset", uploadPreset);
+
+                const response = await axios.post(
+                    `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+                    formData
+                );
+                return response.data.secure_url;
             });
 
-            // setProducts([res.data, ...products]);
-            setSuccessAlertAdd(true);
-            setTimeout(() => setSuccessAlertAdd(false), 3000);
-            // Reset form
-            setName('');
-            setProduct_code('');
-            setCharacter_name('');
-            setPrice('');
-            setQuantity('');
-            setWidth('');
-            setHeight('');
-            setWeight('');
-            setType('');
-            setStatus('');
-            setMaterial('');
-            setTags('');
-            setCategoryValue(null);
-            setProducerValue(null);
-            setDescription('');
-            setImages([]);
-            setDefaultImageIndex(null);
-            await fetchProducts();
-            handleClose?.();
+            const imageUrls = await Promise.all(uploadPromises);
+
+            // 3. Tạo DTO chuẩn (Ép kiểu số để tránh lỗi 400 Bad Request)
+            const productDto = {
+                name: name.trim(),
+                product_code: product_code?.trim(),
+                character_name: character_name?.trim(),
+                price: Number(price) || 0,
+                price_promotion: 0,
+                quantity: Number(quantity) || 0,
+                description: description,
+                width: Number(width) || 0,
+                height: Number(height) || 0,
+                weight: Number(weight) || 0,
+                type: type,
+                status: "ACTIVE",
+                material: material,
+                tags: tags || [],
+                categories_id: categoryValue?.id,
+                producer_id: producerValue?.id,
+                sale_id: null,
+                imageUrls: imageUrls
+            };
+
+            // 4. Gửi request lên Backend
+            const res = await axios.post('http://localhost:8080/website/products', productDto);
+
+            if (res.status === 201 || res.status === 200) {
+                // 5. Reset form TOÀN BỘ để sẵn sàng cho lần thêm tiếp theo
+                setName('');
+                setCharacter_name('');
+                setProduct_code('');
+                setPrice('');
+                setQuantity('');
+                setDescription('');
+                setWidth('');
+                setHeight('');
+                setWeight('');
+                setType('');
+                setMaterial('');
+                setTags([]);
+                setCategoryValue(null);
+                setProducerValue(null);
+                setImages([]);
+
+                await fetchProducts(); // Load lại danh sách ngầm
+
+                Swal.fire({
+                    icon: "success",
+                    title: "Thêm thành công 🎉",
+                    confirmButtonColor: "#4CAF50",
+                });
+
+                handleClose?.(); // Đóng modal
+            }
         } catch (err) {
-            console.error(err);
-            alert("Lỗi khi thêm sản phẩm!");
+            console.error("Lỗi chi tiết:", err);
+            // Xử lý thông báo lỗi đẹp hơn thay vì hiện [object Object]
+            const errorMsg = err.response?.data?.message || err.response?.data || err.message;
+            Swal.fire("Lỗi", "Không thể thêm sản phẩm: " + errorMsg, "error");
+        } finally {
+            setIsSubmitting(false); // Kết thúc trạng thái chờ dù thành công hay thất bại
         }
     };
     // delete
@@ -266,9 +285,10 @@ function Products() {
 
             await axios.delete(`http://localhost:8080/website/products/${id}`);
             await fetchProducts();
+            Swal.fire("Xóa thành công", "", "success");
+
             handleConfirmClose();
-            setSuccessAlertDelete(true);
-            setTimeout(() => setSuccessAlertDelete(false), 3000);
+
         } catch (error) {
             console.error('Error deleting producer:', error);
 
@@ -311,157 +331,136 @@ function Products() {
 
     const [selectedCategoris, setSelectedCategoris] = useState([]);
     const [selectedProducer, setSelectedProducer] = useState([])
-    const convertProductImagesToUploaderFormat = (imagesFromServer) => {
-        return imagesFromServer.map(image => ({
-            data_url: `data:image/jpeg;base64,${image.imageData}`, // base64 string
-        }));
-    }
-    // const handleClickOpenEdit = (products) => {
-    //     setSelectedProducer(products.categories || []);
-    //     setSelectedCategoris(products.producer || []);
 
-    //     setDefaultImageIndex(0);
-    //     setOpenEdit(true);
-    // };
+
     const handleClickOpenEdit = async (product) => {
         setEditProducts(product);
 
-        // Fetch images from backend (assuming product.id is available)
-        const response = await fetch(`http://localhost:8080/website/products/${product.id}/images`);
-        const data = await response.json(); // [{ id, imageData }]
-        const imageList = convertProductImagesToUploaderFormat(data);
+        // Kiểm tra nếu product.images tồn tại (giả sử backend trả về field là images)
+        // Chúng ta chuyển đổi từ [{imageUrl: '...'}, ...] sang [{data_url: '...'}, ...]
+        if (product.images && Array.isArray(product.images)) {
+            const formattedImages = product.images.map(img => ({
+                data_url: img.imageUrl, // Chuyển imageUrl thành data_url cho thư viện
+                id: img.id // Giữ lại id nếu cần xử lý xóa sau này
+            }));
+            setImages(formattedImages);
+        } else {
+            setImages([]);
+        }
 
-        setImages(imageList); // For <ImageUploading />
-        setDefaultImageIndex(0); // hoặc index nào bạn cần
-        setSelectedProducer(product.producer || []);
-        setSelectedCategoris(product.categories || []);
+        // Thiết lập các giá trị Autocomplete
+        setSelectedProducer(product.producer || null);
+        setSelectedCategoris(product.categories || null);
+
+        // Đồng bộ các state helper cho Autocomplete (quan trọng để hiện đúng tên khi mở modal)
+        setCategoryValue(product.categories || null);
+        setProducerValue(product.producer || null);
+
         setOpenEdit(true);
     };
 
     const handleEditProducts = async () => {
+
         try {
-            const formData = new FormData();
-            formData.append("name", editProducts.name);
-            formData.append("product_code", editProducts.product_code);
-            formData.append("character_name", editProducts.character_name);
-            formData.append("price", editProducts.price);
-            formData.append("quantity", editProducts.quantity);
-            formData.append("width", editProducts.width);
-            formData.append("height", editProducts.height);
-            formData.append("weight", editProducts.weight);
-            formData.append("type", editProducts.type);
-            formData.append("material", editProducts.material);
-            formData.append("tag", editProducts.tag);
-            formData.append('categories', editProducts.categories?.id || '');
-            formData.append("producer", editProducts.producer?.id || '');
 
-            formData.append("description", editProducts.description);
+            const uploadPromises = images.map(async (img) => {
 
-            // Kiểm tra nếu là file mới thì thêm image
-            if (editProducts.image instanceof File) {
-                formData.append("image", editProducts.image);
-            }
-
-            const response = await axios.put(
-                `http://localhost:8080/website/products/${editProducts.id}`,
-                formData,
-                {
-                    headers: {
-                        "Content-Type": "multipart/form-data",
-                    },
+                if (img.data_url.startsWith('http')) {
+                    return img.data_url;
                 }
-            );
-            if (editProducts.extraImages && editProducts.extraImages.length > 0) {
-                editProducts.extraImages.forEach((img) => {
-                    if (img instanceof File) {
-                        formData.append("images[]", img);
-                    }
-                });
-            }
 
-            setCategories(prevCategories =>
-                prevCategories.map(categorie =>
-                    categorie.id === editProducts.id ? response.data : categorie
-                )
+                const formData = new FormData();
+                formData.append("file", img.file);
+                formData.append("upload_preset", "my_preset_123"); // Preset của bạn
+
+                const response = await axios.post(
+                    `https://api.cloudinary.com/v1_1/djw87hphx/image/upload`,
+                    formData
+                );
+                return response.data.secure_url;
+            });
+
+            const finalImageUrls = await Promise.all(uploadPromises);
+
+            // 2. Chuẩn bị DTO gửi lên Backend
+            const updatedProductDto = {
+                name: editProducts.name,
+                product_code: editProducts.product_code,
+                character_name: editProducts.character_name,
+                price: Number(editProducts.price),
+                price_promotion: Number(editProducts.price_promotion) || 0,
+                quantity: Number(editProducts.quantity),
+                description: editProducts.description,
+                width: Number(editProducts.width),
+                height: Number(editProducts.height),
+                weight: Number(editProducts.weight),
+                type: editProducts.type,
+                status: editProducts.status,
+                material: editProducts.material,
+                tags: editProducts.tags || [],
+                categories_id: categoryValue?.id, // ID từ Autocomplete
+                producer_id: producerValue?.id,
+                sale_id: null,
+                imageUrls: finalImageUrls // Mảng các link ảnh cuối cùng
+            };
+
+            // 3. Gửi request PUT
+            await axios.put(
+                `http://localhost:8080/website/products/${editProducts.id}`,
+                updatedProductDto
             );
-            await fetchProducts();
-            handleCloseEdit();
-            setSuccessAlertUpdate(true);
-            setTimeout(() => setSuccessAlertUpdate(false), 3000);
+
+            // 4. Thông báo và làm mới dữ liệu
+            Swal.fire("Thành công", "Sản phẩm đã được cập nhật!", "success");
+            setOpenEdit(false); // Đóng modal edit
+            fetchProducts();    // Load lại danh sách sản phẩm ở Table
+
         } catch (error) {
-            console.error("Lỗi xảy ra khi cập nhật:", error);
+            console.error("Update error:", error);
+            const errorMsg = error.response?.data?.message || "Cập nhật thất bại!";
+            Swal.fire("Lỗi", errorMsg, "error");
         }
     };
     // search
-    const [searchText, setSearchText] = useState('');
-    // Gọi API khi searchText hoặc page thay đổi
-    useEffect(() => {
-        const delayDebounce = setTimeout(() => {
-            fetchProducersSearch();
-        }, 300); // debounce 300ms
+    // const [searchText, setSearchText] = useState('');
+    // // Gọi API khi searchText hoặc page thay đổi
+    // useEffect(() => {
+    //     const delayDebounce = setTimeout(() => {
+    //         fetchProducersSearch();
+    //     }, 300); // debounce 300ms
 
-        return () => clearTimeout(delayDebounce);
-    }, [searchText, page]);
+    //     return () => clearTimeout(delayDebounce);
+    // }, [searchText, page]);
 
-    const fetchProducersSearch = async () => {
-        try {
-            const response = await axios.get('http://localhost:8080/website/products/search', {
-                params: {
-                    name: searchText,
-                    page,
-                    size: PAGE_SIZE
-                }
-            });
+    // const fetchProducersSearch = async () => {
+    //     try {
+    //         const response = await axios.get('http://localhost:8080/website/products/search', {
+    //             params: {
+    //                 name: searchText,
+    //                 page,
+    //                 size: PAGE_SIZE
+    //             }
+    //         });
 
-            setProducts(response.data.content);
-            setTotalPages(response.data.totalPages);
-        } catch (error) {
-            console.error('Lỗi khi lấy dữ liệu:', error);
-        }
-    };
+    //         setProducts(response.data.content);
+    //         setTotalPages(response.data.totalPages);
+    //     } catch (error) {
+    //         console.error('Lỗi khi lấy dữ liệu:', error);
+    //     }
+    // };
 
     return (
         <div>
-            {/* alert */}
-            {successAlertDelete && (
-                <Slide direction="left" in={successAlertDelete} mountOnEnter unmountOnExit>
-                    <Alert
-                        sx={{ width: '50%', float: 'right', mt: 2 }}
-                        severity="success"
-                    >
-                        Delete success
-                    </Alert>
-                </Slide>
-            )}
-            {successAlertAdd && (
-                <Slide direction="left" in={successAlertAdd} mountOnEnter unmountOnExit>
-                    <Alert
-                        sx={{ width: '50%', float: 'right', mt: 2 }}
-                        severity="success"
-                    >
-                        Add success
-                    </Alert>
-                </Slide>
-            )}
-            {successAlertUpdate && (
-                <Slide direction="left" in={successAlertUpdate} mountOnEnter unmountOnExit>
-                    <Alert
-                        sx={{ width: '50%', float: 'right', mt: 2 }}
-                        severity="success"
-                    >
-                        Update success
-                    </Alert>
-                </Slide>
-            )}
-            <h1>Products</h1>
+
+            <h1>Sản phẩm</h1>
             <br></br>
             <Box display="flex" justifyContent="flex-end">
                 <Button variant="contained" disableElevation onClick={handleOpen}>
-                    <AddIcon />  Add categories new
+                    <AddIcon />  Thêm sản phẩm
                 </Button>
             </Box>
             {/* Search */}
-            <div className="search-bar" style={{ marginBottom: 16 }}>
+            {/* <div className="search-bar" style={{ marginBottom: 16 }}>
                 <i className="fas fa-search" style={{ marginRight: 8 }}></i>
                 <input
                     type="text"
@@ -473,7 +472,7 @@ function Products() {
                     }}
                     style={{ padding: 8, width: 250 }}
                 />
-            </div>
+            </div> */}
             <Modal
                 open={open}
                 onClose={handleClose}
@@ -482,13 +481,13 @@ function Products() {
             >
                 <Box sx={style}>
                     <Typography id="modal-modal-title" variant="h6" component="h2">
-                        Create Products
+                        Thêm thông tin
                     </Typography>
                     <hr />
                     <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
                         <TextField
                             id="filled-basic"
-                            label="Name products *"
+                            label="Tên sản phẩm *"
                             variant="filled"
                             fullWidth
                             value={name}
@@ -496,7 +495,7 @@ function Products() {
                         />
                         <TextField
                             id="filled-basic"
-                            label="Character name *"
+                            label="Tên nhân vật *"
                             variant="filled"
                             fullWidth
                             value={character_name}
@@ -504,7 +503,7 @@ function Products() {
                         />
                         <TextField
                             id="filled-basic"
-                            label=" Products code *"
+                            label=" Mã sản phẩm *"
                             variant="filled"
                             fullWidth
                             value={product_code}
@@ -534,7 +533,7 @@ function Products() {
 
                         <Box sx={{ flex: 1 }}>
                             <TextField
-                                label="Price *"
+                                label="Giá *"
                                 variant="filled"
                                 type="number"
                                 fullWidth
@@ -554,7 +553,7 @@ function Products() {
 
                         <Box sx={{ flex: 1 }}>
                             <TextField
-                                label="Quantity *"
+                                label="Số lượng *"
                                 variant="filled"
                                 type="number"
                                 fullWidth
@@ -572,7 +571,7 @@ function Products() {
                     <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
                         <TextField
                             id="filled-basic"
-                            label="Width *"
+                            label="Chiều rộng *"
                             variant="filled"
                             type="number"
                             fullWidth
@@ -590,7 +589,7 @@ function Products() {
                         />
                         <TextField
                             id="filled-number"
-                            label="Height *"
+                            label="Chiều cao *"
                             variant="filled"
                             type="number"
                             fullWidth
@@ -608,7 +607,7 @@ function Products() {
                         />
                         <TextField
                             id="filled-basic"
-                            label="Weight *"
+                            label="Cân nặng *"
                             variant="filled"
                             type="number"
                             fullWidth
@@ -630,7 +629,7 @@ function Products() {
 
                         <TextField
                             id="filled-number"
-                            label="Type *"
+                            label="Kiểu mô hình *"
                             variant="filled"
                             fullWidth
                             value={type}
@@ -638,7 +637,7 @@ function Products() {
                         />
                         <TextField
                             id="filled-basic"
-                            label="Material *"
+                            label="Chất liệu  *"
                             variant="filled"
                             fullWidth
                             value={material}
@@ -659,7 +658,7 @@ function Products() {
                             options={categories}
                             getOptionLabel={(option) => option?.name || ''}
                             sx={{ width: '100%' }}
-                            renderInput={(params) => <TextField {...params} label="Categories *" />}
+                            renderInput={(params) => <TextField {...params} label="Danh mục *" />}
                         />
                         <Autocomplete
                             value={producerValue}
@@ -674,7 +673,7 @@ function Products() {
                             options={producer}
                             getOptionLabel={(option) => option?.name || ''}
                             sx={{ width: '100%' }}
-                            renderInput={(params) => <TextField {...params} label="Producer *" />}
+                            renderInput={(params) => <TextField {...params} label="Nhà sản xuất *" />}
                         />
                     </Box>
 
@@ -682,7 +681,7 @@ function Products() {
                         <TextareaAutosize
                             name="description"
                             aria-label="empty textarea"
-                            placeholder="Description ..."
+                            placeholder="Mô tả ..."
                             minRows={3}
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
@@ -1092,14 +1091,12 @@ function Products() {
                 </Box>
             </Modal>
             <TableContainer component={Paper}>
-                <Table aria-label="simple table">
+                <Table>
                     <TableHead>
                         <TableRow style={{ backgroundColor: '#b8b8b8' }}>
                             <TableCell>STT</TableCell>
                             <TableCell>Hình ảnh</TableCell>
                             <TableCell>Tên sản phẩm</TableCell>
-                            {/* <TableCell>Danh mục</TableCell> */}
-                            {/* <TableCell>Nhà sản xuất</TableCell> */}
                             <TableCell>Giá</TableCell>
                             <TableCell>Giá giảm</TableCell>
                             <TableCell>Tồn kho</TableCell>
@@ -1110,73 +1107,47 @@ function Products() {
                     <TableBody>
                         {products.map((product, index) => (
                             <TableRow key={product.id}>
-                                <TableCell>{page * PAGE_SIZE + index + 1}</TableCell>
+                                {/* Sửa lại STT dựa trên page và size */}
+                                <TableCell>{page * size + index + 1}</TableCell>
                                 <TableCell>
-                                    {Array.isArray(product.imageBase64List) && product.imageBase64List.length > 0 ? (
-                                        <img
-                                            style={{ height: '80px', width: '60px', objectFit: 'cover' }}
-                                            src={`data:image/jpeg;base64,${product.imageBase64List[0]}`}
-                                            alt="Product"
-                                        />
-                                    ) : (
-                                        <div
-                                            style={{
-                                                height: '80px',
-                                                width: '60px',
-                                                backgroundColor: '#eee',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                fontSize: '12px',
-                                                color: '#999',
-                                            }}
-                                        >
-                                            No image
-                                        </div>
-                                    )}
-
+                                    <Avatar
+                                        variant="rounded"
+                                        src={product.images?.[0]?.imageUrl || ''}
+                                        sx={{ width: 60, height: 60, border: '1px solid #ddd' }}
+                                    >N/A</Avatar>
                                 </TableCell>
                                 <TableCell>{product.name}</TableCell>
-                                {/* <TableCell>{product.categories.name}</TableCell> */}
-                                {/* <TableCell>{product.producer.name}</TableCell> */}
                                 <TableCell>{Number(product.price).toLocaleString('vi-VN')} đ</TableCell>
                                 <TableCell style={{ color: "red" }}>
                                     {Number(
                                         product.sale?.status === 1
-                                            ? product.price - (product.price * (product.sale.discountPercent / 100))
+                                            ? product.price * (1 - product.sale.discountPercent / 100)
                                             : product.price
                                     ).toLocaleString('vi-VN')} đ
                                 </TableCell>
-                                <TableCell >{product.quantity} </TableCell>
-                                <TableCell
-                                    style={{
-                                        color: product.status === "Còn hàng" ? "green" : "red",
-
-                                    }}
-                                >
+                                <TableCell>{product.quantity}</TableCell>
+                                <TableCell style={{ color: product.status === "Còn hàng" ? "green" : "red" }}>
                                     {product.status}
                                 </TableCell>
-
-
                                 <TableCell>
-                                    <Button color="primary" variant="outlined" size="small"
-                                        onClick={() => handleClickOpenEdit(product)}
-                                    >Edit
-                                    </Button>
-                                    <Button color="error" variant="outlined" size="small" style={{ marginLeft: 8 }}
-                                        onClick={() => handleConfirmOpen(product.id)}>Delete                                     </Button>
+                                    <Button color="primary" variant="outlined" size="small" onClick={() => handleClickOpenEdit(product)}>Sửa</Button>
+                                    <Button color="error" variant="outlined" size="small" style={{ marginLeft: 8 }} onClick={() => handleConfirmOpen(product.id)}>Xóa</Button>
                                 </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
                 </Table>
             </TableContainer>
-            {/* Pagination Controls */}
-            <div style={{ marginTop: 16, textAlign: 'center' }}>
-                <Button disabled={page === 0} onClick={() => setPage(page - 1)}>Trước</Button>
-                <span style={{ margin: '0 12px' }}>Trang {page + 1} / {totalPages}</span>
-                <Button disabled={page + 1 >= totalPages} onClick={() => setPage(page + 1)}>Tiếp</Button>
-            </div>
+
+            {/* THÊM PHẦN PHÂN TRANG NÀY VÀO DƯỚI TABLE */}
+            <Stack spacing={2} sx={{ marginTop: 2, alignItems: 'center' }}>
+                <Pagination
+                    count={totalPages}
+                    page={page + 1}
+                    onChange={handlePageChange}
+                    color="primary"
+                />
+            </Stack>
             {/* Dialog xác nhận xóa */}
             <Dialog open={confirmOpen} onClose={handleConfirmClose}>
                 <DialogTitle>Xác nhận xóa</DialogTitle>

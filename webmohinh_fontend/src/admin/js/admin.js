@@ -59,27 +59,27 @@ function Admin() {
                     <nav>
                         <ul>
                             <li className={tab === 'statistics' ? 'active' : ''} onClick={() => handleTabChange('statistics')}>
-                                <span><AreaChartIcon /> Statistics</span>
+                                <span><AreaChartIcon /> Thống kê</span>
                             </li>
 
                             <li className={tab === 'orders' ? 'active' : ''} onClick={() => handleTabChange('orders')}>
-                                <span><BalanceIcon /> Order</span>
+                                <span><BalanceIcon /> Đơn hàng</span>
                             </li>
 
                             <li className={`has-sub-menu ${isSubMenuOpen ? 'open' : ''}`}>
                                 <span className="profile-menu" onClick={toggleSubMenu}>
-                                    <InventoryIcon /> Products <ArrowDropDownIcon />
+                                    <InventoryIcon /> Sản phẩm <ArrowDropDownIcon />
                                 </span>
                                 {isSubMenuOpen && (
                                     <ul className="sub-menu show">
                                         <li className={tab === 'producer' ? 'active' : ''} onClick={() => handleTabChange('producer')}>
-                                            <span><PrecisionManufacturingIcon /> Producer</span>
+                                            <span><PrecisionManufacturingIcon /> Nhà sản xuất</span>
                                         </li>
                                         <li className={tab === 'categories' ? 'active' : ''} onClick={() => handleTabChange('categories')}>
-                                            <span><CategoryIcon /> Categories</span>
+                                            <span><CategoryIcon /> Danh mục</span>
                                         </li>
                                         <li className={tab === 'products' ? 'active' : ''} onClick={() => handleTabChange('products')}>
-                                            <span><DetailsIcon /> Products_detail</span>
+                                            <span><DetailsIcon /> Chi tiết sản phẩm</span>
                                         </li>
                                     </ul>
                                 )}
@@ -97,13 +97,13 @@ function Admin() {
                                         className={activeTab === 'profile-customer' ? 'active' : ''}
                                         onClick={() => setActiveTab('profile-customer')}
                                     >
-                                        <span><Person4Icon /> Customer</span>
+                                        <span><Person4Icon /> Khách hàng</span>
                                     </li>
                                     <li
                                         className={activeTab === 'profile-staff' ? 'active' : ''}
                                         onClick={() => setActiveTab('profile-staff')}
                                     >
-                                        <span><PeopleAltIcon /> Staff</span>
+                                        <span><PeopleAltIcon /> Nhân viên</span>
                                     </li>
                                 </ul>
                             </li>
@@ -112,7 +112,7 @@ function Admin() {
                             <li className={`has-sub-menu ${openMenus.sale ? 'open' : ''}`}>
                                 <span onClick={() => toggleMenu('sale')} className="profile-menu">
                                     < ReceiptIcon />
-                                    Sale
+                                    Ưu đãi
                                     <ArrowDropDownIcon />
                                 </span>
                                 <ul className={`sub-menu ${openMenus.sale ? 'show' : ''}`}>

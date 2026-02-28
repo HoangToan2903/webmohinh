@@ -5,6 +5,7 @@ import HowToRegIcon from '@mui/icons-material/HowToReg';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import slugify from "./utils/slugify";
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 
 function Navbar() {
     const [refresh, setRefresh] = useState(false); // thêm dòng này nếu chưa có
@@ -23,7 +24,7 @@ function Navbar() {
     const handleLoginClick = () => {
         navigate('/login');
     };
-       const handleSigupClick = () => {
+    const handleSigupClick = () => {
         navigate('/sigup');
     };
     const [page, setPage] = useState(0); // page = 0 is first page
@@ -47,6 +48,20 @@ function Navbar() {
     useEffect(() => {
         fetchCategories();
     }, [page, size]);
+
+    // Lấy tên user từ localStorage
+    const [username, setUsername] = useState(localStorage.getItem('username'));
+    const [email, setEmail] = useState(localStorage.getItem('userEmail'));
+
+    // console.log(username, email)
+
+    const handleLogout = () => {
+        localStorage.removeItem('username'); 
+         localStorage.removeItem('userEmail'); // Xóa thông tin khi đăng xuất
+        setUsername(null);
+        setEmail(null);
+        navigate('/login');
+    };
     return (
         <nav>
 
@@ -75,7 +90,7 @@ function Navbar() {
 
                     <ul className="nav-links">
                         <li>
-                            <a style={{cursor:"pointer"}}
+                            <a style={{ cursor: "pointer" }}
 
                                 className={activeIndex === 0 ? 'active' : ''}
                                 onClick={(e) => {
@@ -129,24 +144,42 @@ function Navbar() {
                 </div>
             </div>
             <div className="header">
-                <img src="/logo.png" />
+                <img src="/logo.png" alt="Logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }} />
                 <input className="input-elevated" type="text" placeholder="Search" />
-                <span className="header-cart-title" onClick={handleSigupClick} style={{ cursor: 'pointer' }}>
-                    <HowToRegIcon /> Đăng ký / 
-                </span>
-                <span className="header-cart-title" onClick={handleLoginClick} style={{ cursor: 'pointer' }}>
-                    
-                    <LoginIcon />
-                    Đăng nhập
-                </span>
+
+                {username ? (
+                    /* --- Giao diện KHI ĐÃ ĐĂNG NHẬP --- */
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <span className="header-cart-title" style={{ color: '#e74c3c', fontWeight: 'bold' }}>
+                            <AccountCircleIcon /> Chào bạn, {username}
+                        </span>
+                        <span
+                            className="header-cart-title"
+                            onClick={handleLogout}
+                            style={{ cursor: 'pointer', marginLeft: '10px', fontSize: '13px', color: '#888' }}
+                        >
+                            (Đăng xuất)
+                        </span>
+                    </div>
+                ) : (
+                    /* --- Giao diện KHI CHƯA ĐĂNG NHẬP --- */
+                    <>
+                        <span className="header-cart-title" onClick={() => navigate('/sigup')} style={{ cursor: 'pointer' }}>
+                            <HowToRegIcon /> Đăng ký /
+                        </span>
+                        <span className="header-cart-title" onClick={() => navigate('/login')} style={{ cursor: 'pointer' }}>
+                            <LoginIcon /> Đăng nhập
+                        </span>
+                    </>
+                )}
 
                 <span className="header-cart-title">
-                   <a onClick={(e) => {
-                                    e.preventDefault();
-                                    handleClick(0);
-                                    navigate('/cart');
-                                }}>/ Giỏ hàng
-                    <ShoppingCartIcon /></a> 
+                    <a onClick={(e) => {
+                        e.preventDefault();
+                        navigate('/cart');
+                    }} style={{ cursor: 'pointer' }}>
+                        / Giỏ hàng <ShoppingCartIcon />
+                    </a>
                 </span>
             </div>
 

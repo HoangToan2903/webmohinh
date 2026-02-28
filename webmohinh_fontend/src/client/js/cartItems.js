@@ -64,8 +64,6 @@ function CartItems() {
             });
         });
     });
-
-
     const handleIncrease = (id) => {
         setCartItems(prev =>
             prev.map(item =>
@@ -75,7 +73,6 @@ function CartItems() {
             )
         );
     };
-
     const handleDecrease = (id) => {
         setCartItems(prev =>
             prev.map(item =>
@@ -96,14 +93,13 @@ function CartItems() {
         setMethod(e.target.value);
     };
     const shipping = 35000;
-
-
     // tìm kiếm
     const [searchText, setSearchText] = useState("");
     const [vouchers, setVouchers] = useState([]);
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
     const [selectedVoucher, setSelectedVoucher] = useState(null);
+
 
     // Gọi API khi searchText hoặc page thay đổi (debounce 300ms)
     useEffect(() => {
@@ -123,8 +119,7 @@ function CartItems() {
             const response = await axios.get("http://localhost:8080/website/voucher/search", {
                 params: { codeVoucher: searchText, page, size: PAGE_SIZE },
             });
-
-            // Lọc lại: chỉ lấy voucher có mã trùng khớp hoàn toàn
+            
             const exactMatch = response.data.content.filter(
                 (v) => v.codeVoucher.toLowerCase() === searchText.toLowerCase()
             );
@@ -137,8 +132,9 @@ function CartItems() {
     };
 
     const [activeIndex, setActiveIndex] = useState(0);
-    const [name, setName] = useState("");
-    const [email, setEmail] = useState("");
+    // const [name, setName] = useState("");
+   const [name, setName] = useState(localStorage.getItem('username'));
+    const [email, setEmail] = useState(localStorage.getItem('userEmail'));
     const [emailError, setEmailError] = useState("");
     const [phone, setPhone] = useState("");
     const [phoneError, setPhoneError] = useState('');
@@ -191,8 +187,8 @@ function CartItems() {
     };
     const validateForm = () => {
         return (
-            name.trim() !== "" &&
-            email.trim() !== "" &&
+            // name.trim() !== "" &&
+            // email.trim() !== "" &&
             phone.trim() !== "" &&
             address.trim() !== ""
         );
@@ -679,14 +675,6 @@ function CartItems() {
                                                     baseTotal = (Number(subtotal) || 0)
                                                 )
                                             }
-
-                                            // Nếu voucher đầu tiên đang hoạt động thì mới giảm, ngược lại giữ nguyên
-                                            // const discountPercent =
-                                            //     vouchers.length > 0 &&
-                                            //         vouchers[0].status === "Đang hoạt động" &&
-                                            //         baseTotal >= vouchers[0].conditions_apply // Thêm điều kiện này
-                                            //         ? vouchers[0].reduced_value
-                                            //         : 0;
 
                                             const finalTotal = baseTotal - (baseTotal * discountPercent) / 100;
 

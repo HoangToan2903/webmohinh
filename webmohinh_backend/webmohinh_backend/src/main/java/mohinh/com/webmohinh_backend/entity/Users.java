@@ -1,9 +1,6 @@
 package mohinh.com.webmohinh_backend.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -25,5 +22,10 @@ public class Users {
     String username;
     String password;
     String email;
-    LocalDateTime createdAt;
+    @Enumerated(EnumType.STRING)
+    private Role role; // Sử dụng Enum tại đây
+
+    private LocalDateTime createdAt;
+
+
 }

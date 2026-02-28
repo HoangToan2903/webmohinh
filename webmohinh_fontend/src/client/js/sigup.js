@@ -3,6 +3,7 @@ import Navbar from './navbar'
 import Footer from './footer'
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import Swal from "sweetalert2";
 
 function SigUp() {
     useEffect(() => {
@@ -29,7 +30,7 @@ function SigUp() {
                 window.alert("Vui lòng nhập username!");
                 return;
             }
-           
+
             if (!newUsers.email.trim()) {
                 window.alert("Vui lòng nhập email!");
                 return;
@@ -63,9 +64,13 @@ function SigUp() {
             const response = await axios.post('http://localhost:8080/website/users', newUsers);
 
             setUsers([response.data, ...users]);
-            setNewUsers({ username: '', password: '', email: '' });
+            setNewUsers({ username: '', password: '', email: '', confirmPassword: '' });
+            Swal.fire({
+                icon: "success",
+                title: "Đăng ký tài khoản thành công 🎉",
+                confirmButtonColor: "#4CAF50",
+            });
 
-            alert("Đăng ký thành công!!")
         } catch (error) {
             console.error("Lỗi khi thêm người dùng:", error);
         }

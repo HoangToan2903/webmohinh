@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import slugify from "./utils/slugify";
 import { addToCart, resizeImageToBase64, base64ToFile } from './addCart';
 import CircularProgress from '@mui/material/CircularProgress';
+import api from '../../axiosConfig'; 
 
 function Home() {
 
@@ -20,7 +21,7 @@ function Home() {
 
         try {
             while (collected.length < 8 && hasMore) {
-                const response = await axios.get('http://localhost:8080/website/productsAll', {
+                const response = await api.get('/productsAll', {
                     params: { page: currentPage, size }
                 });
 
@@ -60,7 +61,7 @@ function Home() {
 
         try {
             while (collected.length < 8 && hasMore) {
-                const response = await axios.get('http://localhost:8080/website/productsAll', {
+                const response = await api.get('/productsAll', {
                     params: { page: currentPage, size }
                 });
 

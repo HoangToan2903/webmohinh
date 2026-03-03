@@ -16,6 +16,7 @@ import { useLocation } from "react-router-dom";
 import { addToCart, resizeImageToBase64, base64ToFile } from './addCart';
 import CircularProgress from '@mui/material/CircularProgress';
 import { Avatar } from '@mui/material';
+import api from '../../axiosConfig';
 
 function Detail() {
     useEffect(() => {
@@ -31,31 +32,29 @@ function Detail() {
         const productId = localStorage.getItem("productsId");
 
         if (productId) {
-            fetch(`http://localhost:8080/website/products/${productId}`)
-                .then((res) => {
-                    if (!res.ok) throw new Error("Không thể lấy dữ liệu sản phẩm");
-                    return res.json();
-                })
-                .then((data) => {
-                    // Lưu toàn bộ thông tin sản phẩm (name, price, description...)
+            // Sử dụng api.get thay vì fetch
+            api.get(`/products/${productId}`)
+                .then((response) => {
+                    // Axios tự động parse JSON, dữ liệu nằm trong response.data
+                    const data = response.data;
+
                     setProduct(data);
                     if (data.categories?.name) {
                         setCategoryName(data.categories.name);
                     }
 
-                    // Xử lý danh sách hình ảnh từ List<ProductImage>
                     if (data.images && data.images.length > 0) {
                         const formattedImages = data.images.map((imgObj) => ({
-                            // React-images-uploading yêu cầu key 'data_url' để hiển thị preview
-                            // Ta gán imageUrl từ Backend vào data_url
                             data_url: imgObj.imageUrl
                         }));
-
                         setImages(formattedImages);
-                        setDefaultImageIndex(0); // Mặc định hiển thị ảnh đầu tiên
+                        setDefaultImageIndex(0);
                     }
                 })
-                .catch((err) => console.error("Lỗi lấy dữ liệu:", err));
+                .catch((err) => {
+                    console.error("Lỗi lấy dữ liệu:", err);
+                    // Bạn có thể dùng alert hoặc thông báo lỗi tại đây
+                });
         }
     }, []);
 
@@ -101,7 +100,7 @@ function Detail() {
 
             try {
                 while (collected.length < 8 && hasMore) {
-                    const response = await axios.get("http://localhost:8080/website/productsAll", {
+                    const response = await api.get("/productsAll", {
                         params: { page: currentPage, size },
                     });
 

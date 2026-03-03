@@ -15,6 +15,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @Slf4j
 @RequiredArgsConstructor
@@ -30,11 +33,20 @@ public class UsersController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> handleLogin(@RequestBody LoginRequest request) {
+    public ResponseEntity<?> handleLogin(@RequestBody Users request) { // Sử dụng Entity Users hoặc DTO phù hợp
         try {
-            LoginRequest response = usersService.login(request.getUsername(), request.getPassword());
-            return ResponseEntity.ok(response); // Trả về JSON chứa id, username, email...
+            // Gọi service để xác thực
+            LoginRequest user = usersService.login(request.getUsername(), request.getPassword());
+
+            // Trả về thông tin cần thiết cho Frontend
+            Map<String, Object> response = new HashMap<>();
+            response.put("username", user.getUsername());
+            response.put("email", user.getEmail());
+            response.put("role", user.getRole()); // Trả về "ADMIN" hoặc "STAFF"
+
+            return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
+            // Trả về lỗi 401 nếu sai mật khẩu/tên đăng nhập
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         }
     }

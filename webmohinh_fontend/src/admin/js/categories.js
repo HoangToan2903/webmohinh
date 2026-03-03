@@ -11,6 +11,7 @@ import TextareaAutosize from '@mui/material/TextareaAutosize';
 import axios from 'axios';
 import Swal from "sweetalert2";
 import imageCompression from 'browser-image-compression';
+import api from '../../axiosConfig';
 
 const style = {
     position: 'absolute',
@@ -62,8 +63,8 @@ function Categories() {
     // --- API CALLS ---
     const fetchCategories = async () => {
         try {
-            const url = searchText.trim() ? `http://localhost:8080/website/category/search` : `http://localhost:8080/website/categoryAll`;
-            const response = await axios.get(url, {
+            const url = searchText.trim() ? `/category/search` : `/categoryAll`;
+            const response = await api.get(url, {
                 params: {
                     name: searchText,
                     page,
@@ -144,7 +145,7 @@ function Categories() {
             const imageUrl = await uploadToCloudinary(selectedImage);
 
             // 3. Gửi JSON về Backend
-            const response = await axios.post('http://localhost:8080/website/category', {
+            const response = await api.post('/category', {
                 name: name,
                 description: description,
                 image: imageUrl
@@ -168,7 +169,6 @@ function Categories() {
             // Nếu lỗi, xóa danh mục ảo và mở lại Form hoặc báo lỗi
             setCategories(prev => prev.filter(cat => cat.id !== tempId));
             URL.revokeObjectURL(localImageUrl); // Giải phóng bộ nhớ
-            Swal.fire("Lỗi", "Quá trình lưu thất bại, hãy kiểm tra lại kết nối!", "error");
         }
     };
 
@@ -190,7 +190,7 @@ function Categories() {
                 finalImageUrl = await uploadToCloudinary(editCategories.image);
             }
 
-            await axios.put(`http://localhost:8080/website/category/${editCategories.id}`, {
+            await api.put(`/category/${editCategories.id}`, {
                 name: editCategories.name,
                 description: editCategories.description,
                 image: finalImageUrl
@@ -200,19 +200,17 @@ function Categories() {
             setOpenEdit(false);
             fetchCategories();
         } catch (error) {
-            Swal.fire("Lỗi", "Cập nhật thất bại!", "error");
         }
     };
 
     // --- DELETE ---
     const handleDelete = async (id) => {
         try {
-            await axios.delete(`http://localhost:8080/website/category/${id}`);
+            await api.delete(`/category/${id}`);
             setConfirmOpen(false);
             Swal.fire("Xóa thành công", "", "success");
             fetchCategories();
         } catch (error) {
-            Swal.fire("Lỗi", "Không thể xóa", "error");
         }
     };
 
@@ -244,7 +242,7 @@ function Categories() {
             <h1>Danh mục</h1>
             <br></br>
             <Box display="flex" justifyContent="flex-end">
-               <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpen(true)}>
+                <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpen(true)}>
                     Thêm danh mục
                 </Button>
             </Box>
@@ -370,7 +368,10 @@ function Categories() {
                 <DialogContent>Bạn có chắc muốn xóa không?</DialogContent>
                 <DialogActions>
                     <Button onClick={() => setConfirmOpen(false)}>Hủy</Button>
-                    <Button variant="contained" color="error" onClick={() => handleDelete(deleteId)}>Xóa</Button>
+                    <Button variant="contained" color="error" onClick={() => {
+                        handleDelete(deleteId); // Thực hiện xóa
+                        setConfirmOpen(false);   // Đóng Dialog
+                    }}>Xóa</Button>
                 </DialogActions>
             </Dialog>
             {/* <Dialog open={confirmOpen} onClose={handleConfirmClose}>

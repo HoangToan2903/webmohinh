@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import slugify from "./utils/slugify";
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import api from '../../axiosConfig'; 
 
 function Navbar() {
     const [refresh, setRefresh] = useState(false); // thêm dòng này nếu chưa có
@@ -21,12 +22,12 @@ function Navbar() {
     };
     const navigate = useNavigate();
 
-    const handleLoginClick = () => {
-        navigate('/login');
-    };
-    const handleSigupClick = () => {
-        navigate('/sigup');
-    };
+    // const handleLoginClick = () => {
+    //     navigate('/login');
+    // };
+    // const handleSigupClick = () => {
+    //     navigate('/sigup');
+    // };
     const [page, setPage] = useState(0); // page = 0 is first page
     const [size, setSize] = useState(10);
     const [totalPages, setTotalPages] = useState(0);
@@ -34,7 +35,7 @@ function Navbar() {
 
     const fetchCategories = async () => {
         try {
-            const response = await axios.get('http://localhost:8080/website/categoryAll', {
+            const response = await api.get('/categoryAll', {
                 params: { page, size }
             });
 
@@ -50,14 +51,14 @@ function Navbar() {
     }, [page, size]);
 
     // Lấy tên user từ localStorage
-    const [username, setUsername] = useState(localStorage.getItem('username'));
-    const [email, setEmail] = useState(localStorage.getItem('userEmail'));
+    const [username, setUsername] = useState(sessionStorage.getItem('username'));
+    const [email, setEmail] = useState(sessionStorage.getItem('userEmail'));
 
     // console.log(username, email)
 
     const handleLogout = () => {
-        localStorage.removeItem('username'); 
-         localStorage.removeItem('userEmail'); // Xóa thông tin khi đăng xuất
+        sessionStorage.removeItem('username'); 
+         sessionStorage.removeItem('userEmail'); // Xóa thông tin khi đăng xuất
         setUsername(null);
         setEmail(null);
         navigate('/login');

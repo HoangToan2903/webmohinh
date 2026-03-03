@@ -3,6 +3,7 @@ import Navbar from './navbar';
 import Footer from './footer';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import api from '../../axiosConfig';
 
 function LogIn() {
     // 1. Khai báo state để lưu thông tin đăng nhập
@@ -28,20 +29,38 @@ function LogIn() {
 
     // 3. Hàm xử lý gửi form lên Backend
     // Bên trong hàm handleSubmit của LogIn.js
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('http://localhost:8080/website/login', loginData);
+            const response = await api.post('/login', loginData);
 
             if (response.status === 200) {
-                // LƯU TÊN USER VÀO ĐÂY
-                localStorage.setItem('username', loginData.username);
-                localStorage.setItem('userEmail', response.data.email || ""); 
-                alert("Đăng nhập thành công!");
-                window.location.href = "/home"; // Dùng window.location để load lại trang và cập nhật Header
+                const userRole = response.data.role;
+
+                // 1. Dùng unescape/encode để tránh lỗi InvalidCharacterError của btoa
+                const authString = `${loginData.username}:${loginData.password}`;
+                const authHeader = window.btoa(unescape(encodeURIComponent(authString)));
+
+                // 2. Lưu authHeader ngay để các request tiếp theo có quyền truy cập
+                sessionStorage.setItem("authHeader", authHeader);
+
+                if (userRole === "USER") {
+                    sessionStorage.setItem('username', loginData.username);
+                    sessionStorage.setItem('userEmail', response.data.email || "");
+                    sessionStorage.setItem('userRole', userRole);
+
+                    alert("Đăng nhập thành công!");
+                    window.location.href = "/home";
+                } else {
+                    // Nếu trang này chỉ dành cho User, hãy chặn Admin/Staff tại đây
+                    setError("Tài khoản khoản không tồn tại!");
+                    sessionStorage.clear();
+                }
             }
         } catch (err) {
-            setError(err.response?.data || "Lỗi đăng nhập");
+            // Lỗi 401 Unauthorized từ Backend trả về
+            setError("Tên đăng nhập hoặc mật khẩu không đúng.");
         }
     };
 

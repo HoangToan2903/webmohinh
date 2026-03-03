@@ -1,5 +1,4 @@
 import { useState } from 'react';
-// import '../css/admin.css';
 import logo from '../image/logo.png';
 import AreaChartIcon from '@mui/icons-material/AreaChart';
 import BalanceIcon from '@mui/icons-material/Balance';
@@ -41,6 +40,17 @@ function Admin() {
     const handleTabChange = (newTab) => {
         navigate(`/admin/${newTab}`);
     };
+    const [username, setUsername] = useState(sessionStorage.getItem('username'));
+    const [role, setRole] = useState(sessionStorage.getItem('role'));
+
+    // 2. Hàm xử lý đăng xuất
+    const handleLogout = () => {
+        if (window.confirm("Bạn có chắc chắn muốn đăng xuất?")) {
+            sessionStorage.clear(); // Xóa toàn bộ session (username, role, email)
+            window.location.href = "/LoginManager"; // Quay lại trang đăng nhập
+        }
+    };
+
     return (
         <div>
             <div className="dashboard">
@@ -137,16 +147,38 @@ function Admin() {
                 </div>
 
                 <div className="main-content">
-                    <header>
-                        <div >
-                           <h3>Xin Chào, Admin</h3>
+                    <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                            {/* Hiển thị tên động thay vì để chữ Admin cố định */}
+                            <h3>Xin Chào, {username}</h3>
                         </div>
-                        <div className="user-profile">
+
+                        <div className="user-profile" style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                            {/* Nút đăng xuất */}
+                            <button
+                                onClick={handleLogout}
+                                style={{
+                                    background: '#ff4d4f',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '5px 15px',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    fontWeight: 'bold'
+                                }}
+                            >
+                                Đăng xuất
+                            </button>
+
                             <div className="notifications">
                                 <i className="fas fa-bell"></i>
                                 <span className="badge">0</span>
                             </div>
-                            <div className="avatar">A</div>
+
+                            {/* Hiển thị chữ cái đầu của username làm Avatar */}
+                            {/* <div className="avatar">
+                                {username.charAt(0).toUpperCase()}
+                            </div> */}
                         </div>
                     </header>
 

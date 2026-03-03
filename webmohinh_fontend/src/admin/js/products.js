@@ -19,6 +19,7 @@ import TableRow from '@mui/material/TableRow';
 import Swal from "sweetalert2";
 import { Avatar } from '@mui/material';
 import { Pagination, Stack } from '@mui/material';
+import api from '../../axiosConfig';
 
 const style = {
     position: 'absolute',
@@ -73,7 +74,7 @@ function Products() {
     const [products, setProducts] = useState([]);
     const fetchProducts = async () => {
         try {
-            const response = await axios.get('http://localhost:8080/website/productsAll', {
+            const response = await api.get('/productsAll', {
                 params: { page, size }
             });
             console.log("Dữ liệu nhận về:", response.data.content); // Kiểm tra xem array này có mấy phần tử
@@ -149,7 +150,7 @@ function Products() {
     const [inputValue, setInputValue] = useState('');
     const fetchCategories = async () => {
         try {
-            const response = await axios.get('http://localhost:8080/website/categoryAll', {
+            const response = await api.get('/categoryAll', {
             });
 
             setCategories(response.data.content);
@@ -164,7 +165,7 @@ function Products() {
 
     const fetchProducers = async () => {
         try {
-            const response = await axios.get('http://localhost:8080/website/producerAll', {
+            const response = await api.get('/producerAll', {
             });
 
             setProducer(response.data.content);
@@ -236,7 +237,7 @@ function Products() {
             };
 
             // 4. Gửi request lên Backend
-            const res = await axios.post('http://localhost:8080/website/products', productDto);
+            const res = await api.post('/products', productDto);
 
             if (res.status === 201 || res.status === 200) {
                 // 5. Reset form TOÀN BỘ để sẵn sàng cho lần thêm tiếp theo
@@ -270,7 +271,6 @@ function Products() {
             console.error("Lỗi chi tiết:", err);
             // Xử lý thông báo lỗi đẹp hơn thay vì hiện [object Object]
             const errorMsg = err.response?.data?.message || err.response?.data || err.message;
-            Swal.fire("Lỗi", "Không thể thêm sản phẩm: " + errorMsg, "error");
         } finally {
             setIsSubmitting(false); // Kết thúc trạng thái chờ dù thành công hay thất bại
         }
@@ -283,14 +283,13 @@ function Products() {
     const handleDelete = async (id) => {
         try {
 
-            await axios.delete(`http://localhost:8080/website/products/${id}`);
+            await api.delete(`/products/${id}`);
             await fetchProducts();
             Swal.fire("Xóa thành công", "", "success");
 
             handleConfirmClose();
 
         } catch (error) {
-            console.error('Error deleting producer:', error);
 
         }
     };
@@ -405,8 +404,8 @@ function Products() {
             };
 
             // 3. Gửi request PUT
-            await axios.put(
-                `http://localhost:8080/website/products/${editProducts.id}`,
+            await api.put(
+                `/products/${editProducts.id}`,
                 updatedProductDto
             );
 
@@ -418,7 +417,6 @@ function Products() {
         } catch (error) {
             console.error("Update error:", error);
             const errorMsg = error.response?.data?.message || "Cập nhật thất bại!";
-            Swal.fire("Lỗi", errorMsg, "error");
         }
     };
     // search
@@ -1156,7 +1154,10 @@ function Products() {
                     <Button onClick={handleConfirmClose} color="primary">
                         Hủy
                     </Button>
-                    <Button onClick={() => handleDelete(deleteId)} color="error">
+                    <Button onClick={() => {
+                        handleDelete(deleteId); // Thực hiện xóa
+                        handleConfirmClose();   // Đóng Dialog
+                    }} color="error">
                         Xóa
                     </Button>
                 </DialogActions>

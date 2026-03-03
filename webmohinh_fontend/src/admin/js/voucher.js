@@ -15,6 +15,7 @@ import InputAdornment from '@mui/material/InputAdornment';
 import axios from 'axios';
 import { Alert, Slide } from '@mui/material';
 import Swal from "sweetalert2";
+import api from '../../axiosConfig';
 
 
 const style = {
@@ -86,7 +87,7 @@ function Voucher() {
             }
 
             console.log("Tôi là:" + newVoucher.start_date)
-            const response = await axios.post('http://localhost:8080/website/voucher', newVoucher);
+            const response = await api.post('/voucher', newVoucher);
 
             setVoucher([response.data, ...vouchers]);
             setNewVoucher({ codeVoucher: '', quantity: '', reduced_value: '', conditions_apply: '', start_date: '', end_date: '', description: '' });
@@ -97,7 +98,6 @@ function Voucher() {
             });
             handleClose?.();
         } catch (error) {
-            console.error("Lỗi khi thêm loại:", error);
         }
     };
     const handleChange = (event) => {
@@ -115,7 +115,7 @@ function Voucher() {
 
     const fetchProducers = async () => {
         try {
-            const response = await axios.get('http://localhost:8080/website/voucherAll', {
+            const response = await api.get('/voucherAll', {
                 params: { page, size }
             });
 
@@ -157,7 +157,7 @@ function Voucher() {
     }
     const handleEditVoucher = async () => {
         try {
-            const response = await axios.put(`http://localhost:8080/website/voucher/${editVoucher.id}`, editVoucher);
+            const response = await api.put(`/voucher/${editVoucher.id}`, editVoucher);
             setVoucher(prevVoucher =>
                 prevVoucher.map(vouchers =>
                     vouchers.id === editVoucher.id ? response.data : vouchers
@@ -170,7 +170,6 @@ function Voucher() {
                 confirmButtonColor: "#4CAF50",
             });
         } catch (error) {
-            console.error('Lỗi xảy ra khi cập nhật:', error);
         }
     };
     // Helper: format về "yyyy-MM-ddTHH:mm"
@@ -197,7 +196,7 @@ function Voucher() {
     const [confirmOpen, setConfirmOpen] = useState(false)
     const handleDelete = async (id) => {
         try {
-            await axios.delete(`http://localhost:8080/website/voucher/${id}`);
+            await api.delete(`/voucher/${id}`);
             await fetchProducers(); // 👈 Gọi lại API để load dữ liệu mới nhất
             handleConfirmClose();
             Swal.fire({
@@ -206,7 +205,6 @@ function Voucher() {
                 confirmButtonColor: "#4CAF50",
             });
         } catch (error) {
-            alert('There was an error deleting the producer');
         }
     };
     const handleConfirmClose = (id) => {
@@ -231,7 +229,7 @@ function Voucher() {
 
     const fetchVouchersSearch = async () => {
         try {
-            const response = await axios.get('http://localhost:8080/website/voucher/search', {
+            const response = await api.get('/voucher/search', {
                 params: {
                     codeVoucher: searchText,
                     page,
@@ -650,7 +648,10 @@ function Voucher() {
                     <Button onClick={handleConfirmClose} color='primary'>
                         Hủy
                     </Button>
-                    <Button onClick={() => { handleDelete(deleteId); }} color="error" variant='contained'>
+                    <Button onClick={() => {
+                        handleDelete(deleteId); // Thực hiện xóa
+                        handleConfirmClose();   // Đóng Dialog
+                    }} color="error" variant='contained'>
                         Xóa
                     </Button>
                 </DialogActions>

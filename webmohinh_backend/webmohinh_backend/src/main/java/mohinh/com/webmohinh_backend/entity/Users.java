@@ -23,9 +23,9 @@ public class Users {
     String password;
     String email;
     @Enumerated(EnumType.STRING)
-    private Role role; // Sử dụng Enum tại đây
+    Role role; // Sử dụng Enum tại đây
 
-    private LocalDateTime createdAt;
+    LocalDateTime createdAt;
 
 
 }

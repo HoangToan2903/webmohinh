@@ -16,6 +16,7 @@ import axios from 'axios';
 import { Alert, Slide } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import Swal from "sweetalert2";
+import api from '../../axiosConfig';
 
 const style = {
     position: 'absolute',
@@ -79,7 +80,7 @@ function Sale() {
             }
 
             // console.log("Tôi là:" + newVoucher.start_date)
-            const response = await axios.post('http://localhost:8080/website/sale', newSale);
+            const response = await api.post('/sale', newSale);
 
             setSale([response.data, ...sales]);
             setNewSale({ name: '', discountPercent: '', startDate: '', endDate: '', description: '' });
@@ -92,7 +93,6 @@ function Sale() {
             handleClose?.();
         } catch (error) {
 
-            console.error("Lỗi khi thêm loại:", error);
         }
     };
     const handleChange = (event) => {
@@ -110,7 +110,7 @@ function Sale() {
 
     const fetchProducers = async () => {
         try {
-            const response = await axios.get('http://localhost:8080/website/saleAll', {
+            const response = await api.get('/saleAll', {
                 params: { page, size }
             });
 
@@ -149,7 +149,7 @@ function Sale() {
     }
     const handleEditVoucher = async () => {
         try {
-            const response = await axios.put(`http://localhost:8080/website/sale/${editSale.id}`, editSale);
+            const response = await api.put(`/sale/${editSale.id}`, editSale);
             setSale(prevSale =>
                 prevSale.map(sales =>
                     sales.id === editSale.id ? response.data : sales
@@ -163,7 +163,6 @@ function Sale() {
             });
             await fetchProducers();
         } catch (error) {
-            console.error('Lỗi xảy ra khi cập nhật:', error);
         }
     };
     // Helper: format về "yyyy-MM-ddTHH:mm"
@@ -191,7 +190,7 @@ function Sale() {
     const [confirmOpen, setConfirmOpen] = useState(false)
     const handleDelete = async (id) => {
         try {
-            await axios.delete(`http://localhost:8080/website/sale/${id}`);
+            await api.delete(`/sale/${id}`);
             await fetchProducers(); // 👈 Gọi lại API để load dữ liệu mới nhất
             handleConfirmClose();
             handleCloseEdit();
@@ -201,7 +200,6 @@ function Sale() {
                 confirmButtonColor: "#4CAF50",
             });
         } catch (error) {
-            alert('There was an error deleting the producer');
         }
     };
     const handleConfirmClose = (id) => {
@@ -226,7 +224,7 @@ function Sale() {
 
     const fetchSalesSearch = async () => {
         try {
-            const response = await axios.get('http://localhost:8080/website/sale/search', {
+            const response = await api.get('/sale/search', {
                 params: {
                     name: searchText,
                     page,
@@ -244,7 +242,7 @@ function Sale() {
     // Hàm cập nhật trạng thái sale
     const updateStatus = async (id, newStatus) => {
         try {
-            await axios.put(`http://localhost:8080/website/sale/${id}/status`, {
+            await api.put(`/sale/${id}/status`, {
                 status: newStatus
             });
 
@@ -611,7 +609,7 @@ function Sale() {
                                                 className={tab === 'add_sale_Products' ? 'active' : ''}
                                                 onClick={() => handleTabChange('add_sale_Products', sale.id)}
                                             >
-                                               Thêm sản phẩm sale
+                                                Thêm sản phẩm sale
                                             </Button>
                                             {/* <Button color="primary" variant="outlined" size="small" style={{ marginLeft: 8 }}>Turn on</Button> */}
                                             <Button
@@ -621,7 +619,7 @@ function Sale() {
                                                 style={{ marginLeft: 8 }}
                                                 onClick={() => updateStatus(sale.id, 0)}
                                             >
-                                               Tắt 
+                                                Tắt
                                             </Button>
 
                                         </>
@@ -662,7 +660,10 @@ function Sale() {
                     <Button onClick={handleConfirmClose} color='primary'>
                         Đóng
                     </Button>
-                    <Button onClick={() => { handleDelete(deleteId); }} color="error" variant='contained'>
+                    <Button onClick={() => {
+                        handleDelete(deleteId); // Thực hiện xóa
+                        handleConfirmClose();   // Đóng Dialog
+                    }} color="error" variant='contained'>
                         Xóa
                     </Button>
                 </DialogActions>

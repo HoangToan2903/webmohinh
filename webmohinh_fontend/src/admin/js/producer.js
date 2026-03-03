@@ -15,7 +15,7 @@ import TableRow from '@mui/material/TableRow';
 import axios from 'axios';
 import { Alert, Slide } from '@mui/material';
 import Swal from "sweetalert2";
-
+import api from '../../axiosConfig';
 
 const style = {
     position: 'absolute',
@@ -57,7 +57,9 @@ function Producer() {
                 return;
             }
 
-            const response = await axios.post('http://localhost:8080/website/producer', newProducer);
+            const response = await api.post('/producer', newProducer,
+
+            );
 
             setProducers([response.data, ...producers]);
             setNewProducer({ name: '', description: '' });
@@ -68,7 +70,7 @@ function Producer() {
             });
             handleClose?.();
         } catch (error) {
-            console.error("Lỗi khi thêm loại:", error);
+            console.log("Thao tác bị từ chối do quyền hạn.");
         }
     };
     const handleChange = (event) => {
@@ -86,7 +88,7 @@ function Producer() {
 
     const fetchProducers = async () => {
         try {
-            const response = await axios.get('http://localhost:8080/website/producerAll', {
+            const response = await api.get('/producerAll', {
                 params: { page, size }
             });
 
@@ -107,7 +109,7 @@ function Producer() {
     const [confirmOpen, setConfirmOpen] = useState(false)
     const handleDelete = async (id) => {
         try {
-            await axios.delete(`http://localhost:8080/website/producer/${id}`);
+            await api.delete(`/producer/${id}`);
             await fetchProducers(); // 👈 Gọi lại API để load dữ liệu mới nhất
             handleConfirmClose();
             Swal.fire({
@@ -116,7 +118,6 @@ function Producer() {
                 confirmButtonColor: "#4CAF50",
             });
         } catch (error) {
-            alert('There was an error deleting the producer');
         }
     };
     const handleConfirmClose = (id) => {
@@ -151,7 +152,7 @@ function Producer() {
     }
     const handleEditProducer = async () => {
         try {
-            const response = await axios.put(`http://localhost:8080/website/producer/${editProducer.id}`, editProducer);
+            const response = await api.put(`/producer/${editProducer.id}`, editProducer);
             setProducers(prevProducer =>
                 prevProducer.map(producer =>
                     producer.id === editProducer.id ? response.data : producer
@@ -164,7 +165,7 @@ function Producer() {
                 confirmButtonColor: "#4CAF50",
             });
         } catch (error) {
-            console.error('Lỗi xảy ra khi cập nhật:', error);
+           
         }
     };
 
@@ -181,7 +182,7 @@ function Producer() {
 
     const fetchProducersSearch = async () => {
         try {
-            const response = await axios.get('http://localhost:8080/website/producer/search', {
+            const response = await api.get('/producer/search', {
                 params: {
                     name: searchText,
                     page,
@@ -369,7 +370,14 @@ function Producer() {
                     <Button onClick={handleConfirmClose} color='primary'>
                         Hủy
                     </Button>
-                    <Button onClick={() => { handleDelete(deleteId); }} color="error" variant='contained'>
+                    <Button
+                        onClick={() => {
+                            handleDelete(deleteId); // Thực hiện xóa
+                            handleConfirmClose();   // Đóng Dialog
+                        }}
+                        color="error"
+                        variant='contained'
+                    >
                         Xóa
                     </Button>
                 </DialogActions>

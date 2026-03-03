@@ -10,11 +10,13 @@ import mohinh.com.webmohinh_backend.entity.Role;
 import mohinh.com.webmohinh_backend.entity.Users;
 import mohinh.com.webmohinh_backend.repository.CategoriesRepository;
 import mohinh.com.webmohinh_backend.repository.UsersRepository;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -26,16 +28,14 @@ public class UsersService {
     PasswordEncoder passwordEncoder;
 
     public Users save(Users users) {
-        // Tự động set Role là USER nếu chưa có Role nào được chỉ định
         if (users.getRole() == null) {
             users.setRole(Role.USER);
         }
-
         users.setCreatedAt(LocalDateTime.now());
 
-        // Mã hóa mật khẩu
-        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
-        users.setPassword(passwordEncoder.encode(users.getPassword()));
+        // XÓA DÒNG NÀY: PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
+        // SỬ DỤNG bean 'passwordEncoder' đã được Spring inject ở trên
+        users.setPassword(this.passwordEncoder.encode(users.getPassword()));
 
         return usersRepository.save(users);
     }
@@ -64,25 +64,20 @@ public class UsersService {
     }
 
     public LoginRequest login(String username, String rawPassword) {
-        // 1. Tìm user theo username
+        // 1. Tìm user từ database
         Users user = usersRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
 
-        // 2. Kiểm tra mật khẩu (Sử dụng matches của Spring Security)
+        // 2. Kiểm tra mật khẩu
         if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
             throw new RuntimeException("Mật khẩu không chính xác");
         }
 
-        // 3. Kiểm tra Role có phải là USER hay không
-        if (!Role.USER.equals(user.getRole())) {
-            throw new RuntimeException("Bạn không có quyền truy cập (Chỉ dành cho USER)");
-        }
-
-        // 4. Trả về Object chứa thông tin user (để React lấy email)
-        return new LoginRequest(
-                user.getUsername(),
-                user.getEmail(),
-                "Đăng nhập thành công!"
-        );
+        // 3. Trả về LoginRequest (DTO) - KHÔNG trả về đối tượng User của Spring Security
+        return LoginRequest.builder()
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .role(user.getRole().name()) // Trả về "ADMIN" hoặc "STAFF"
+                .build();
     }
 }

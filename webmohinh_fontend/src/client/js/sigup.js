@@ -4,6 +4,7 @@ import Footer from './footer'
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Swal from "sweetalert2";
+import api from '../../axiosConfig';
 
 function SigUp() {
     useEffect(() => {
@@ -61,7 +62,7 @@ function SigUp() {
                 return;
             }
 
-            const response = await axios.post('http://localhost:8080/website/users', newUsers);
+            const response = await api.post('/users', newUsers);
 
             setUsers([response.data, ...users]);
             setNewUsers({ username: '', password: '', email: '', confirmPassword: '' });

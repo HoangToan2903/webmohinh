@@ -15,6 +15,7 @@ import { Alert, Slide } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Avatar } from '@mui/material';
+import api from '../../axiosConfig';
 
 
 const PAGE_SIZE = 10;
@@ -88,7 +89,7 @@ function Statistics() {
 
         try {
             const requests = selected.map(productId =>
-                axios.put('http://localhost:8080/website/addSale', null, {
+                api.put('/addSale', null, {
                     params: {
                         productId,
                         idSale  // Trùng với tên @RequestParam(name = "idSale")
@@ -103,8 +104,8 @@ function Statistics() {
             setSelected([]);
             await fetchProducts();
         } catch (error) {
-            alert('Đã xảy ra lỗi khi áp dụng khuyến mãi!');
-            console.error(error);
+            // alert('Đã xảy ra lỗi khi áp dụng khuyến mãi!');
+            // console.error(error);
         }
     };
 
@@ -117,7 +118,7 @@ function Statistics() {
         }
         try {
             const requests = selected.map(productId =>
-                axios.put('http://localhost:8080/website/addSale', null, {
+                api.put('/addSale', null, {
                     params: {
                         productId,
                         idSale: null
@@ -138,32 +139,32 @@ function Statistics() {
     };
 
     // search
-    const [searchText, setSearchText] = useState('');
-    // Gọi API khi searchText hoặc page thay đổi
-    useEffect(() => {
-        const delayDebounce = setTimeout(() => {
-            fetchProducersSearch();
-        }, 300); // debounce 300ms
+    // const [searchText, setSearchText] = useState('');
+    // // Gọi API khi searchText hoặc page thay đổi
+    // useEffect(() => {
+    //     const delayDebounce = setTimeout(() => {
+    //         fetchProductsSearch();
+    //     }, 300); // debounce 300ms
 
-        return () => clearTimeout(delayDebounce);
-    }, [searchText, page]);
+    //     return () => clearTimeout(delayDebounce);
+    // }, [searchText, page]);
 
-    const fetchProducersSearch = async () => {
-        try {
-            const response = await axios.get('http://localhost:8080/website/products/search', {
-                params: {
-                    name: searchText,
-                    page,
-                    size: PAGE_SIZE
-                }
-            });
+    // const fetchProductsSearch = async () => {
+    //     try {
+    //         const response = await api.get('/products/search', {
+    //             params: {
+    //                 name: searchText,
+    //                 page,
+    //                 size: PAGE_SIZE
+    //             }
+    //         });
 
-            setProducts(response.data.content);
-            setTotalPages(response.data.totalPages);
-        } catch (error) {
-            console.error('Lỗi khi lấy dữ liệu:', error);
-        }
-    };
+    //         setProducts(response.data.content);
+    //         setTotalPages(response.data.totalPages);
+    //     } catch (error) {
+    //         console.error('Lỗi khi lấy dữ liệu:', error);
+    //     }
+    // };
     return (
         <div>
             {/* alert */}
@@ -216,7 +217,7 @@ function Statistics() {
                 <ArrowBackIcon /> Back
             </Button>
             {/* Search */}
-            <div className="search-bar" style={{ marginBottom: 16 }}>
+            {/* <div className="search-bar" style={{ marginBottom: 16 }}>
                 <i className="fas fa-search" style={{ marginRight: 8 }}></i>
                 <input
                     type="text"
@@ -228,7 +229,7 @@ function Statistics() {
                     }}
                     style={{ padding: 8, width: 250 }}
                 />
-            </div>
+            </div> */}
 
             <TableContainer component={Paper}>
                 <Table sx={{ minWidth: 650 }} aria-label="product table">
@@ -252,6 +253,10 @@ function Statistics() {
                     <TableBody>
                         {products.map((product) => {
                             const isItemSelected = isSelected(product.id);
+                            const discountedPrice = product.sale?.status === 1
+                                ? product.price - (product.price * (product.sale.discountPercent / 100))
+                                : product.price;
+
                             return (
                                 <TableRow
                                     key={product.id}
@@ -270,22 +275,15 @@ function Statistics() {
                                         {Array.isArray(product.images) && product.images.length > 0 ? (
                                             <Avatar
                                                 variant="rounded"
-                                                src={product.images?.[0]?.imageUrl || ''}
+                                                src={product.images[0]?.imageUrl || ''}
                                                 sx={{ width: 60, height: 60, border: '1px solid #ddd' }}
                                             >N/A</Avatar>
                                         ) : (
-                                            <div
-                                                style={{
-                                                    height: '80px',
-                                                    width: '60px',
-                                                    backgroundColor: '#eee',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    fontSize: '12px',
-                                                    color: '#999',
-                                                }}
-                                            >
+                                            <div style={{
+                                                height: '80px', width: '60px', backgroundColor: '#eee',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                fontSize: '12px', color: '#999'
+                                            }}>
                                                 No image
                                             </div>
                                         )}
@@ -295,13 +293,11 @@ function Statistics() {
                                     <TableCell>{Number(product.price).toLocaleString('vi-VN')} đ</TableCell>
                                     <TableCell style={{ color: "green" }}>
                                         {product.sale?.status === 1 ? product.sale.discountPercent : "0"}%
-                                    </TableCell>                                    <TableCell style={{ color: "red" }}>
-                                        {Number(
-                                            product.sale?.status === 1
-                                                ? product.price - (product.price * (product.sale.discountPercent / 100))
-                                                : product.price
-                                        ).toLocaleString('vi-VN')} đ
-                                    </TableCell>                                </TableRow>
+                                    </TableCell>
+                                    <TableCell style={{ color: "red" }}>
+                                        {Number(discountedPrice).toLocaleString('vi-VN')} đ
+                                    </TableCell>
+                                </TableRow>
                             );
                         })}
                     </TableBody>

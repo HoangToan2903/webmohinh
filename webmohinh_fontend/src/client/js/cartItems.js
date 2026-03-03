@@ -11,6 +11,7 @@ import { Alert, Slide } from '@mui/material';
 // import Result from './result';
 import Swal from "sweetalert2";
 import CircularProgress from '@mui/material/CircularProgress';
+import api from '../../axiosConfig';
 
 
 const PAGE_SIZE = 10;
@@ -116,7 +117,7 @@ function CartItems() {
 
     const fetchVouchersSearch = async () => {
         try {
-            const response = await axios.get("http://localhost:8080/website/voucher/search", {
+            const response = await api.get("/voucher/search", {
                 params: { codeVoucher: searchText, page, size: PAGE_SIZE },
             });
             
@@ -133,8 +134,8 @@ function CartItems() {
 
     const [activeIndex, setActiveIndex] = useState(0);
     // const [name, setName] = useState("");
-   const [name, setName] = useState(localStorage.getItem('username'));
-    const [email, setEmail] = useState(localStorage.getItem('userEmail'));
+   const [name, setName] = useState(sessionStorage.getItem('username'));
+    const [email, setEmail] = useState(sessionStorage.getItem('userEmail'));
     const [emailError, setEmailError] = useState("");
     const [phone, setPhone] = useState("");
     const [phoneError, setPhoneError] = useState('');
@@ -251,8 +252,8 @@ function CartItems() {
 
             // 3. Xử lý logic dựa trên phương thức thanh toán
             if (method === "Thanh toán khi nhận hàng") {
-                const res = await axios.post(
-                    "http://localhost:8080/website/orders",
+                const res = await api.post(
+                    "/orders",
                     orderRequest
                 );
 
@@ -297,8 +298,8 @@ function CartItems() {
             }
             else {
                 // Thanh toán online -> nhận link thanh toán từ backend
-                const res = await axios.post(
-                    "http://localhost:8080/website/submitOrder",
+                const res = await api.post(
+                    "/submitOrder",
                     orderRequest
                 );
 

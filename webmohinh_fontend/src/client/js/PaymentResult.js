@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import Navbar from './navbar'
-import Footer from './footer'
-// Định nghĩa key cho sessionStorage để kiểm soát việc hiển thị Swal
+import Navbar from './navbar';
+import Footer from './footer';
+import api from '../../axiosConfig';
 const SWAL_DISPLAYED_KEY = "vnpay_swal_displayed";
+
 
 const PaymentResult = () => {
     useEffect(() => {
@@ -29,8 +30,8 @@ const PaymentResult = () => {
                     : window.location.search;
 
                 // 1. Gọi backend để xác thực kết quả thanh toán và lưu DB
-                const res = await axios.get(
-                    `http://localhost:8080/website/vnpay-return?${queryString}`
+                const res = await api.get(
+                    `/vnpay-return?${queryString}`
                 );
 
                 console.log("VNPay return response:", res.data);
@@ -56,8 +57,8 @@ const PaymentResult = () => {
 
                     // 2. Lấy thông tin chi tiết đơn hàng theo mã
                     try {
-                        const orderRes = await axios.get(
-                            `http://localhost:8080/website/orders/${codeOrder}`
+                        const orderRes = await api.get(
+                            `/orders/${codeOrder}`
                         );
 
                         if (orderRes.data) {
@@ -134,7 +135,7 @@ const PaymentResult = () => {
         // 1. Check if voucherId exists before making the request
         if (voucherId) {
 
-            axios.get(`http://localhost:8080/website/voucher/${voucherId}`)
+            api.get(`/voucher/${voucherId}`)
                 .then(response => {
                     setVoucher(response.data);
                     console.log(response.data)

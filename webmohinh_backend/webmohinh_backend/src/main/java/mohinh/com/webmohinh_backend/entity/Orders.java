@@ -29,14 +29,22 @@ public class Orders {
     String name;
     String codeOrder;
     String payment_method;
-    String ship_money;
+    BigDecimal ship_money;
 
 
     @ManyToOne
     @JoinColumn(name = "voucher_id")
     private Voucher voucher;
 
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private Users user;
     // Quan hệ với Order_items
     @OneToMany(mappedBy = "orders", cascade = CascadeType.ALL)
     private List<Order_items> orderItems;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "source", length = 50) // Đảm bảo độ dài cột đủ chứa chuỗi
+    private OrderSource source;
 }

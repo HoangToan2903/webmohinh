@@ -6,9 +6,13 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import slugify from "./utils/slugify";
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import api from '../../axiosConfig'; 
+import api from '../../axiosConfig';
 
 function Navbar() {
+    useEffect(() => {
+        import('../css/home.css');
+
+    }, []);
     const [refresh, setRefresh] = useState(false); // thêm dòng này nếu chưa có
 
     const [showMenu, setShowMenu] = useState(false);
@@ -53,13 +57,16 @@ function Navbar() {
     // Lấy tên user từ localStorage
     const [username, setUsername] = useState(sessionStorage.getItem('username'));
     const [email, setEmail] = useState(sessionStorage.getItem('userEmail'));
+    const [userId, setUserId] = useState(sessionStorage.getItem('idUser'));
 
     // console.log(username, email)
 
     const handleLogout = () => {
-        sessionStorage.removeItem('username'); 
-         sessionStorage.removeItem('userEmail'); // Xóa thông tin khi đăng xuất
+        sessionStorage.removeItem('username');
+        sessionStorage.removeItem('userEmail');
+        sessionStorage.removeItem('id');  // Xóa thông tin khi đăng xuất
         setUsername(null);
+        setUserId(null);
         setEmail(null);
         navigate('/login');
     };
@@ -151,7 +158,11 @@ function Navbar() {
                 {username ? (
                     /* --- Giao diện KHI ĐÃ ĐĂNG NHẬP --- */
                     <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <span className="header-cart-title" style={{ color: '#e74c3c', fontWeight: 'bold' }}>
+                        <span className="header-cart-title" style={{ color: '#e74c3c', fontWeight: 'bold' }}
+                            onClick={(e) => {
+                                e.preventDefault();
+                                navigate('/userProfile');
+                            }}>
                             <AccountCircleIcon /> Chào bạn, {username}
                         </span>
                         <span

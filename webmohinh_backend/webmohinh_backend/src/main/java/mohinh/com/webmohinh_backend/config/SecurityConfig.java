@@ -41,7 +41,7 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
                         // 1. Cho phép truy cập công khai các endpoint này
-                        .requestMatchers("/login").permitAll()
+                        .requestMatchers("/login", "/users","/updateStatus/**","/check-stock","/createAdmin",  "/orders", "/submitOrder").permitAll()
 
                         // 2. Cấu hình cho phép XEM (GET) mà không cần đăng nhập
                         // Thay đổi từ .hasAnyRole(...) sang .permitAll()

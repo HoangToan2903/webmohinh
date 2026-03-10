@@ -26,6 +26,7 @@ public class Users {
     Role role; // Sử dụng Enum tại đây
 
     LocalDateTime createdAt;
+    Integer status;
 
 
 }

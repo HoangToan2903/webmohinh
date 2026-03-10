@@ -59,8 +59,6 @@ function Products() {
     // const [tag, setTag] = useState('');
     const [producer, setProducer] = useState('');
     const [description, setDescription] = useState('');
-    // const [selectedImage, setSelectedImage] = useState(null); // Lưu file chưa upload
-    // const [imagePreview, setImagePreview] = useState("");
     const [categoryValue, setCategoryValue] = useState(null);
     const [categoryInputValue, setCategoryInputValue] = useState('');
     const [producerValue, setProducerValue] = useState(null);

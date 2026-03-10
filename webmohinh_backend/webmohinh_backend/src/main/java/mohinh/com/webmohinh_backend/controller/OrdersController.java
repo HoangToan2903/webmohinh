@@ -10,21 +10,26 @@ import mohinh.com.webmohinh_backend.dto.OrderItemDTO;
 import mohinh.com.webmohinh_backend.entity.Orders;
 import mohinh.com.webmohinh_backend.entity.Products;
 import mohinh.com.webmohinh_backend.entity.Voucher;
+import mohinh.com.webmohinh_backend.repository.ProductsRepository;
 import mohinh.com.webmohinh_backend.service.EmailService;
 import mohinh.com.webmohinh_backend.service.OrdersSevice;
 import mohinh.com.webmohinh_backend.service.ProductsService;
 import mohinh.com.webmohinh_backend.service.VoucherService;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.math.BigDecimal;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import java.text.NumberFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -38,6 +43,7 @@ public class OrdersController {
     EmailService emailService;
     ProductsService productsService;
     VoucherService voucherService;
+    ProductsRepository productsRepository;
     @PostMapping("/orders")
     public ResponseEntity<?> createOrder( @RequestBody OrderDTO request, EmailRequest emailrequest) {
 
@@ -142,6 +148,88 @@ public class OrdersController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Failed to send email: " + e.getMessage());
         }
+    }
+
+    @PostMapping("/createAdmin")
+    public ResponseEntity<?> createOrder(@RequestBody OrderDTO request) {
+        try {
+            // Gọi Service để xử lý logic nghiệp vụ
+            Orders savedOrder = ordersSevice.createOrder(request);
+
+            // Trả về đơn hàng thành công với mã 201 Created
+            return new ResponseEntity<>(savedOrder, HttpStatus.CREATED);
+
+        } catch (RuntimeException e) {
+            // Xử lý các lỗi như: Sản phẩm hết hàng, User không tồn tại, v.v.
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of(
+                            "status", "error",
+                            "message", e.getMessage()
+                    ));
+        } catch (Exception e) {
+            // Xử lý các lỗi hệ thống không mong muốn
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "status", "fail",
+                            "message", "Đã xảy ra lỗi hệ thống: " + e.getMessage()
+                    ));
+        }
+    }
+    @GetMapping("/users/{idUsers}")
+    public ResponseEntity<List<OrderDTO>> getUserOrders(@PathVariable String idUsers) {
+        return ResponseEntity.ok(ordersSevice.getOrdersByIdUsers(idUsers));
+    }
+    @GetMapping("/orderAdmin")
+    public ResponseEntity<Page<OrderDTO>> getOrders(
+            @RequestParam int page,
+            @RequestParam int size,
+            @RequestParam Integer status,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam String source) {
+
+        return ResponseEntity.ok(ordersSevice.getAllOrdersForAdmin(page, size, status, date, source));
+    }
+    @GetMapping("/orderAdmin/counts")
+    public ResponseEntity<Map<Integer, Long>> getOrderCounts(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(required = false) String source) {
+
+        // Gọi hàm getCounts bạn đã viết trong Service
+        Map<Integer, Long> counts = ordersSevice.getCounts(date, source);
+
+        return ResponseEntity.ok(counts);
+    }
+    @PutMapping("/updateStatus/{id}")
+    public ResponseEntity<String> cancelOrder(@PathVariable String id, Integer status) {
+        ordersSevice.updateStatusOrder(id,status);
+        return ResponseEntity.ok("Hủy đơn hàng thành công");
+    }
+    @PutMapping("/updateStatus/multiple")
+    public ResponseEntity<String> updateMultipleStatus(
+            @RequestBody List<String> ids,
+            @RequestParam Integer status) {
+        System.out.println(ids);
+        ordersSevice.updateMultipleStatusOrder(ids, status);
+        return ResponseEntity.ok("Cập nhật hàng loạt thành công");
+    }
+    @PostMapping("/check-stock")
+    public ResponseEntity<?> checkStock(@RequestBody List<OrderItemDTO> items) {
+        for (OrderItemDTO itemReq : items) {
+            Products product = productsRepository.findById(itemReq.getProductId()).orElse(null);
+
+            // Nếu hết hàng, vẫn trả về status 200 (OK) nhưng kèm success = false
+            if (product == null || product.getQuantity() < itemReq.getQuantity()) {
+                return ResponseEntity.ok(Map.of(
+                        "success", false,
+                        "message", "Sản phẩm hiện tại đang hết hàng!"
+                ));
+            }
+        }
+
+        // Nếu đủ hàng
+        return ResponseEntity.ok(Map.of("success", true));
     }
 
 }

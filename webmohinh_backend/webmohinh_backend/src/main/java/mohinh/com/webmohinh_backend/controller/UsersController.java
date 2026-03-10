@@ -8,14 +8,13 @@ import mohinh.com.webmohinh_backend.dto.LoginRequest;
 import mohinh.com.webmohinh_backend.entity.Sale;
 import mohinh.com.webmohinh_backend.entity.Users;
 import mohinh.com.webmohinh_backend.service.UsersService;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -27,6 +26,14 @@ public class UsersController {
 
     UsersService usersService;
 
+    @GetMapping("/staff")
+    public ResponseEntity<Page<Users>> getAllStaff(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Page<Users> staffPage = usersService.getStaffUsers(page, size);
+        return ResponseEntity.ok(staffPage);
+    }
     @PostMapping("/users")
     public Users save(@RequestBody Users users) {
         return usersService.save(users);
@@ -41,6 +48,7 @@ public class UsersController {
             // Trả về thông tin cần thiết cho Frontend
             Map<String, Object> response = new HashMap<>();
             response.put("username", user.getUsername());
+            response.put("idUser", user.getIdUser());
             response.put("email", user.getEmail());
             response.put("role", user.getRole()); // Trả về "ADMIN" hoặc "STAFF"
 

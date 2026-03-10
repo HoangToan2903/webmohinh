@@ -261,7 +261,7 @@ function Categories() {
             {/* Modal Add */}
             <Modal open={open} onClose={resetAddForm}>
                 <Box sx={style}>
-                    <Typography variant="h6">Create New Category</Typography>
+                    <Typography variant="h6">Thêm mới danh mục</Typography>
                     <TextField fullWidth label="Name" sx={{ mt: 2 }} value={name} onChange={e => setName(e.target.value)} />
                     <TextareaAutosize
                         name="description"

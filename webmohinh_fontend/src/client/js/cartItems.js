@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { getCart, removeFromCart } from './addCart';
 import Navbar from './navbar'
 import Footer from './footer'
@@ -120,7 +120,7 @@ function CartItems() {
             const response = await api.get("/voucher/search", {
                 params: { codeVoucher: searchText, page, size: PAGE_SIZE },
             });
-            
+
             const exactMatch = response.data.content.filter(
                 (v) => v.codeVoucher.toLowerCase() === searchText.toLowerCase()
             );
@@ -131,10 +131,11 @@ function CartItems() {
             console.error("Lỗi khi lấy dữ liệu:", error);
         }
     };
+    //
 
     const [activeIndex, setActiveIndex] = useState(0);
     // const [name, setName] = useState("");
-   const [name, setName] = useState(sessionStorage.getItem('username'));
+    const [name, setName] = useState(sessionStorage.getItem('username'));
     const [email, setEmail] = useState(sessionStorage.getItem('userEmail'));
     const [emailError, setEmailError] = useState("");
     const [phone, setPhone] = useState("");
@@ -216,12 +217,59 @@ function CartItems() {
 
         return baseTotal - (baseTotal * discountPercent) / 100;
     })();
+
+    const activeVoucher = useMemo(() => {
+        return vouchers.find(v => v.status === "Đang hoạt động" && baseTotal >= v.conditions_apply);
+    }, [vouchers, baseTotal]);
+
+    // 3. Tính tiền giảm giá
+    const discountValue = activeVoucher ? (baseTotal * activeVoucher.reduced_value) / 100 : 0;
+    const [userId, setUserId] = useState(sessionStorage.getItem('idUser'));
+    // console.log(userId)
     // console.log(discountPercent)
     const handlePlaceOrder = async () => {
         // 1. Kiểm tra xác thực form
         if (!validateForm()) {
             setMessage("Vui lòng điền đầy đủ thông tin bắt buộc!");
             return;
+        }
+        try {
+            setLoading(true);
+            const checkItems = cartItems.map(item => ({
+                productId: item.id,
+                quantity: item.quantity
+            }));
+
+            // Gọi API - Bây giờ sẽ luôn trả về 200 OK, console sẽ KHÔNG HIỆN DÒNG ĐỎ
+            const res = await api.post("/check-stock", checkItems);
+
+            // Kiểm tra kết quả logic từ Backend
+            if (res.data.success === false) {
+                setLoading(false);
+
+                Swal.fire({
+                    icon: "warning",
+                    title: "Thông báo hàng hóa ⚠️",
+                    text: res.data.message, // Thông báo "Sản phẩm hiện tại đang hết hàng!"
+                    confirmButtonText: "Quay lại trang chủ",
+                    confirmButtonColor: "#3085d6",
+                }).then((result) => {
+                    // Khi người dùng nhấn nút "Quay lại trang chủ" hoặc nút OK
+                    if (result.isConfirmed) {
+                        navigate("/home"); // Chuyển hướng về /home
+                    }
+                });
+                return;
+            }
+
+            // Nếu success === true, chạy tiếp logic đặt hàng phía dưới...
+            console.log("Đủ hàng, đang tiến hành thanh toán...");
+
+        } catch (error) {
+            // Chỉ hiện lỗi đỏ nếu sập server hoàn toàn hoặc mất mạng
+            console.error("Lỗi kết nối:", error);
+        } finally {
+            setLoading(false);
         }
         // Tìm voucher hợp lệ nhất từ danh sách (thường là cái đầu tiên khớp mã)
         const activeVoucher = vouchers.find(v =>
@@ -238,6 +286,8 @@ function CartItems() {
             paymentMethod: method,
             shipMoney: subtotal < 3000000 ? Number(shipping) || 0 : 0,
             totalPrice: finalTotal,
+            userId,
+            source: "CUSTOMER_ORDER",
             // Nếu tìm thấy voucher thỏa mãn các điều kiện trên thì lấy id, ngược lại để null
             voucherId: activeVoucher ? activeVoucher.id : null,
             items: cartItems.map((item) => ({
@@ -554,11 +604,11 @@ function CartItems() {
                                         onChange={(e) => setSearchText(e.target.value)}
                                     />
 
-                                    {
-                                        /* <button className="apply-button" onClick={fetchVouchersSearch}>
-                                            Áp dụng
-                                        </button> */
-                                    }
+                                    <div style={{ marginTop: '8px', fontSize: '13px' }}>
+                                        {searchText && vouchers.length === 0 && <span style={{ color: 'red' }}>Voucher không tồn tại</span>}
+                                        {activeVoucher && <span style={{ color: 'green' }}>Đã áp dụng giảm {activeVoucher.reduced_value}%</span>}
+                                        {!activeVoucher && vouchers.length > 0 && <span style={{ color: 'orange' }}>Chưa đủ điều kiện (Tối thiểu {activeVoucher?.conditions_apply.toLocaleString()}đ)</span>}
+                                    </div>
                                 </div>
                                 <hr className="cart-divider" />
 
@@ -611,50 +661,15 @@ function CartItems() {
                                     )}
 
                                 </div>
-
-                                {/* Hiển thị kết quả voucher xuống dưới */}
-                                <div className="voucher-results">
-                                    {vouchers.length > 0 ? (
-                                        <ul>
-                                            {vouchers.map((v) => (
-                                                <ul
-                                                    key={v.id}
-
-                                                    style={{
-                                                        cursor: v.status === "Đang hoạt động" ? "pointer" : "not-allowed",
-                                                        opacity: v.status === "ACTIVE",
-                                                    }}
-                                                >
-                                                    <hr className="cart-divider" />
-                                                    <div className="cart-row" style={{ color: "#e53935" }}>
-
-                                                        {v.status === "Đang hoạt động" ? (
-                                                            subtotal >= v.conditions_apply ? (
-                                                                // Trường hợp 1: Hoạt động VÀ đủ điều kiện tiền
-                                                                <>
-                                                                    <span>Phần trăm giảm</span>
-                                                                    <strong> {v.reduced_value}%</strong>
-                                                                </>
-                                                            ) : (
-                                                                // Trường hợp 2: Hoạt động NHƯNG không đủ số tiền tối thiểu
-                                                                <span style={{ color: "#ff9800" }}>
-                                                                    Không đủ điều kiện áp dụng Voucher
-                                                                </span>
-                                                            )
-                                                        ) : (
-                                                            // Trường hợp 3: Voucher không hoạt động hoặc không tồn tại
-                                                            <span style={{ color: "#e53935" }}>
-                                                                Voucher không tồn tại.
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </ul>
-                                            ))}
-                                        </ul>
-                                    ) : (
-                                        searchText && <p style={{ color: "#e53935" }}>Voucher không tồn tại.</p>
-                                    )}
-                                </div>
+                                <hr className="cart-divider" />
+                                {/* <div className="cart-row"> */}
+                                {discountValue > 0 && (
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', color: 'red', fontSize: '15px' }}>
+                                        <span>Giảm giá:</span>
+                                        <span> - {discountValue.toLocaleString('vi-VN')} đ</span>
+                                    </div>
+                                )}
+                                {/* </div> */}
 
 
 
@@ -763,17 +778,6 @@ function CartItems() {
                                         </button>
                                     )
                                 }
-
-                                {/* <button className="checkout-button tab" data-tab="settings" onClick={handlePlaceOrder}
-                                    disabled={!validateForm() || loading} // disabled nếu chưa đủ dữ liệu hoặc đang gửi
-                                    style={{
-                                        backgroundColor: !validateForm() ? "#ccc" : "#e74c3c",
-                                        cursor: !validateForm() ? "not-allowed" : "pointer",
-                                    }}>   {loading ? "Đang xử lý..." : "ĐẶT HÀNG"}
-                                </button> */}
-
-
-
                             </div>
                         </div>
                     </div>

@@ -36,30 +36,33 @@ function LogIn() {
             const response = await api.post('/login', loginData);
 
             if (response.status === 200) {
-                const userRole = response.data.role;
+                // Lấy dữ liệu từ response.data
+                const userData = response.data;
+                const userRole = userData.role;
 
-                // 1. Dùng unescape/encode để tránh lỗi InvalidCharacterError của btoa
+                // 1. Xử lý Auth Header
                 const authString = `${loginData.username}:${loginData.password}`;
                 const authHeader = window.btoa(unescape(encodeURIComponent(authString)));
-
-                // 2. Lưu authHeader ngay để các request tiếp theo có quyền truy cập
                 sessionStorage.setItem("authHeader", authHeader);
 
                 if (userRole === "USER") {
+                    // 2. Lưu thông tin vào sessionStorage
                     sessionStorage.setItem('username', loginData.username);
-                    sessionStorage.setItem('userEmail', response.data.email || "");
+                    sessionStorage.setItem('password', loginData.password);
+                    sessionStorage.setItem('userEmail', userData.email || "");
                     sessionStorage.setItem('userRole', userRole);
+
+                    // SỬA TẠI ĐÂY: Lấy idUser từ userData (tức response.data)
+                    sessionStorage.setItem('idUser', userData.idUser);
 
                     alert("Đăng nhập thành công!");
                     window.location.href = "/home";
                 } else {
-                    // Nếu trang này chỉ dành cho User, hãy chặn Admin/Staff tại đây
-                    setError("Tài khoản khoản không tồn tại!");
+                    setError("Tài khoản không tồn tại!");
                     sessionStorage.clear();
                 }
             }
         } catch (err) {
-            // Lỗi 401 Unauthorized từ Backend trả về
             setError("Tên đăng nhập hoặc mật khẩu không đúng.");
         }
     };

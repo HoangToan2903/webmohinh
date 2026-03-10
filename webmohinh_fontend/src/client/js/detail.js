@@ -307,9 +307,11 @@ function Detail() {
                                     onClick={async (e) => {
                                         e.preventDefault();
                                         try {
-                                            // Lấy ảnh ưu tiên theo thứ tự: 
-                                            // 1. Link Cloudinary (imageUrl) -> 2. Chuỗi Base64
-                                            const rawImage = product.imageUrls?.[0] || product.imageBase64List?.[0] || null;
+                                            // 1. Lấy URL ảnh từ danh sách images của Backend
+                                            // Cấu trúc Backend: product.images = [{imageUrl: '...'}, ...]
+                                            const rawImage = product.images?.[0]?.imageUrl || null;
+
+                                            console.log("Raw Image URL:", rawImage);
 
                                             if (!rawImage) {
                                                 alert("Không có ảnh để thêm vào giỏ.");
@@ -318,7 +320,8 @@ function Detail() {
 
                                             let imageToSave = rawImage;
 
-                                            // Nếu là Base64 thì mới cần thêm prefix và resize
+                                            // 2. Nếu không phải link URL (giả sử là base64 thô) thì mới resize
+                                            // Thông thường nếu đã có link Cloudinary thì KHÔNG cần resize ở Client nữa
                                             if (!rawImage.startsWith('http')) {
                                                 const base64WithPrefix = rawImage.startsWith('data:image')
                                                     ? rawImage
@@ -326,21 +329,25 @@ function Detail() {
                                                 const file = base64ToFile(base64WithPrefix);
                                                 imageToSave = await resizeImageToBase64(file, 100, 100, 0.7);
                                             }
+
+                                            // 3. Tính giá khuyến mãi
                                             const finalPrice = product.sale?.id && product.sale?.status === 1
                                                 ? product.price - (product.price * (product.sale.discountPercent / 100))
                                                 : product.price;
 
+                                            // 4. Thêm vào giỏ hàng
                                             addToCart({
                                                 id: product.id,
                                                 name: product.name,
                                                 price: finalPrice,
-                                                image: imageToSave, // Giờ đã có giá trị là URL hoặc Base64 nén
+                                                image: imageToSave,
                                                 quantity: quantity || 1,
                                             });
 
                                             alert("Đã thêm vào giỏ hàng!");
                                         } catch (error) {
-                                            alert("Lỗi xử lý ảnh: " + error.message);
+                                            console.error(error);
+                                            alert("Lỗi xử lý: " + error.message);
                                         }
                                     }}
                                 >
@@ -556,9 +563,11 @@ function Detail() {
                                 onClick={async (e) => {
                                     e.preventDefault();
                                     try {
-                                        // Lấy ảnh ưu tiên theo thứ tự: 
-                                        // 1. Link Cloudinary (imageUrl) -> 2. Chuỗi Base64
-                                        const rawImage = product.imageUrls?.[0] || product.imageBase64List?.[0] || null;
+                                        // 1. Lấy URL ảnh từ danh sách images của Backend
+                                        // Cấu trúc Backend: product.images = [{imageUrl: '...'}, ...]
+                                        const rawImage = product.images?.[0]?.imageUrl || null;
+
+                                        console.log("Raw Image URL:", rawImage);
 
                                         if (!rawImage) {
                                             alert("Không có ảnh để thêm vào giỏ.");
@@ -567,7 +576,8 @@ function Detail() {
 
                                         let imageToSave = rawImage;
 
-                                        // Nếu là Base64 thì mới cần thêm prefix và resize
+                                        // 2. Nếu không phải link URL (giả sử là base64 thô) thì mới resize
+                                        // Thông thường nếu đã có link Cloudinary thì KHÔNG cần resize ở Client nữa
                                         if (!rawImage.startsWith('http')) {
                                             const base64WithPrefix = rawImage.startsWith('data:image')
                                                 ? rawImage
@@ -575,23 +585,28 @@ function Detail() {
                                             const file = base64ToFile(base64WithPrefix);
                                             imageToSave = await resizeImageToBase64(file, 100, 100, 0.7);
                                         }
+
+                                        // 3. Tính giá khuyến mãi
                                         const finalPrice = product.sale?.id && product.sale?.status === 1
                                             ? product.price - (product.price * (product.sale.discountPercent / 100))
                                             : product.price;
 
+                                        // 4. Thêm vào giỏ hàng
                                         addToCart({
                                             id: product.id,
                                             name: product.name,
                                             price: finalPrice,
-                                            image: imageToSave, // Giờ đã có giá trị là URL hoặc Base64 nén
+                                            image: imageToSave,
                                             quantity: quantity || 1,
                                         });
 
                                         alert("Đã thêm vào giỏ hàng!");
                                     } catch (error) {
-                                        alert("Lỗi xử lý ảnh: " + error.message);
+                                        console.error(error);
+                                        alert("Lỗi xử lý: " + error.message);
                                     }
-                                }}>
+                                }}
+                            >
                                 Thêm vào giỏ hàng <span className="fa-solid fa-angle-right"></span>
                             </a>
                         )}

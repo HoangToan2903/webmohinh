@@ -22,7 +22,10 @@ function Admin() {
     }, []);
     const [activeTab, setActiveTab] = useState('statistics');
     const [openMenus, setOpenMenus] = useState({});
-
+    const [openMenusOrders, setMenusOrders] = useState({});
+    const toggleSubOrders = () => {
+        setMenusOrders(!openMenusOrders);
+    };
     const [isSubMenuOpen, setIsSubMenuOpen] = useState(false);
     const toggleSubMenu = () => {
         setIsSubMenuOpen(!isSubMenuOpen);
@@ -72,10 +75,25 @@ function Admin() {
                                 <span><AreaChartIcon /> Thống kê</span>
                             </li>
 
-                            <li className={tab === 'orders' ? 'active' : ''} onClick={() => handleTabChange('orders')}>
+                            {/* <li className={tab === 'orderAdmin' ? 'active' : ''} onClick={() => handleTabChange('orderAdmin')}>
                                 <span><BalanceIcon /> Đơn hàng</span>
-                            </li>
+                            </li> */}
+                            <li className={`has-sub-menu ${openMenusOrders ? 'open' : ''}`}>
+                                <span className="profile-menu" onClick={toggleSubOrders}>
+                                    <InventoryIcon /> Đơn hàng <ArrowDropDownIcon />
+                                </span>
+                                {openMenusOrders && (
+                                    <ul className="sub-menu show">
+                                        <li className={tab === 'orderAdmin' ? 'active' : ''} onClick={() => handleTabChange('orderAdmin')}>
+                                            <span><BalanceIcon />Quản lý đơn hàng </span>
+                                        </li>
+                                        <li className={tab === 'createOder' ? 'active' : ''} onClick={() => handleTabChange('createOder')}>
+                                            <span><CategoryIcon /> Tạo đơn hàng</span>
+                                        </li>
 
+                                    </ul>
+                                )}
+                            </li>
                             <li className={`has-sub-menu ${isSubMenuOpen ? 'open' : ''}`}>
                                 <span className="profile-menu" onClick={toggleSubMenu}>
                                     <InventoryIcon /> Sản phẩm <ArrowDropDownIcon />
@@ -109,10 +127,8 @@ function Admin() {
                                     >
                                         <span><Person4Icon /> Khách hàng</span>
                                     </li>
-                                    <li
-                                        className={activeTab === 'profile-staff' ? 'active' : ''}
-                                        onClick={() => setActiveTab('profile-staff')}
-                                    >
+                                    <li className={tab === 'customer' ? 'active' : ''} onClick={() => handleTabChange('customer')}>
+
                                         <span><PeopleAltIcon /> Nhân viên</span>
                                     </li>
                                 </ul>
@@ -170,15 +186,7 @@ function Admin() {
                                 Đăng xuất
                             </button>
 
-                            <div className="notifications">
-                                <i className="fas fa-bell"></i>
-                                <span className="badge">0</span>
-                            </div>
 
-                            {/* Hiển thị chữ cái đầu của username làm Avatar */}
-                            {/* <div className="avatar">
-                                {username.charAt(0).toUpperCase()}
-                            </div> */}
                         </div>
                     </header>
 

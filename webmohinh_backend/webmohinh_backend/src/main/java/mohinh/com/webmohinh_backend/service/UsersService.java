@@ -10,6 +10,10 @@ import mohinh.com.webmohinh_backend.entity.Role;
 import mohinh.com.webmohinh_backend.entity.Users;
 import mohinh.com.webmohinh_backend.repository.CategoriesRepository;
 import mohinh.com.webmohinh_backend.repository.UsersRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,11 +32,11 @@ public class UsersService {
     PasswordEncoder passwordEncoder;
 
     public Users save(Users users) {
-        if (users.getRole() == null) {
-            users.setRole(Role.USER);
-        }
+//        if (users.getRole() == null) {
+//            users.setRole(Role.USER);
+//        }
         users.setCreatedAt(LocalDateTime.now());
-
+        users.setStatus(0);
         // XÓA DÒNG NÀY: PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         // SỬ DỤNG bean 'passwordEncoder' đã được Spring inject ở trên
         users.setPassword(this.passwordEncoder.encode(users.getPassword()));
@@ -43,7 +47,13 @@ public class UsersService {
     public List<Users> getAll(){
         return usersRepository.findAll();
     }
+    public Page<Users> getStaffUsers(int page, int size) {
+        // Tạo Pageable: Sắp xếp theo ngày tạo (createdAt) mới nhất lên đầu
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
 
+        // Gọi Repository trả về Page thay vì List
+        return usersRepository.findByRole(Role.STAFF, pageable);
+    }
     public Users update(String id, Users users) {
         Users usersUpdate = findById(id);
         usersUpdate.setUsername(users.getUsername());
@@ -75,9 +85,10 @@ public class UsersService {
 
         // 3. Trả về LoginRequest (DTO) - KHÔNG trả về đối tượng User của Spring Security
         return LoginRequest.builder()
+                .idUser(String.valueOf(user.getId())) // Gán đúng vào idUser
                 .username(user.getUsername())
                 .email(user.getEmail())
-                .role(user.getRole().name()) // Trả về "ADMIN" hoặc "STAFF"
+                .role(user.getRole().name())
                 .build();
     }
 }

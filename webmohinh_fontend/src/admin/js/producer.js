@@ -165,7 +165,7 @@ function Producer() {
                 confirmButtonColor: "#4CAF50",
             });
         } catch (error) {
-           
+
         }
     };
 
@@ -233,7 +233,7 @@ function Producer() {
             >
                 <Box sx={style}>
                     <Typography id="modal-modal-title" variant="h6" component="h2">
-                        Thêm
+                        Thêm mới nhà sản xuất
                     </Typography>
                     <hr />
                     <Box sx={{ mt: 2 }}>

@@ -27,6 +27,7 @@ function SigUp() {
         e.preventDefault(); // Ngăn reload trang
 
         try {
+            // 1. Validation: Kiểm tra các trường trống
             if (!newUsers.username.trim()) {
                 window.alert("Vui lòng nhập username!");
                 return;
@@ -37,13 +38,14 @@ function SigUp() {
                 return;
             }
 
-            // Kiểm tra định dạng email
+            // 2. Kiểm tra định dạng email bằng Regex
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(newUsers.email.trim())) {
                 window.alert("Email không đúng định dạng!");
                 return;
             }
 
+            // 3. Kiểm tra Password
             if (!newUsers.password.trim()) {
                 window.alert("Vui lòng nhập password!");
                 return;
@@ -56,24 +58,54 @@ function SigUp() {
                 window.alert("Mật khẩu nhập lại không khớp!");
                 return;
             }
+
+            // 4. Kiểm tra trùng lặp username cục bộ (nếu cần)
             const isDuplicate = users.some(user => user.username === newUsers.username.trim());
             if (isDuplicate) {
-                window.alert("username này đã tồn tại!");
+                window.alert("Username này đã tồn tại!");
                 return;
             }
 
-            const response = await api.post('/users', newUsers);
+            // --- PHẦN QUAN TRỌNG: GÁN ROLE TỪ FRONTEND ---
+            const userPayload = {
+                username: newUsers.username.trim(),
+                email: newUsers.email.trim(),
+                password: newUsers.password,
+                role: "USER" // Gửi trực tiếp Role sang Backend
+            };
 
+            // 5. Gửi API
+            const response = await api.post('/users', userPayload);
+
+            // 6. Cập nhật UI sau khi thành công
             setUsers([response.data, ...users]);
-            setNewUsers({ username: '', password: '', email: '', confirmPassword: '' });
+
+            // Reset form về trạng thái ban đầu
+            setNewUsers({
+                username: '',
+                password: '',
+                email: '',
+                role: ''
+            });
+            setConfirmPassword(''); // Đừng quên reset cả ô confirm password
+
+            // Thông báo xịn xò với SweetAlert2
             Swal.fire({
                 icon: "success",
                 title: "Đăng ký tài khoản thành công 🎉",
+                text: `Chào mừng ${response.data.username} đã gia nhập!`,
                 confirmButtonColor: "#4CAF50",
             });
 
         } catch (error) {
             console.error("Lỗi khi thêm người dùng:", error);
+
+            // Xử lý thông báo lỗi từ Server (ví dụ: trùng email ở DB)
+            const errorMessage = error.response?.data?.message || "Lỗi hệ thống!"; Swal.fire({
+                icon: "error",
+                title: "Thất bại",
+                text: errorMessage,
+            });
         }
     };
 

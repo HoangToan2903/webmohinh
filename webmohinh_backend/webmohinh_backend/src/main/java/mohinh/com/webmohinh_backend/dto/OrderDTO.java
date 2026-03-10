@@ -15,6 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class OrderDTO {
+     String id;
      String name;
      String email;
      String shippingAddress;
@@ -26,7 +27,10 @@ public class OrderDTO {
      BigDecimal totalPrice;
      String codeOrder;
      String voucherId;
+     String userId;
      Integer status;
+     Double voucherDiscount;
+     String userName;
      List<OrderItemDTO> items;
-
+     String source;
 }

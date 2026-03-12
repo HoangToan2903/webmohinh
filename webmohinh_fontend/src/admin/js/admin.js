@@ -71,7 +71,7 @@ function Admin() {
                     </div>
                     <nav>
                         <ul>
-                            <li className={tab === 'statistics' ? 'active' : ''} onClick={() => handleTabChange('statistics')}>
+                            <li className={tab === 'dashboard' ? 'active' : ''} onClick={() => handleTabChange('dashboard')}>
                                 <span><AreaChartIcon /> Thống kê</span>
                             </li>
 

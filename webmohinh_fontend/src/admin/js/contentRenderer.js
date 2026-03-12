@@ -8,11 +8,12 @@ import SasaleProducts from './saleProducts'
 import OrderAdmin from './orderAdmin';
 import CreateOder from './createOrder';
 import Staff from './staff';
+import Dashboard from './dashboard'
 import Customer from './customer'
 const ContentRenderer = ({ tab }) => {
     switch (tab) {
-        case 'statistics':
-            return <Statistics />;
+        case 'dashboard':
+            return <Dashboard />;
         case 'orderAdmin':
             return <OrderAdmin />;
         case 'createOder':

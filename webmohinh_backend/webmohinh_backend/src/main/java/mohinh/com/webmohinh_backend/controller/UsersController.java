@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import mohinh.com.webmohinh_backend.dto.LoginRequest;
+import mohinh.com.webmohinh_backend.entity.Producer;
 import mohinh.com.webmohinh_backend.entity.Sale;
 import mohinh.com.webmohinh_backend.entity.Users;
 import mohinh.com.webmohinh_backend.service.UsersService;
@@ -34,6 +35,14 @@ public class UsersController {
         Page<Users> staffPage = usersService.getStaffUsers(page, size);
         return ResponseEntity.ok(staffPage);
     }
+    @PutMapping("/customer/{id}")
+    public Users update(@PathVariable String id, @RequestBody Users users) {
+        return usersService.update(id, users);
+    }
+    @PatchMapping("/customer/{id}/status")
+    public Users updateStatus(@PathVariable String id, @RequestParam Integer value) {
+        return usersService.updateStatus(id, value);
+    }
     @PostMapping("/users")
     public Users save(@RequestBody Users users) {
         return usersService.save(users);
@@ -49,6 +58,7 @@ public class UsersController {
             Map<String, Object> response = new HashMap<>();
             response.put("username", user.getUsername());
             response.put("idUser", user.getIdUser());
+            response.put("status", user.getStatus());
             response.put("email", user.getEmail());
             response.put("role", user.getRole()); // Trả về "ADMIN" hoặc "STAFF"
 

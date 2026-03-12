@@ -121,13 +121,10 @@ function Admin() {
                                     <ArrowDropDownIcon />
                                 </span>
                                 <ul className={`sub-menu ${openMenus.profile ? 'show' : ''}`}>
-                                    <li
-                                        className={activeTab === 'profile-customer' ? 'active' : ''}
-                                        onClick={() => setActiveTab('profile-customer')}
-                                    >
+                                       <li className={tab === 'customer' ? 'active' : ''} onClick={() => handleTabChange('customer')}>
                                         <span><Person4Icon /> Khách hàng</span>
                                     </li>
-                                    <li className={tab === 'customer' ? 'active' : ''} onClick={() => handleTabChange('customer')}>
+                                    <li className={tab === 'staff' ? 'active' : ''} onClick={() => handleTabChange('staff')}>
 
                                         <span><PeopleAltIcon /> Nhân viên</span>
                                     </li>

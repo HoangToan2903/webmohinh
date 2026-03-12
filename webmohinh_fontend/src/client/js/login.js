@@ -4,6 +4,7 @@ import Footer from './footer';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import api from '../../axiosConfig';
+import Swal from "sweetalert2";
 
 function LogIn() {
     // 1. Khai báo state để lưu thông tin đăng nhập
@@ -32,41 +33,53 @@ function LogIn() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setError(""); // Reset thông báo lỗi cũ
+
         try {
             const response = await api.post('/login', loginData);
 
-            if (response.status === 200) {
-                // Lấy dữ liệu từ response.data
-                const userData = response.data;
-                const userRole = userData.role;
+            // Nếu API trả về 200 OK
+            const userData = response.data;
 
-                // 1. Xử lý Auth Header
+            // Kiểm tra lại một lần nữa ở client cho chắc chắn
+            if (userData.status !== 0) {
+                setError("Tài khoản của bạn không khả dụng hoặc đã bị cấm!!");
+                return;
+            }
+
+            // Kiểm tra quyền USER
+            if (userData.role === "USER") {
+                // Tạo Auth Header (Basic Auth)
                 const authString = `${loginData.username}:${loginData.password}`;
                 const authHeader = window.btoa(unescape(encodeURIComponent(authString)));
+
+                // Lưu vào sessionStorage
                 sessionStorage.setItem("authHeader", authHeader);
+                sessionStorage.setItem('username', userData.username);
+                sessionStorage.setItem('userEmail', userData.email);
+                sessionStorage.setItem('userRole', userData.role);
+                sessionStorage.setItem('idUser', userData.idUser);
 
-                if (userRole === "USER") {
-                    // 2. Lưu thông tin vào sessionStorage
-                    sessionStorage.setItem('username', loginData.username);
-                    sessionStorage.setItem('password', loginData.password);
-                    sessionStorage.setItem('userEmail', userData.email || "");
-                    sessionStorage.setItem('userRole', userRole);
-
-                    // SỬA TẠI ĐÂY: Lấy idUser từ userData (tức response.data)
-                    sessionStorage.setItem('idUser', userData.idUser);
-
-                    alert("Đăng nhập thành công!");
+                Swal.fire({
+                    title: "Thành công!",
+                    text: "Chào mừng bạn quay trở lại.",
+                    icon: "success",
+                    timer: 1500,
+                    showConfirmButton: false
+                }).then(() => {
                     window.location.href = "/home";
-                } else {
-                    setError("Tài khoản không tồn tại!");
-                    sessionStorage.clear();
-                }
+                });
+            } else {
+                Swal.fire("Lỗi phân quyền", "Bạn không có quyền truy cập khu vực này!", "error");
+                sessionStorage.clear();
             }
+
         } catch (err) {
-            setError("Tên đăng nhập hoặc mật khẩu không đúng.");
+            // Bắt lỗi 401, 403, 500 từ server trả về          
+            // Xóa sạch session để đảm bảo an toàn
+            sessionStorage.clear();
         }
     };
-
     const handleRegisterRedirect = (e) => {
         e.preventDefault();
         navigate('/sigup');

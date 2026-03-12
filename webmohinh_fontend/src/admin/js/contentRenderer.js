@@ -7,7 +7,8 @@ import Sale from './sale'
 import SasaleProducts from './saleProducts'
 import OrderAdmin from './orderAdmin';
 import CreateOder from './createOrder';
-import Customer from './customer';
+import Staff from './staff';
+import Customer from './customer'
 const ContentRenderer = ({ tab }) => {
     switch (tab) {
         case 'statistics':
@@ -24,10 +25,12 @@ const ContentRenderer = ({ tab }) => {
             return <Voucher />;
         case 'products':
             return <Products />;
-        case 'sale':
-            return <Sale />;
         case 'customer':
             return <Customer />;
+        case 'sale':
+            return <Sale />;
+        case 'staff':
+            return <Staff />;
         case 'add_sale_Products':
             return <SasaleProducts />;
         // thêm các case khác nếu bạn có component tương ứng

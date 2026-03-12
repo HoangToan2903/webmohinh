@@ -56,14 +56,29 @@ public class UsersService {
     }
     public Users update(String id, Users users) {
         Users usersUpdate = findById(id);
+
         usersUpdate.setUsername(users.getUsername());
-        usersUpdate.setPassword(users.getPassword());
         usersUpdate.setEmail(users.getEmail());
-        usersUpdate.setCreatedAt(users.getCreatedAt());
+
+        // Chỉ cập nhật mật khẩu nếu người dùng có nhập mới
+        if (users.getPassword() != null && !users.getPassword().trim().isEmpty()) {
+            // Nếu bạn có dùng BCrypt, hãy mã hóa ở đây:
+            // usersUpdate.setPassword(passwordEncoder.encode(users.getPassword()));
+
+            // Nếu bạn lưu text thuần (không khuyến khích):
+            usersUpdate.setPassword(users.getPassword());
+        }
+
+        usersUpdate.setCreatedAt(LocalDateTime.now());
         return usersRepository.save(usersUpdate);
     }
 
-
+    public Users updateStatus(String id, Integer status) {
+        Users user = findById(id);
+        user.setStatus(status);
+        user.setCreatedAt(LocalDateTime.now());
+        return usersRepository.save(user);
+    }
     public void delete(String id){
         usersRepository.deleteById(id);
     }
@@ -88,6 +103,7 @@ public class UsersService {
                 .idUser(String.valueOf(user.getId())) // Gán đúng vào idUser
                 .username(user.getUsername())
                 .email(user.getEmail())
+                .status(user.getStatus())
                 .role(user.getRole().name())
                 .build();
     }

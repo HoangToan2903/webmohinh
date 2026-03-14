@@ -20,6 +20,16 @@ public interface ProductsRepository extends JpaRepository<Products, String> {
     Page<Products> findByNameStartingWithIgnoreCase(String namePrefix, Pageable pageable);
 
 
-    @Query("SELECT p FROM Products p JOIN p.categories c WHERE c.id = :categoryId")
-    Page<Products> findAllByCategoryId(String categoryId, Pageable pageable);
+    // ProductsRepository.java
+    @Query("SELECT p FROM Products p " +
+            "WHERE p.categories.id = :categoryId " +
+            "AND (:producerId IS NULL OR p.producer.id = :producerId) " +
+            "AND p.price BETWEEN :minPrice AND :maxPrice")
+    Page<Products> findProductsWithFilters(
+            @Param("categoryId") String categoryId,
+            @Param("producerId") String producerId,
+            @Param("minPrice") Double minPrice,
+            @Param("maxPrice") Double maxPrice,
+            Pageable pageable
+    );
 }

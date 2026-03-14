@@ -17,7 +17,6 @@ import ProductsCategories from './client/js/productsCategories';
 import CartItems from './client/js/cartItems';
 import PaymentResult from './client/js/PaymentResult';
 import UserProfile from './client/js/userProfile';
-
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
@@ -32,7 +31,6 @@ root.render(
         <Route path="/cart" element={<CartItems />} />
         <Route path="/payment-result" element={<PaymentResult />} />
         <Route path="/userProfile" element={<UserProfile />} />
-
         {/* Trang đăng nhập của Admin/Staff */}
         <Route path="/loginManager" element={<LoginManager />} />
 

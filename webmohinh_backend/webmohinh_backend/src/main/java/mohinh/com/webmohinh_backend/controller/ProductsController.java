@@ -111,14 +111,28 @@ public class ProductsController {
         Products updatedProduct = productsService.addOrUpdateSaleToProduct(productId, idSale);
         return ResponseEntity.ok(updatedProduct);
     }
-//    @GetMapping("/category/{categoryId}")
-//    public ResponseEntity<Page<ProductsDTO>> getProductsByCategory(
-//            @PathVariable String categoryId,
-//            Pageable pageable
-//    ) {
-//        Page<Products> productPage = productsService.getProductsByCategoryId(categoryId, pageable);
-//        Page<ProductsDTO> dtoPage = productPage.map(this::toDTO);
-//        return ResponseEntity.ok(dtoPage);
-//    }
+    @GetMapping("/category/{categoryId}")
+    public ResponseEntity<Page<Products>> getProductsByCategory(
+            @PathVariable String categoryId,
+            @RequestParam(required = false) String producerId,
+            @RequestParam(defaultValue = "0") Double minPrice,
+            @RequestParam(defaultValue = "100000000") Double maxPrice,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size
+    ) {
+        // Tạo đối tượng phân trang
+        Pageable pageable = PageRequest.of(page, size);
+
+        // Gọi service xử lý lọc
+        Page<Products> productPage = productsService.getProductsByCategoryFiltered(
+                categoryId,
+                producerId,
+                minPrice,
+                maxPrice,
+                pageable
+        );
+
+        return ResponseEntity.ok(productPage);
+    }
 
 }

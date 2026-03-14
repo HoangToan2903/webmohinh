@@ -1209,7 +1209,7 @@ input[type=number]::-webkit-outer-spin-button {
 
 .product-section {
   display: grid;
-  grid-template-columns: 2fr 10fr;
+  grid-template-columns: 3fr 9fr;
   /* 4 + 8 = 12 phần */
   gap: 16px;
   /* khoảng cách giữa 2 cột nếu muốn */
@@ -1523,7 +1523,7 @@ input[type=number]::-webkit-outer-spin-button {
 }
 
 .btn-filter {
-  background-color: #555;
+  background-color: #e74c3c;
   color: white;
   border: none;
   border-radius: 20px;

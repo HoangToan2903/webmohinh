@@ -187,8 +187,25 @@ public class ProductsService {
         return productsRepository.save(product); // Lưu thay đổi
     }
 
-    public Page<Products> getProductsByCategoryId(String categoryId, Pageable pageable) {
-        return productsRepository.findAllByCategoryId(categoryId, pageable);
+    // ProductsService.java
+    public Page<Products> getProductsByCategoryFiltered(
+            String categoryId,
+            String producerId,
+            Double minPrice,
+            Double maxPrice,
+            Pageable pageable) {
+
+        // Nếu giá không được truyền, thiết lập khoảng giá mặc định rộng
+        Double min = (minPrice != null) ? minPrice : 0.0;
+        Double max = (maxPrice != null) ? maxPrice : 999999999.0;
+
+        return productsRepository.findProductsWithFilters(
+                categoryId,
+                producerId,
+                min,
+                max,
+                pageable
+        );
     }
     public Optional<Products> getProductById(String idProducts) {
         return productsRepository.findById(idProducts);

@@ -463,7 +463,7 @@ function Home() {
 
             </div>
             <hr></hr>
-            <h1>MÔ HÌNH HOT CỦA NEMO SHOP </h1>
+            <h1>MÔ HÌNH CÓ LƯỢT MUA NHIỀU NHẤT</h1>
             <div className="container">
                 <div className="slider">
                     <ul>

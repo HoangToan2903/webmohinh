@@ -1,4 +1,3 @@
-import Statistics from './statistics';
 import Categories from './categories';
 import Producer from './producer'
 import Voucher from './voucher'

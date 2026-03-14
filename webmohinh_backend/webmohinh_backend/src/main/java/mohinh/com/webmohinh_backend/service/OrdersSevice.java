@@ -215,14 +215,11 @@ public class OrdersSevice {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         LocalDateTime startOfDay = date.atStartOfDay();
         LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
-
         // Chuyển String từ Frontend thành Enum của Backend trước khi truyền vào Repository
         OrderSource sourceParam = (source == null || "ALL".equals(source))
                 ? null
                 : OrderSource.valueOf(source.toUpperCase());
-
         Page<Orders> ordersPage = ordersRepository.findByAdminFilters(status, startOfDay, endOfDay, sourceParam, pageable);
-
         return ordersPage.map(this::mapToOrderDTO);
     }
     private OrderDTO mapToOrderDTO(Orders order) {

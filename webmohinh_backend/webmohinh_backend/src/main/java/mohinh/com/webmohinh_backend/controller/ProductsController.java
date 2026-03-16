@@ -111,7 +111,7 @@ public class ProductsController {
         Products updatedProduct = productsService.addOrUpdateSaleToProduct(productId, idSale);
         return ResponseEntity.ok(updatedProduct);
     }
-    @GetMapping("/category/{categoryId}")
+    @GetMapping("/shearchCategory/{categoryId}")
     public ResponseEntity<Page<Products>> getProductsByCategory(
             @PathVariable String categoryId,
             @RequestParam(required = false) String producerId,
@@ -134,5 +134,14 @@ public class ProductsController {
 
         return ResponseEntity.ok(productPage);
     }
+    @GetMapping("/productsSale")
+    public ResponseEntity<List<Products>> getProductsOnSale() {
+        List<Products> products = productsService.getProductsOnSale();
 
+        if (products.isEmpty()) {
+            return ResponseEntity.noContent().build(); // Trả về 204 nếu không có sản phẩm nào
+        }
+
+        return ResponseEntity.ok(products); // Trả về 200 và danh sách sản phẩm
+    }
 }

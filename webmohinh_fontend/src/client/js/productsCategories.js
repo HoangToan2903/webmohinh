@@ -44,7 +44,7 @@ function ProductsCategories() {
     }, [window.location.pathname]);
     const [productsPage, setProductsPage] = useState({ content: [], first: true, last: true });
     const [page, setPage] = useState(0);
-    const size = 12;
+    const size = 9;
     const [totalPages, setTotalPages] = useState(0);
     useEffect(() => {
         fetchProducts();
@@ -55,7 +55,7 @@ function ProductsCategories() {
 
     const fetchProducts = async () => {
         try {
-            const response = await api.get(`/category/${id}`, {
+            const response = await api.get(`/shearchCategory/${id}`, {
                 params: {
                     page: page,
                     size: size,

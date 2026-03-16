@@ -11,8 +11,9 @@ function Shop() {
 
     }, []);
     return (
-        <div>
+        <div className='app-container'>
             <Navbar />
+            <br></br>
             <Banner />
             <Home />
             <Footer />

@@ -20,7 +20,6 @@ public interface ProductsRepository extends JpaRepository<Products, String> {
     Page<Products> findByNameStartingWithIgnoreCase(String namePrefix, Pageable pageable);
 
 
-    // ProductsRepository.java
     @Query("SELECT p FROM Products p " +
             "WHERE p.categories.id = :categoryId " +
             "AND (:producerId IS NULL OR p.producer.id = :producerId) " +
@@ -32,4 +31,4 @@ public interface ProductsRepository extends JpaRepository<Products, String> {
             @Param("maxPrice") Double maxPrice,
             Pageable pageable
     );
-}
+    List<Products> findBySaleIsNotNullAndSaleStatusAndStatus(Integer saleStatus, String productStatus);}

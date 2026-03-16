@@ -210,5 +210,8 @@ public class ProductsService {
     public Optional<Products> getProductById(String idProducts) {
         return productsRepository.findById(idProducts);
     }
-
+    public List<Products> getProductsOnSale() {
+        // Gọi method từ Repository với status = 1
+        return productsRepository.findBySaleIsNotNullAndSaleStatusAndStatus(1, "còn hàng");
+    }
 }

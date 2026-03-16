@@ -182,7 +182,7 @@ function Products() {
     const handleAdd = async () => {
         // 1. Kiểm tra điều kiện bắt buộc
         if (!name || !description || !price || !quantity || !categoryValue || !producerValue) {
-            Swal.fire("Chú ý", "Vui lòng điền đầy đủ thông tin bắt buộc!", "warning");
+           alert("Vui lòng điền đầy đủ thông tin sản phẩm.")
             return;
         }
 

@@ -17,7 +17,7 @@ public interface ProductsRepository extends JpaRepository<Products, String> {
     List<Products> findBySale(Sale sale);
 
     // Tìm kiếm theo tên có phân trang (trả về Page)
-    Page<Products> findByNameStartingWithIgnoreCase(String namePrefix, Pageable pageable);
+    Page<Products> findByNameContainingIgnoreCase(String namePrefix, Pageable pageable);
 
 
     @Query("SELECT p FROM Products p " +
@@ -31,4 +31,18 @@ public interface ProductsRepository extends JpaRepository<Products, String> {
             @Param("maxPrice") Double maxPrice,
             Pageable pageable
     );
-    List<Products> findBySaleIsNotNullAndSaleStatusAndStatus(Integer saleStatus, String productStatus);}
+    List<Products> findBySaleIsNotNullAndSaleStatusAndStatus(Integer saleStatus, String productStatus);
+
+    @Query("SELECT p FROM Products p WHERE LOWER(p.name) LIKE LOWER(concat('%', :name, '%'))")
+    List<Products> searchByName(@Param("name") String name, Pageable pageable);
+
+
+    @Query("SELECT p FROM Products p WHERE " +
+            "(:name IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
+            "(:categoryId IS NULL OR p.categories.id = :categoryId)")
+    Page<Products> searchProducts(
+            @Param("name") String name,
+            @Param("categoryId") String categoryId,
+            Pageable pageable
+    );
+}

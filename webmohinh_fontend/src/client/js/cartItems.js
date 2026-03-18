@@ -19,7 +19,7 @@ const PAGE_SIZE = 10;
 function CartItems() {
     useEffect(() => {
         import('../css/home.css');
-
+        window.scrollTo(0, 0);
     }, []);
 
     const navigate = useNavigate();

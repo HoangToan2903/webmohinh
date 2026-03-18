@@ -45,13 +45,6 @@ public class CategoriesController {
             @RequestParam(defaultValue = "8") int size) {
         return categoryService.searchByName(name, page, size);
     }
-//    @PutMapping("/category/{id}")
-//    public Categories update(@PathVariable String id,
-//                           @RequestParam("name") String name,
-//                           @RequestParam("description") String description,
-//                           @RequestParam(value = "image", required = false) MultipartFile file) {
-//        return categoryService.update(id, name, description, file);
-//    }
 
     @DeleteMapping("/category/{id}")
     public void delete(@PathVariable String id) {

@@ -95,6 +95,58 @@ function Navbar2() {
     const handleClick = (index) => {
         setActiveIndex(index);
     };
+
+
+    const [searchTerm, setSearchTerm] = useState('');
+    const [results, setResults] = useState([]);
+    const [showDropdown, setShowDropdown] = useState(false);
+    const [loading, setLoading] = useState(false);
+
+    // Ref để xử lý click ra ngoài thì đóng menu
+    const searchRef = useRef(null);
+
+    // Xử lý tìm kiếm với Debounce
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            if (searchTerm.trim().length >= 1) {
+                fetchSearchSuggestions(searchTerm);
+            } else {
+                setResults([]);
+                setShowDropdown(false);
+            }
+        }, 300); // Đợi 300ms sau khi ngừng gõ
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchTerm]);
+
+    const fetchSearchSuggestions = async (key) => {
+        setLoading(true);
+        try {
+            const response = await api.get(`/products/search-suggestions?name=${key}`);
+            setResults(response.data);
+            setShowDropdown(true);
+        } catch (error) {
+            console.error("Lỗi tìm kiếm:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleSearch = () => {
+        if (searchTerm.trim()) {
+            // Đóng dropdown gợi ý nếu đang mở
+            setShowDropdown(false);
+            // Chuyển hướng sang trang search với query parameter
+            navigate(`/search?query=${encodeURIComponent(searchTerm.trim())}`);
+        }
+    };
+
+    // Hàm xử lý khi nhấn phím Enter
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            handleSearch();
+        }
+    };
     return (
         <header className={`main-header ${isSticky ? 'sticky' : ''}`} data-purpose="site-header">
             <div className="container">
@@ -109,23 +161,52 @@ function Navbar2() {
                             navigate('/home');
                         }} className="logo-text">NEMO SHOP</span>
                     </a>
-                    <div className="search-wrapper" data-purpose="site-search">
-                        <input aria-label="Search" className="search-input" placeholder="Từ khoá..." type="text" />
-                        <button aria-label="Submit Search" className="search-icon-btn">
-                            <svg
-                                fill="none"
-                                height="20"
-                                stroke="currentColor"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                viewBox="0 0 24 24"
-                                width="20"
-                            >
-                                <circle cx="11" cy="11" r="8"></circle>
-                                <line x1="21" x2="16.65" y1="21" y2="16.65"></line>
-                            </svg>
-                        </button>
+                    <div className="search-container" ref={searchRef}>
+                        <div className="search-wrapper">
+                            <input
+                                className="search-input"
+                                placeholder="Tìm kiếm sản phẩm..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onFocus={() => results.length > 0 && setShowDropdown(true)}
+                                onKeyDown={handleKeyDown} // Thêm cái này để nhấn Enter là search
+                            />
+                            <button className="search-icon-btn" onClick={handleSearch}>
+                                {loading ? <div className="spinner"></div> : "🔍"}
+                            </button>
+                        </div>
+
+                        {/* Dropdown hiển thị kết quả */}
+                        {showDropdown && results.length > 0 && (
+                            <div className="search-dropdown">
+                                {/* Sử dụng slice(0, 8) để chỉ lấy 8 phần tử đầu tiên trong mảng results */}
+                                {results.slice(0, 8).map((item) => (
+                                    <div key={item.id} className="search-result-item">
+                                        <img
+                                            src={item.images?.[0]?.imageUrl || 'https://via.placeholder.com/50'}
+                                            alt={item.name}
+                                        />
+                                        <div className="item-info">
+                                            <a
+                                                className="item-name"
+                                                onClick={() => {
+                                                    localStorage.setItem("productsId", item.id);
+                                                    localStorage.setItem("productImages", JSON.stringify(item.images || []));
+                                                    navigate(`/shopNemo/${slugify(item.name)}`);
+                                                    // Thêm dòng này để đóng dropdown sau khi chọn sản phẩm
+                                                    setShowDropdown(false);
+                                                }}
+                                            >
+                                                {item.name}
+                                            </a>
+                                            <p className="item-price">
+                                                {new Intl.NumberFormat('vi-VN').format(item.price)}đ
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                     <div className="header-info-group">
                         <div className="info-item">
@@ -182,7 +263,7 @@ function Navbar2() {
                                                     <div className="dropdown-item" onClick={() => { navigate('/login'); setIsMenuOpen(false); }}>
                                                         Đăng nhập
                                                     </div>
-                                                    <div className="dropdown-item" onClick={() => { navigate('/signup'); setIsMenuOpen(false); }}>
+                                                    <div className="dropdown-item" onClick={() => { navigate('/sigup'); setIsMenuOpen(false); }}>
                                                         Đăng ký
                                                     </div>
                                                 </>

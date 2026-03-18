@@ -20,10 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -167,7 +164,7 @@ public class ProductsService {
     }
     public Page<Products> searchProductsByPrefix(String namePrefix, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
-        return productsRepository.findByNameStartingWithIgnoreCase(namePrefix, pageable);
+        return productsRepository.findByNameContainingIgnoreCase(namePrefix, pageable);
     }
 
 
@@ -213,5 +210,24 @@ public class ProductsService {
     public List<Products> getProductsOnSale() {
         // Gọi method từ Repository với status = 1
         return productsRepository.findBySaleIsNotNullAndSaleStatusAndStatus(1, "còn hàng");
+    }
+
+    public List<Products> searchProductsByName(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+        String keyword = name.trim();
+        Pageable limit = PageRequest.of(0, 10);
+        return productsRepository.searchByName(keyword, limit);
+    }
+
+    public Page<Products> searchProducts(String name, String categoryId, Pageable pageable) {
+        // Nếu name chỉ toàn khoảng trắng hoặc rỗng, đặt về null
+        String cleanName = (name != null && !name.trim().isEmpty()) ? name.trim() : null;
+
+        // Nếu categoryId rỗng, đặt về null
+        String cleanCatId = (categoryId != null && !categoryId.trim().isEmpty()) ? categoryId : null;
+
+        return productsRepository.searchProducts(cleanName, cleanCatId, pageable);
     }
 }

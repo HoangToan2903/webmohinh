@@ -67,42 +67,23 @@ public class ProductsController {
     }
 
 
-//    @GetMapping("products/search")
-//    public Page<ProductsDTO> searchProducts(
+//    @GetMapping("/products/search")
+//    public Page<Products> searchProducts(
 //            @RequestParam(defaultValue = "") String name,
 //            @RequestParam(defaultValue = "0") int page,
 //            @RequestParam(defaultValue = "8") int size) {
-//
 //        Page<Products> productsPage = productsService.searchProductsByPrefix(name, page, size);
-//        return productsPage.map(ProductsDTO::new);
+//        return productsPage;
 //    }
-
+    @GetMapping("/products/search-suggestions")
+    public ResponseEntity<List<Products>> getSuggestions(@RequestParam String name) {
+        List<Products> results = productsService.searchProductsByName(name);
+        return ResponseEntity.ok(results);
+    }
     @PutMapping("/products/{id}")
     public Products update(@PathVariable String id, @RequestBody ProductsDTO productsdto) {
         return productsService.update(id, productsdto);
     }
-
-
-//    @GetMapping("/products/{id}/images")
-//    public List<Map<String, String>> getProductImages(@PathVariable String id) {
-//        Products product = productsRepository.findById(id).orElseThrow();
-//        return product.getImages().stream()
-//                .map(img -> {
-//                    Map<String, String> map = new HashMap<>();
-//                    map.put("id", img.getId().toString());
-//                    map.put("imageData", Base64.getEncoder().encodeToString(img.getImage()));
-//                    return map;
-//                }).collect(Collectors.toList());
-//    }
-
-//    @PutMapping("/products/{id}/sale")
-//    @CrossOrigin
-//    public ResponseEntity<?> applySaleToProduct(@PathVariable String id, @RequestBody Sale sale) {
-//        Products product = productsRepository.findById(id).orElseThrow();
-//        product.setSale(sale);
-//        productsService.updatePromotionForProduct(product);
-//        return ResponseEntity.ok(product);
-//    }
 
     @PutMapping("/addSale")
     public ResponseEntity<Products> assignSaleToProduct(
@@ -143,5 +124,19 @@ public class ProductsController {
         }
 
         return ResponseEntity.ok(products); // Trả về 200 và danh sách sản phẩm
+    }
+
+    @GetMapping("/products/search")
+    public ResponseEntity<Page<Products>> search(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String categoryId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        // Tạo đối tượng phân trang (có thể thêm Sort nếu muốn)
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<Products> result = productsService.searchProducts(name, categoryId, pageable);
+        return ResponseEntity.ok(result);
     }
 }

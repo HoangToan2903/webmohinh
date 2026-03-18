@@ -70,23 +70,42 @@ function Products() {
     const [size, setSize] = useState(10); // Đảm bảo dùng biến này xuyên suốt
     const [totalPages, setTotalPages] = useState(0);
     const [products, setProducts] = useState([]);
+    const [searchText, setSearchText] = useState('');
+
+    // Thêm state để lưu category đang chọn
+    const [selectedCategory, setSelectedCategory] = useState(null);
+
     const fetchProducts = async () => {
         try {
-            const response = await api.get('/productsAll', {
-                params: { page, size }
+            // Luôn dùng 1 endpoint chung để xử lý lọc/tìm kiếm (Khuyên dùng)
+            // Hoặc linh hoạt URL tùy theo logic Backend của bạn
+            const response = await api.get('/products/search', {
+                params: {
+                    name: searchText.trim(),
+                    categoryId: selectedCategory?.id || "", // Truyền ID nếu có
+                    page: page,
+                    size: PAGE_SIZE
+                }
             });
-            console.log("Dữ liệu nhận về:", response.data.content); // Kiểm tra xem array này có mấy phần tử
-            setProducts(response.data.content);
-            setTotalPages(response.data.totalPages);
+
+            if (response.data) {
+                setProducts(response.data.content || []);
+                setTotalPages(response.data.totalPages || 0);
+            }
         } catch (error) {
-            console.error(error);
+            console.error("Lỗi khi fetch data:", error);
+            setProducts([]);
         }
-    }
+    };
 
+    // useEffect cần lắng nghe thêm biến selectedCategory
     useEffect(() => {
-        fetchProducts();
-    }, [page, size]);
+        const delayDebounce = setTimeout(() => {
+            fetchProducts();
+        }, 300);
 
+        return () => clearTimeout(delayDebounce);
+    }, [page, searchText, selectedCategory]); // Thêm selectedCategory vào dependency
     // Hàm xử lý khi đổi trang
     const handlePageChange = (event, value) => {
         setPage(value - 1); // Material UI Pagination dùng base-1, Spring Boot dùng base-0
@@ -182,7 +201,7 @@ function Products() {
     const handleAdd = async () => {
         // 1. Kiểm tra điều kiện bắt buộc
         if (!name || !description || !price || !quantity || !categoryValue || !producerValue) {
-           alert("Vui lòng điền đầy đủ thông tin sản phẩm.")
+            alert("Vui lòng điền đầy đủ thông tin sản phẩm.")
             return;
         }
 
@@ -418,32 +437,6 @@ function Products() {
         }
     };
     // search
-    // const [searchText, setSearchText] = useState('');
-    // // Gọi API khi searchText hoặc page thay đổi
-    // useEffect(() => {
-    //     const delayDebounce = setTimeout(() => {
-    //         fetchProducersSearch();
-    //     }, 300); // debounce 300ms
-
-    //     return () => clearTimeout(delayDebounce);
-    // }, [searchText, page]);
-
-    // const fetchProducersSearch = async () => {
-    //     try {
-    //         const response = await axios.get('http://localhost:8080/website/products/search', {
-    //             params: {
-    //                 name: searchText,
-    //                 page,
-    //                 size: PAGE_SIZE
-    //             }
-    //         });
-
-    //         setProducts(response.data.content);
-    //         setTotalPages(response.data.totalPages);
-    //     } catch (error) {
-    //         console.error('Lỗi khi lấy dữ liệu:', error);
-    //     }
-    // };
 
     return (
         <div>
@@ -456,19 +449,28 @@ function Products() {
                 </Button>
             </Box>
             {/* Search */}
-            {/* <div className="search-bar" style={{ marginBottom: 16 }}>
+            <div className="search-bar" style={{ marginBottom: 16 }}>
                 <i className="fas fa-search" style={{ marginRight: 8 }}></i>
                 <input
-                    type="text"
-                    placeholder="Search..."
+                    placeholder="Search name..."
+                    size="small"
                     value={searchText}
-                    onChange={(e) => {
-                        setSearchText(e.target.value);
-                        setPage(0); // reset page khi search
-                    }}
+                    onChange={(e) => { setSearchText(e.target.value); setPage(0); }}
                     style={{ padding: 8, width: 250 }}
                 />
-            </div> */}
+            </div>
+            <Autocomplete
+                disablePortal
+                options={categories}
+                getOptionLabel={(option) => option.name || ""}
+                isOptionEqualToValue={(option, value) => option.id === value?.id}
+                sx={{ width: 300, mb: 2 }}
+                renderInput={(params) => <TextField {...params} label="Lọc theo danh mục" />}
+                onChange={(event, newValue) => {
+                    setSelectedCategory(newValue); // newValue chính là object Category hoặc null
+                    setPage(0); // Reset về trang đầu tiên khi thay đổi bộ lọc
+                }}
+            />
             <Modal
                 open={open}
                 onClose={handleClose}
@@ -1104,7 +1106,7 @@ function Products() {
                         {products.map((product, index) => (
                             <TableRow key={product.id}>
                                 {/* Sửa lại STT dựa trên page và size */}
-                                <TableCell>{page * size + index + 1}</TableCell>
+                                <TableCell>{page * PAGE_SIZE + index + 1}</TableCell>
                                 <TableCell>
                                     <Avatar
                                         variant="rounded"

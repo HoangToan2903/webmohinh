@@ -49,6 +49,8 @@ function Home() {
 
     useEffect(() => {
         fetchEnoughProductsOnePiece();
+          window.scrollTo(0, 0);
+
     }, []);
     // 
     const [productsDragonball, setProductsDragonball] = useState([]);
@@ -227,7 +229,7 @@ function Home() {
                                         src={product.images?.[0]?.imageUrl || ''}
                                         alt={product.name}
                                     />
-                                    
+
                                     <span className="discount-badge">-{product.sale.discountPercent}%</span>
                                 </div>
                                 <div className="product-info">
@@ -244,9 +246,44 @@ function Home() {
                                         <span className="original-price">
                                             {product.price.toLocaleString('vi-VN')} đ
                                         </span>
-                                        <span className="original-cart">
+                                        <a className="original-cart"
+                                            onClick={async (e) => {
+                                                e.preventDefault();
+                                                try {
+                                                    let displayImage = product.images?.[0]?.imageUrl || displayImage || 'URL_ANH_MAC_DINH_CUA_BAN';
+                                                    if (!displayImage) {
+                                                        alert("Không có ảnh để thêm vào giỏ.");
+                                                        return;
+                                                    }
+
+                                                    let imageToSave = displayImage;
+
+                                                    // CHỈ resize nếu displayImage là chuỗi Base64 quá lớn
+                                                    // Nếu displayImage là URL (http...), bỏ qua đoạn resize này để tối ưu tốc độ
+                                                    if (displayImage.startsWith('data:image')) {
+                                                        const file = base64ToFile(displayImage);
+                                                        imageToSave = await resizeImageToBase64(file, 100, 100, 0.5);
+                                                    }
+
+                                                    const finalPrice = product.sale?.id && product.sale?.status === 1
+                                                        ? product.price - (product.price * (product.sale.discountPercent / 100))
+                                                        : product.price;
+
+                                                    addToCart({
+                                                        id: product.id,
+                                                        name: product.name,
+                                                        price: finalPrice,
+                                                        image: imageToSave, // URL hoặc base64 ngắn gọn
+                                                    });
+
+                                                    alert("Đã thêm vào giỏ hàng!");
+                                                } catch (error) {
+                                                    console.error("Lỗi khi thêm giỏ hàng:", error);
+                                                    alert("Không thể thêm sản phẩm.");
+                                                }
+                                            }}>
                                             <AddShoppingCartIcon />
-                                        </span>
+                                        </a>
                                     </div>
                                 </div>
                             </article>
@@ -264,389 +301,320 @@ function Home() {
                 </div>
             </main>
             <h1>Mô hình ONE PIECE</h1>
-            <div className="flex-center">
-                <div className="portfolio gallery gallery-container">
-                    {loading ? (
-                        <p> <CircularProgress disableShrink /></p>
-                    ) : (
-                        productsOnePiece.map((product, index) => {
-                            // Lấy URL ảnh từ danh sách images (giả sử phần tử đầu tiên)
-                            const displayImage = product.images && product.images.length > 0
-                                ? product.images[0].imageUrl
-                                : null;
 
-                            return (
-                                <div className="item" key={index}>
-                                    <div className="thumb" style={{ position: "relative" }}>
-                                        <a className="category">{product.categories.name}</a>
-
-                                        {displayImage ? (
-                                            <img
-                                                // style={{ objectFit: "cover", width: "100%", height: "300px" }} // Thêm kích thước cố định để card đều
-                                                src={product.images?.[0]?.imageUrl || ''}
-                                                alt={product.name}
-                                            />
-                                        ) : (
-                                            <div style={{ height: "250px", width: "100%", backgroundColor: "#eee", display: "flex", alignItems: "center", justifyContent: "center", color: "#999" }}>
-                                                No image
-                                            </div>
-                                        )}
-
-                                        {product.status === "Hết hàng" && (
-                                            <div style={{
-                                                position: "absolute",
-                                                top: 0,
-                                                left: 0,
-                                                width: "100%",
-                                                height: "100%",
-                                                backgroundColor: "rgba(0, 0, 0, 0.5)",
-                                                color: "white",
-                                                display: "flex",
-                                                alignItems: "center",
-                                                justifyContent: "center",
-                                                fontWeight: "bold",
-                                                fontSize: "18px",
-                                                zIndex: 2,
-                                            }}>
-                                                ❌ Hết hàng
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <div className="text">
-                                        <h3>
-                                            <a onClick={() => {
-                                                localStorage.setItem("productsId", product.id);
-                                                localStorage.setItem("productImages", JSON.stringify(product.images || []));
-                                                navigate(`/shopNemo/${slugify(product.name)}`);
-                                            }}>
-                                                {product.name}
-                                            </a>
-                                        </h3>
-
-                                        {!product.sale?.id || product.sale?.status === 0 ? (
-                                            <p>{Number(product.price).toLocaleString("vi-VN")} đ</p>
-                                        ) : (
-                                            <p>
-                                                <del style={{ color: "gray", marginRight: "8px" }}>
-                                                    {Number(product.price).toLocaleString("vi-VN")} đ
-                                                </del>
-                                                <strong style={{ color: '#e74c3c' }}>
-                                                    {Number(
-                                                        product.price - (product.price * (product.sale.discountPercent / 100))
-                                                    ).toLocaleString("vi-VN")} đ
-                                                </strong>
-                                            </p>
-                                        )}
-
-                                        {product.status !== "Hết hàng" && (
-                                            <a
-                                                href="#"
-                                                className="view"
-                                                onClick={async (e) => {
-                                                    e.preventDefault();
-                                                    try {
-                                                        if (!displayImage) {
-                                                            alert("Không có ảnh để thêm vào giỏ.");
-                                                            return;
-                                                        }
-
-                                                        let imageToSave = displayImage;
-
-                                                        // CHỈ resize nếu displayImage là chuỗi Base64 quá lớn
-                                                        // Nếu displayImage là URL (http...), bỏ qua đoạn resize này để tối ưu tốc độ
-                                                        if (displayImage.startsWith('data:image')) {
-                                                            const file = base64ToFile(displayImage);
-                                                            imageToSave = await resizeImageToBase64(file, 100, 100, 0.5);
-                                                        }
-
-                                                        const finalPrice = product.sale?.id && product.sale?.status === 1
-                                                            ? product.price - (product.price * (product.sale.discountPercent / 100))
-                                                            : product.price;
-
-                                                        addToCart({
-                                                            id: product.id,
-                                                            name: product.name,
-                                                            price: finalPrice,
-                                                            image: imageToSave, // URL hoặc base64 ngắn gọn
-                                                        });
-
-                                                        alert("Đã thêm vào giỏ hàng!");
-                                                    } catch (error) {
-                                                        console.error("Lỗi khi thêm giỏ hàng:", error);
-                                                        alert("Không thể thêm sản phẩm.");
-                                                    }
-                                                }}
-                                            >
-                                                Thêm vào giỏ hàng <span className="fa-solid fa-angle-right"></span>
-                                            </a>
-                                        )}
-                                    </div>
+            <div className="portfolio gallery gallery-container">
+                {productsOnePiece.map((product, index) => (
+                    <article key={index} className="product-card">
+                        <div className="image-container">
+                            <img
+                                className="product-image"
+                                src={product.images?.[0]?.imageUrl || ''}
+                                alt={product.name}
+                            />
+                            {product.status === "Hết hàng" && (
+                                <div style={{
+                                    position: "absolute",
+                                    top: 0,
+                                    left: 0,
+                                    width: "100%",
+                                    height: "100%",
+                                    backgroundColor: "rgba(0, 0, 0, 0.5)",
+                                    color: "white",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    fontWeight: "bold",
+                                    fontSize: "18px",
+                                    zIndex: 2,
+                                }}>
+                                    ❌ Hết hàng
                                 </div>
-                            );
-                        })
-                    )}
+                            )}
+                            {/* <span className="discount-badge">-{product.sale.discountPercent}%</span> */}
+                        </div>
+                        <div className="product-info">
+                            <h3 className="product-title"
+                                onClick={() => {
+                                    localStorage.setItem("productsId", product.id);
+                                    localStorage.setItem("productImages", JSON.stringify(product.images || []));
+                                    navigate(`/shopNemo/${slugify(product.name)}`);
+                                }}>
+                                {product.name}
+                            </h3>
+                            <div className="price-container">
+                                {!product.sale?.id || product.sale?.status === 0 ? (
+                                    <p>{Number(product.price).toLocaleString("vi-VN")} đ</p>
+                                ) : (
+                                    <p>
+                                        <del style={{ color: "gray", marginRight: "8px" }}>
+                                            {Number(product.price).toLocaleString("vi-VN")} đ
+                                        </del>
+                                        <strong style={{ color: '#e74c3c' }}>
+                                            {Number(
+                                                product.price - (product.price * (product.sale.discountPercent / 100))
+                                            ).toLocaleString("vi-VN")} đ
+                                        </strong>
+                                    </p>
+                                )}
+                                {product.status === "Hết hàng" ? (
+                                    <span className="out-of-stock-label"></span>
+                                ) : (
+                                    <a className="original-cart"
+                                        onClick={async (e) => {
+                                            e.preventDefault();
+                                            try {
+                                                let displayImage = product.images?.[0]?.imageUrl || displayImage || 'URL_ANH_MAC_DINH_CUA_BAN';
+                                                if (!displayImage) {
+                                                    alert("Không có ảnh để thêm vào giỏ.");
+                                                    return;
+                                                }
 
-                </div>
+                                                let imageToSave = displayImage;
+
+                                                // CHỈ resize nếu displayImage là chuỗi Base64 quá lớn
+                                                // Nếu displayImage là URL (http...), bỏ qua đoạn resize này để tối ưu tốc độ
+                                                if (displayImage.startsWith('data:image')) {
+                                                    const file = base64ToFile(displayImage);
+                                                    imageToSave = await resizeImageToBase64(file, 100, 100, 0.5);
+                                                }
+
+                                                const finalPrice = product.sale?.id && product.sale?.status === 1
+                                                    ? product.price - (product.price * (product.sale.discountPercent / 100))
+                                                    : product.price;
+
+                                                addToCart({
+                                                    id: product.id,
+                                                    name: product.name,
+                                                    price: finalPrice,
+                                                    image: imageToSave, // URL hoặc base64 ngắn gọn
+                                                });
+
+                                                alert("Đã thêm vào giỏ hàng!");
+                                            } catch (error) {
+                                                console.error("Lỗi khi thêm giỏ hàng:", error);
+                                                alert("Không thể thêm sản phẩm.");
+                                            }
+                                        }}>
+                                        <AddShoppingCartIcon />
+                                    </a>
+                                )}
+
+                            </div>
+                        </div>
+                    </article>
+                ))}
             </div>
             <hr></hr>
             <h1>Mô hình NARUTO</h1>
-
-
-            <div className="flex-center">
-                <div className="portfolio gallery gallery-container">
-                    {loading ? (
-                        <p> <CircularProgress disableShrink /></p>
-                    ) : (
-                        productsNaruto.map((product, index) => {
-                            // Lấy URL ảnh từ danh sách images (giả sử phần tử đầu tiên)
-                            const displayImage = product.images && product.images.length > 0
-                                ? product.images[0].imageUrl
-                                : null;
-
-                            return (
-                                <div className="item" key={index}>
-                                    <div className="thumb" style={{ position: "relative" }}>
-                                        <a className="category">{product.categories.name}</a>
-
-                                        {displayImage ? (
-                                            <img
-                                                // style={{ objectFit: "cover", width: "100%", height: "300px" }} // Thêm kích thước cố định để card đều
-                                                src={product.images?.[0]?.imageUrl || ''}
-                                                alt={product.name}
-                                            />
-                                        ) : (
-                                            <div style={{ height: "250px", width: "100%", backgroundColor: "#eee", display: "flex", alignItems: "center", justifyContent: "center", color: "#999" }}>
-                                                No image
-                                            </div>
-                                        )}
-
-                                        {product.status === "Hết hàng" && (
-                                            <div style={{
-                                                position: "absolute",
-                                                top: 0,
-                                                left: 0,
-                                                width: "100%",
-                                                height: "100%",
-                                                backgroundColor: "rgba(0, 0, 0, 0.5)",
-                                                color: "white",
-                                                display: "flex",
-                                                alignItems: "center",
-                                                justifyContent: "center",
-                                                fontWeight: "bold",
-                                                fontSize: "18px",
-                                                zIndex: 2,
-                                            }}>
-                                                ❌ Hết hàng
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <div className="text">
-                                        <h3>
-                                            <a onClick={() => {
-                                                localStorage.setItem("productsId", product.id);
-                                                localStorage.setItem("productImages", JSON.stringify(product.images || []));
-                                                navigate(`/shopNemo/${slugify(product.name)}`);
-                                            }}>
-                                                {product.name}
-                                            </a>
-                                        </h3>
-
-                                        {!product.sale?.id || product.sale?.status === 0 ? (
-                                            <p>{Number(product.price).toLocaleString("vi-VN")} đ</p>
-                                        ) : (
-                                            <p>
-                                                <del style={{ color: "gray", marginRight: "8px" }}>
-                                                    {Number(product.price).toLocaleString("vi-VN")} đ
-                                                </del>
-                                                <strong style={{ color: '#e74c3c' }}>
-                                                    {Number(
-                                                        product.price - (product.price * (product.sale.discountPercent / 100))
-                                                    ).toLocaleString("vi-VN")} đ
-                                                </strong>
-                                            </p>
-                                        )}
-
-                                        {product.status !== "Hết hàng" && (
-                                            <a
-                                                href="#"
-                                                className="view"
-                                                onClick={async (e) => {
-                                                    e.preventDefault();
-                                                    try {
-                                                        if (!displayImage) {
-                                                            alert("Không có ảnh để thêm vào giỏ.");
-                                                            return;
-                                                        }
-
-                                                        let imageToSave = displayImage;
-
-                                                        // CHỈ resize nếu displayImage là chuỗi Base64 quá lớn
-                                                        // Nếu displayImage là URL (http...), bỏ qua đoạn resize này để tối ưu tốc độ
-                                                        if (displayImage.startsWith('data:image')) {
-                                                            const file = base64ToFile(displayImage);
-                                                            imageToSave = await resizeImageToBase64(file, 100, 100, 0.5);
-                                                        }
-
-                                                        const finalPrice = product.sale?.id && product.sale?.status === 1
-                                                            ? product.price - (product.price * (product.sale.discountPercent / 100))
-                                                            : product.price;
-
-                                                        addToCart({
-                                                            id: product.id,
-                                                            name: product.name,
-                                                            price: finalPrice,
-                                                            image: imageToSave, // URL hoặc base64 ngắn gọn
-                                                        });
-
-                                                        alert("Đã thêm vào giỏ hàng!");
-                                                    } catch (error) {
-                                                        console.error("Lỗi khi thêm giỏ hàng:", error);
-                                                        alert("Không thể thêm sản phẩm.");
-                                                    }
-                                                }}
-                                            >
-                                                Thêm vào giỏ hàng <span className="fa-solid fa-angle-right"></span>
-                                            </a>
-                                        )}
-                                    </div>
+            <div className="portfolio gallery gallery-container">
+                {productsNaruto.map((product, index) => (
+                    <article key={index} className="product-card">
+                        <div className="image-container">
+                            <img
+                                className="product-image"
+                                src={product.images?.[0]?.imageUrl || ''}
+                                alt={product.name}
+                            />
+                            {product.status === "Hết hàng" && (
+                                <div style={{
+                                    position: "absolute",
+                                    top: 0,
+                                    left: 0,
+                                    width: "100%",
+                                    height: "100%",
+                                    backgroundColor: "rgba(0, 0, 0, 0.5)",
+                                    color: "white",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    fontWeight: "bold",
+                                    fontSize: "18px",
+                                    zIndex: 2,
+                                }}>
+                                    ❌ Hết hàng
                                 </div>
-                            );
-                        })
-                    )}
+                            )}
+                            {/* <span className="discount-badge">-{product.sale.discountPercent}%</span> */}
+                        </div>
+                        <div className="product-info">
+                            <h3 className="product-title"
+                                onClick={() => {
+                                    localStorage.setItem("productsId", product.id);
+                                    localStorage.setItem("productImages", JSON.stringify(product.images || []));
+                                    navigate(`/shopNemo/${slugify(product.name)}`);
+                                }}>
+                                {product.name}
+                            </h3>
+                            <div className="price-container">
+                                {!product.sale?.id || product.sale?.status === 0 ? (
+                                    <p>{Number(product.price).toLocaleString("vi-VN")} đ</p>
+                                ) : (
+                                    <p>
+                                        <del style={{ color: "gray", marginRight: "8px" }}>
+                                            {Number(product.price).toLocaleString("vi-VN")} đ
+                                        </del>
+                                        <strong style={{ color: '#e74c3c' }}>
+                                            {Number(
+                                                product.price - (product.price * (product.sale.discountPercent / 100))
+                                            ).toLocaleString("vi-VN")} đ
+                                        </strong>
+                                    </p>
+                                )}
+                                {product.status === "Hết hàng" ? (
+                                    <span className="out-of-stock-label"></span>
+                                ) : (
+                                    <a className="original-cart"
+                                        onClick={async (e) => {
+                                            e.preventDefault();
+                                            try {
+                                                let displayImage = product.images?.[0]?.imageUrl || displayImage || 'URL_ANH_MAC_DINH_CUA_BAN';
+                                                if (!displayImage) {
+                                                    alert("Không có ảnh để thêm vào giỏ.");
+                                                    return;
+                                                }
 
-                </div>
+                                                let imageToSave = displayImage;
+
+                                                // CHỈ resize nếu displayImage là chuỗi Base64 quá lớn
+                                                // Nếu displayImage là URL (http...), bỏ qua đoạn resize này để tối ưu tốc độ
+                                                if (displayImage.startsWith('data:image')) {
+                                                    const file = base64ToFile(displayImage);
+                                                    imageToSave = await resizeImageToBase64(file, 100, 100, 0.5);
+                                                }
+
+                                                const finalPrice = product.sale?.id && product.sale?.status === 1
+                                                    ? product.price - (product.price * (product.sale.discountPercent / 100))
+                                                    : product.price;
+
+                                                addToCart({
+                                                    id: product.id,
+                                                    name: product.name,
+                                                    price: finalPrice,
+                                                    image: imageToSave, // URL hoặc base64 ngắn gọn
+                                                });
+
+                                                alert("Đã thêm vào giỏ hàng!");
+                                            } catch (error) {
+                                                console.error("Lỗi khi thêm giỏ hàng:", error);
+                                                alert("Không thể thêm sản phẩm.");
+                                            }
+                                        }}>
+                                        <AddShoppingCartIcon />
+                                    </a>
+                                )}
+
+                            </div>
+                        </div>
+                    </article>
+                ))}
             </div>
             <hr></hr>
             <h1>Mô hình DRAGONBALL </h1>
-            <div className="flex-center">
-                <div className="portfolio gallery gallery-container">
-                    {loading ? (
-                        <p> <CircularProgress disableShrink /></p>
-                    ) : (
-                        productsDragonball.map((product, index) => {
-                            // Lấy URL ảnh từ danh sách images (giả sử phần tử đầu tiên)
-                            const displayImage = product.images && product.images.length > 0
-                                ? product.images[0].imageUrl
-                                : null;
 
-                            return (
-                                <div className="item" key={index}>
-                                    <div className="thumb" style={{ position: "relative" }}>
-                                        <a className="category">{product.categories.name}</a>
-
-                                        {displayImage ? (
-                                            <img
-                                                // style={{ objectFit: "cover", width: "100%", height: "300px" }} // Thêm kích thước cố định để card đều
-                                                src={product.images?.[0]?.imageUrl || ''}
-                                                alt={product.name}
-                                            />
-                                        ) : (
-                                            <div style={{ height: "250px", width: "100%", backgroundColor: "#eee", display: "flex", alignItems: "center", justifyContent: "center", color: "#999" }}>
-                                                No image
-                                            </div>
-                                        )}
-
-                                        {product.status === "Hết hàng" && (
-                                            <div style={{
-                                                position: "absolute",
-                                                top: 0,
-                                                left: 0,
-                                                width: "100%",
-                                                height: "100%",
-                                                backgroundColor: "rgba(0, 0, 0, 0.5)",
-                                                color: "white",
-                                                display: "flex",
-                                                alignItems: "center",
-                                                justifyContent: "center",
-                                                fontWeight: "bold",
-                                                fontSize: "18px",
-                                                zIndex: 2,
-                                            }}>
-                                                ❌ Hết hàng
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <div className="text">
-                                        <h3>
-                                            <a onClick={() => {
-                                                localStorage.setItem("productsId", product.id);
-                                                localStorage.setItem("productImages", JSON.stringify(product.images || []));
-                                                navigate(`/shopNemo/${slugify(product.name)}`);
-                                            }}>
-                                                {product.name}
-                                            </a>
-                                        </h3>
-
-                                        {!product.sale?.id || product.sale?.status === 0 ? (
-                                            <p>{Number(product.price).toLocaleString("vi-VN")} đ</p>
-                                        ) : (
-                                            <p>
-                                                <del style={{ color: "gray", marginRight: "8px" }}>
-                                                    {Number(product.price).toLocaleString("vi-VN")} đ
-                                                </del>
-                                                <strong style={{ color: '#e74c3c' }}>
-                                                    {Number(
-                                                        product.price - (product.price * (product.sale.discountPercent / 100))
-                                                    ).toLocaleString("vi-VN")} đ
-                                                </strong>
-                                            </p>
-                                        )}
-
-                                        {product.status !== "Hết hàng" && (
-                                            <a
-                                                href="#"
-                                                className="view"
-                                                onClick={async (e) => {
-                                                    e.preventDefault();
-                                                    try {
-                                                        if (!displayImage) {
-                                                            alert("Không có ảnh để thêm vào giỏ.");
-                                                            return;
-                                                        }
-
-                                                        let imageToSave = displayImage;
-
-                                                        // CHỈ resize nếu displayImage là chuỗi Base64 quá lớn
-                                                        // Nếu displayImage là URL (http...), bỏ qua đoạn resize này để tối ưu tốc độ
-                                                        if (displayImage.startsWith('data:image')) {
-                                                            const file = base64ToFile(displayImage);
-                                                            imageToSave = await resizeImageToBase64(file, 100, 100, 0.5);
-                                                        }
-
-                                                        const finalPrice = product.sale?.id && product.sale?.status === 1
-                                                            ? product.price - (product.price * (product.sale.discountPercent / 100))
-                                                            : product.price;
-
-                                                        addToCart({
-                                                            id: product.id,
-                                                            name: product.name,
-                                                            price: finalPrice,
-                                                            image: imageToSave, // URL hoặc base64 ngắn gọn
-                                                        });
-
-                                                        alert("Đã thêm vào giỏ hàng!");
-                                                    } catch (error) {
-                                                        console.error("Lỗi khi thêm giỏ hàng:", error);
-                                                        alert("Không thể thêm sản phẩm.");
-                                                    }
-                                                }}
-                                            >
-                                                Thêm vào giỏ hàng <span className="fa-solid fa-angle-right"></span>
-                                            </a>
-                                        )}
-                                    </div>
+            <div className="portfolio gallery gallery-container">
+                {productsDragonball.map((product, index) => (
+                    <article key={index} className="product-card">
+                        <div className="image-container">
+                            <img
+                                className="product-image"
+                                src={product.images?.[0]?.imageUrl || ''}
+                                alt={product.name}
+                            />
+                            {product.status === "Hết hàng" && (
+                                <div style={{
+                                    position: "absolute",
+                                    top: 0,
+                                    left: 0,
+                                    width: "100%",
+                                    height: "100%",
+                                    backgroundColor: "rgba(0, 0, 0, 0.5)",
+                                    color: "white",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    fontWeight: "bold",
+                                    fontSize: "18px",
+                                    zIndex: 2,
+                                }}>
+                                    ❌ Hết hàng
                                 </div>
-                            );
-                        })
-                    )}
+                            )}
+                            {/* <span className="discount-badge">-{product.sale.discountPercent}%</span> */}
+                        </div>
+                        <div className="product-info">
+                            <h3 className="product-title"
+                                onClick={() => {
+                                    localStorage.setItem("productsId", product.id);
+                                    localStorage.setItem("productImages", JSON.stringify(product.images || []));
+                                    navigate(`/shopNemo/${slugify(product.name)}`);
+                                }}>
+                                {product.name}
+                            </h3>
+                            <div className="price-container">
+                                {!product.sale?.id || product.sale?.status === 0 ? (
+                                    <p>{Number(product.price).toLocaleString("vi-VN")} đ</p>
+                                ) : (
+                                    <p>
+                                        <del style={{ color: "gray", marginRight: "8px" }}>
+                                            {Number(product.price).toLocaleString("vi-VN")} đ
+                                        </del>
+                                        <strong style={{ color: '#e74c3c' }}>
+                                            {Number(
+                                                product.price - (product.price * (product.sale.discountPercent / 100))
+                                            ).toLocaleString("vi-VN")} đ
+                                        </strong>
+                                    </p>
+                                )}
+                                {product.status === "Hết hàng" ? (
+                                    <span className="out-of-stock-label"></span>
+                                ) : (
+                                    <a className="original-cart"
+                                        onClick={async (e) => {
+                                            e.preventDefault();
+                                            try {
+                                                let displayImage = product.images?.[0]?.imageUrl || displayImage || 'URL_ANH_MAC_DINH_CUA_BAN';
+                                                if (!displayImage) {
+                                                    alert("Không có ảnh để thêm vào giỏ.");
+                                                    return;
+                                                }
 
-                </div>
+                                                let imageToSave = displayImage;
+
+                                                // CHỈ resize nếu displayImage là chuỗi Base64 quá lớn
+                                                // Nếu displayImage là URL (http...), bỏ qua đoạn resize này để tối ưu tốc độ
+                                                if (displayImage.startsWith('data:image')) {
+                                                    const file = base64ToFile(displayImage);
+                                                    imageToSave = await resizeImageToBase64(file, 100, 100, 0.5);
+                                                }
+
+                                                const finalPrice = product.sale?.id && product.sale?.status === 1
+                                                    ? product.price - (product.price * (product.sale.discountPercent / 100))
+                                                    : product.price;
+
+                                                addToCart({
+                                                    id: product.id,
+                                                    name: product.name,
+                                                    price: finalPrice,
+                                                    image: imageToSave, // URL hoặc base64 ngắn gọn
+                                                });
+
+                                                alert("Đã thêm vào giỏ hàng!");
+                                            } catch (error) {
+                                                console.error("Lỗi khi thêm giỏ hàng:", error);
+                                                alert("Không thể thêm sản phẩm.");
+                                            }
+                                        }}>
+                                        <AddShoppingCartIcon />
+                                    </a>
+                                )}
+
+                            </div>
+                        </div>
+                    </article>
+                ))}
             </div>
 
-        </div>
+        </div >
     )
 }
 export default Home;

@@ -9,6 +9,7 @@ import { addToCart, resizeImageToBase64, base64ToFile } from './addCart';
 import Footer from './footer'
 import api from '../../axiosConfig';
 import { Pagination, Stack } from '@mui/material';
+import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 
 function ProductsCategories() {
     useEffect(() => {
@@ -44,9 +45,11 @@ function ProductsCategories() {
     }, [window.location.pathname]);
     const [productsPage, setProductsPage] = useState({ content: [], first: true, last: true });
     const [page, setPage] = useState(0);
-    const size = 9;
+    const size = 12;
     const [totalPages, setTotalPages] = useState(0);
+   
     useEffect(() => {
+          window.scrollTo(0, 0);
         fetchProducts();
     }, [id, page]);
 
@@ -229,7 +232,7 @@ function ProductsCategories() {
                                             textDecoration: 'none' // Không gạch chân (giống hình)
                                         }}
                                     >
-                                        Xóa 
+                                        Xóa
                                     </span>
                                 </div>
                             )}
@@ -311,67 +314,45 @@ function ProductsCategories() {
                     <div className="right-column">
                         <div className="flex-center">
                             <div className="portfolio gallery gallery-container">
-                                {productsPage.content.map((product, index) => {
-                                    const displayImage = product.images && product.images.length > 0
-                                        ? product.images[0].imageUrl
-                                        : null;
-
-
-                                    return (
-                                        <div className="item" key={index}>
-                                            <div className="thumb" style={{ position: "relative" }}>
-                                                <a className="category">One Piece</a>
-
-                                                {displayImage ? (
-                                                    <img
-                                                        // style={{ objectFit: "cover", width: "100%", height: "300px" }} // Thêm kích thước cố định để card đều
-                                                        src={product.images?.[0]?.imageUrl || ''}
-                                                        alt={product.name}
-                                                    />
-                                                ) : (
-                                                    <div style={{ height: "250px", width: "100%", backgroundColor: "#eee", display: "flex", alignItems: "center", justifyContent: "center", color: "#999" }}>
-                                                        No image
-                                                    </div>
-                                                )}
-
-                                                {/* Overlay chữ "Hết hàng" */}
-                                                {product.status === "Hết hàng" && (
-                                                    <div
-                                                        style={{
-                                                            position: "absolute",
-                                                            top: 0,
-                                                            left: 0,
-                                                            width: "100%",
-                                                            height: "100%",
-                                                            backgroundColor: "rgba(0, 0, 0, 0.5)",
-                                                            color: "white",
-                                                            display: "flex",
-                                                            alignItems: "center",
-                                                            justifyContent: "center",
-                                                            fontWeight: "bold",
-                                                            fontSize: "18px",
-                                                            zIndex: 2,
-                                                        }}
-                                                    >
-                                                        ❌ Hết hàng
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            <div className="text">
-                                                <h3>
-                                                    <a
-                                                        onClick={() => {
-                                                            localStorage.setItem("productsId", product.id);
-                                                            localStorage.setItem("productImages", JSON.stringify(product.images || []));
-                                                            navigate(`/shopNemo/${slugify(product.name)}`);
-                                                        }}
-                                                    >
-                                                        {product.name}
-                                                    </a>
-                                                </h3>
-
-                                                {/* Giá */}
+                                {productsPage.content && productsPage.content.map((product, index) => (
+                                    <article key={index} className="product-card">
+                                        <div className="image-container">
+                                            <img
+                                                className="product-image"
+                                                src={product.images?.[0]?.imageUrl || ''}
+                                                alt={product.name}
+                                            />
+                                            {product.status === "Hết hàng" && (
+                                                <div style={{
+                                                    position: "absolute",
+                                                    top: 0,
+                                                    left: 0,
+                                                    width: "100%",
+                                                    height: "100%",
+                                                    backgroundColor: "rgba(0, 0, 0, 0.5)",
+                                                    color: "white",
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    justifyContent: "center",
+                                                    fontWeight: "bold",
+                                                    fontSize: "18px",
+                                                    zIndex: 2,
+                                                }}>
+                                                    ❌ Hết hàng
+                                                </div>
+                                            )}
+                                            {/* <span className="discount-badge">-{product.sale.discountPercent}%</span> */}
+                                        </div>
+                                        <div className="product-info">
+                                            <h3 className="product-title"
+                                                onClick={() => {
+                                                    localStorage.setItem("productsId", product.id);
+                                                    localStorage.setItem("productImages", JSON.stringify(product.images || []));
+                                                    navigate(`/shopNemo/${slugify(product.name)}`);
+                                                }}>
+                                                {product.name}
+                                            </h3>
+                                            <div className="price-container">
                                                 {!product.sale?.id || product.sale?.status === 0 ? (
                                                     <p>{Number(product.price).toLocaleString("vi-VN")} đ</p>
                                                 ) : (
@@ -386,15 +367,14 @@ function ProductsCategories() {
                                                         </strong>
                                                     </p>
                                                 )}
-
-                                                {/* Thêm vào giỏ nếu còn hàng */}
-                                                {product.status !== "Hết hàng" && (
-                                                    <a
-                                                        href="#"
-                                                        className="view"
+                                                {product.status === "Hết hàng" ? (
+                                                    <span className="out-of-stock-label"></span>
+                                                ) : (
+                                                    <a className="original-cart"
                                                         onClick={async (e) => {
                                                             e.preventDefault();
                                                             try {
+                                                                let displayImage = product.images?.[0]?.imageUrl || displayImage || 'URL_ANH_MAC_DINH_CUA_BAN';
                                                                 if (!displayImage) {
                                                                     alert("Không có ảnh để thêm vào giỏ.");
                                                                     return;
@@ -425,17 +405,15 @@ function ProductsCategories() {
                                                                 console.error("Lỗi khi thêm giỏ hàng:", error);
                                                                 alert("Không thể thêm sản phẩm.");
                                                             }
-                                                        }}
-                                                    >
-                                                        Thêm vào giỏ hàng <span className="fa-solid fa-angle-right"></span>
+                                                        }}>
+                                                        <AddShoppingCartIcon />
                                                     </a>
                                                 )}
+
                                             </div>
                                         </div>
-                                    );
-                                })}
-
-
+                                    </article>
+                                ))}
                             </div>
                         </div>
                         <Stack spacing={2} sx={{ marginTop: 2, alignItems: 'center' }}>

@@ -17,6 +17,7 @@ import ProductsCategories from './client/js/productsCategories';
 import CartItems from './client/js/cartItems';
 import PaymentResult from './client/js/PaymentResult';
 import UserProfile from './client/js/userProfile';
+import SearchPage from './client/js/searchPage'
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
@@ -29,6 +30,7 @@ root.render(
         <Route path="/shopNemo/:slug" element={<Detail />} />
         <Route path="/collections/:nameCategories" element={<ProductsCategories />} />
         <Route path="/cart" element={<CartItems />} />
+        <Route path="/search" element={<SearchPage />} />
         <Route path="/payment-result" element={<PaymentResult />} />
         <Route path="/userProfile" element={<UserProfile />} />
         {/* Trang đăng nhập của Admin/Staff */}

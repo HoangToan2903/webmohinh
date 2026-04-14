@@ -49,7 +49,7 @@ function Home() {
 
     useEffect(() => {
         fetchEnoughProductsOnePiece();
-          window.scrollTo(0, 0);
+        window.scrollTo(0, 0);
 
     }, []);
     // 
@@ -110,15 +110,11 @@ function Home() {
                 const filtered = data.content.filter(
                     (product) => product.categories?.name === "Mô hình Naruto"
                 );
-
                 collected = [...collected, ...filtered];
-
                 hasMore = currentPage < data.totalPages - 1;
                 currentPage += 1;
-
-                if (!hasMore) break; // hết trang rồi thì dừng
+                if (!hasMore) break; 
             }
-            // Cắt đúng 8 sản phẩm
             setProductsNaruto(collected.slice(0, 8));
         } catch (error) {
             console.error("Lỗi khi lấy sản phẩm:", error);
@@ -143,17 +139,26 @@ function Home() {
     const fetchSaleProducts = async () => {
         try {
             setLoading(true);
-            // Thay đổi URL này cho đúng với Server của bạn
             const response = await api.get('/productsSale');
-            setProducts(response.data);
+
+            
+            if (Array.isArray(response.data)) {
+                setProducts(response.data);
+            } else if (response.data && Array.isArray(response.data.content)) {
+                setProducts(response.data.content);
+            } else {
+                console.error("API did not return an array:", response.data);
+                setProducts([]); 
+            }
+
             setLoading(false);
         } catch (err) {
             console.error("Lỗi khi lấy dữ liệu:", err);
             setError("Không thể tải danh sách sản phẩm.");
+            setProducts([]); 
             setLoading(false);
         }
     };
-
     useEffect(() => {
         fetchSaleProducts();
     }, []);

@@ -74,25 +74,22 @@ function ProductsCategories() {
         }
     };
 
-    // Đừng quên thêm selectedProducer vào mảng dependencies của useEffect
     useEffect(() => {
         fetchProducts();
     }, [id, page, filterTrigger, selectedProducer]);
 
-    // Cập nhật useEffect để lắng nghe thêm filterTrigger
     useEffect(() => {
         if (id) {
             fetchProducts();
         }
-    }, [id, page, filterTrigger]); // Fetch lại khi ID, trang hoặc nút Lọc được nhấn
-
-    // Hàm xử lý khi nhấn nút Lọc
+    }, [id, page, filterTrigger]); 
+ 
     const handleFilterBtn = () => {
-        setPage(0); // Reset về trang đầu tiên khi lọc
-        setFilterTrigger(prev => prev + 1); // Kích hoạt useEffect
+        setPage(0); 
+        setFilterTrigger(prev => prev + 1);
     };
     const handlePageChange = (event, value) => {
-        setPage(value - 1); // Material UI Pagination dùng base-1, Spring Boot dùng base-0
+        setPage(value - 1); 
     };
 
     const [producers, setProducers] = useState([]);

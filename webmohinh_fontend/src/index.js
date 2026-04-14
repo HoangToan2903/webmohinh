@@ -18,10 +18,12 @@ import CartItems from './client/js/cartItems';
 import PaymentResult from './client/js/PaymentResult';
 import UserProfile from './client/js/userProfile';
 import SearchPage from './client/js/searchPage'
+import ScrollToTop from "./client/js/scrollToTop";
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
     <Router>
+      <ScrollToTop />
       <Routes>
         {/* --- VÙNG PUBLIC (Dành cho khách hàng) --- */}
         <Route path="/home" element={<Home />} />

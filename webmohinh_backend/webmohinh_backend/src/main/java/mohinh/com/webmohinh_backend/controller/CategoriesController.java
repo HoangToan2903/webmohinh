@@ -27,6 +27,7 @@ public class CategoriesController {
             @RequestParam(defaultValue = "8") int size) {
         return categoryService.getAll(page, size);
     }
+
     @PostMapping("/category")
     public ResponseEntity<Categories> create(@RequestBody Categories category) {
         // category lúc này đã chứa name, description và image (URL string)
